@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insider Threat Matrix — MITRE-Style Framework</title>
+<style>
+  :root {
+    --bg: #0d0f12;
+    --bg2: #13161a;
+    --bg3: #1a1e24;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaed;
+    --muted: #8b919a;
+    --faint: #555c66;
+    --accent: #4f8ef7;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; min-height: 100vh; }
+
+  /* ── header ── */
+  .site-header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 28px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .site-header h1 { font-size: 18px; font-weight: 600; letter-spacing: -.3px; color: var(--text); }
+  .site-header p { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .header-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .badge {
+    font-size: 10px; font-weight: 500; letter-spacing: .04em;
+    padding: 3px 8px; border-radius: 4px; border: 1px solid;
+  }
+  .badge-blue { background: rgba(79,142,247,.15); color: #78aeff; border-color: rgba(79,142,247,.3); }
+  .badge-green { background: rgba(52,199,89,.12); color: #5dd97a; border-color: rgba(52,199,89,.25); }
+  .badge-amber { background: rgba(255,159,10,.12); color: #ffba45; border-color: rgba(255,159,10,.25); }
+
+  /* ── toolbar ── */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; padding: 12px 28px;
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .toolbar-label { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+  .view-btn {
+    font-size: 11px; font-weight: 500; padding: 5px 12px;
+    border: 1px solid var(--border2); border-radius: 5px;
+    background: transparent; color: var(--muted); cursor: pointer;
+    transition: all .15s;
+  }
+  .view-btn.active, .view-btn:hover { background: rgba(79,142,247,.15); color: #78aeff; border-color: rgba(79,142,247,.4); }
+  .toolbar-sep { width: 1px; height: 18px; background: var(--border2); }
+  .search-wrap { position: relative; margin-left: auto; }
+  .search-wrap input {
+    background: var(--bg3); border: 1px solid var(--border2); border-radius: 6px;
+    color: var(--text); font-size: 12px; padding: 5px 10px 5px 30px;
+    outline: none; width: 220px;
+  }
+  .search-wrap input:focus { border-color: rgba(79,142,247,.5); }
+  .search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--faint); font-size: 13px; pointer-events: none; }
+
+  /* ── main layout ── */
+  .main { padding: 20px 28px; overflow-x: auto; }
+
+  /* ── matrix view ── */
+  #matrix-view { min-width: 900px; }
+  .tactic-row { display: flex; gap: 6px; margin-bottom: 4px; }
+  .tactic-header-cell {
+    flex: 1; min-width: 110px; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .07em;
+    padding: 8px 10px; border-radius: 5px 5px 0 0;
+    text-align: center; cursor: default;
+  }
+  .technique-row { display: flex; gap: 6px; margin-bottom: 3px; }
+  .tech-cell {
+    flex: 1; min-width: 110px; font-size: 10px; font-weight: 500;
+    padding: 7px 8px; border-radius: 4px; border: 1px solid transparent;
+    cursor: pointer; line-height: 1.35; transition: filter .15s, transform .1s;
+    position: relative;
+  }
+  .tech-cell:hover { filter: brightness(1.18); transform: scale(1.025); z-index: 2; }
+  .tech-cell .dt-badge {
+    display: inline-block; margin-top: 5px;
+    font-size: 9px; opacity: .7; font-family: var(--mono);
+  }
+  /* tactic color themes */
+  .t0 { background: #1e2024; color: #9ba3ae; border-color: #363a40; }
+  .t0h { background: #2a2d33; color: #c5cad0; }
+  .t1 { background: #0d2240; color: #7ab5f5; border-color: #1a3a5c; }
+  .t1h { background: #0f2d52; color: #aad0ff; }
+  .t2 { background: #1a1040; color: #a899f0; border-color: #2e2060; }
+  .t2h { background: #221550; color: #c4baf5; }
+  .t3 { background: #3d0e0e; color: #f5836a; border-color: #5a1a1a; }
+  .t3h { background: #4d1212; color: #f5a090; }
+  .t4 { background: #0d2e22; color: #5dcba5; border-color: #1a4535; }
+  .t4h { background: #103826; color: #8fe0c0; }
+  .t5 { background: #2e1a05; color: #d4923a; border-color: #4a2e0d; }
+  .t5h { background: #3a2108; color: #e8b060; }
+  .t6 { background: #102510; color: #74c25a; border-color: #1e3d1e; }
+  .t6h { background: #142e14; color: #99d880; }
+  .t7 { background: #2e0d1e; color: #d46090; border-color: #4a1a30; }
+  .t7h { background: #3a1025; color: #e890b0; }
+
+  /* ── heatmap view ── */
+  #heatmap-view { display: none; min-width: 900px; }
+  .hm-tactic-row { display: flex; gap: 6px; margin-bottom: 4px; }
+  .hm-tactic-cell {
+    flex: 1; min-width: 110px; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .07em;
+    padding: 8px 10px; border-radius: 5px 5px 0 0; text-align: center;
+    background: #1a1e24; color: var(--muted); border-bottom: 2px solid var(--border2);
+  }
+  .hm-tech-row { display: flex; gap: 6px; margin-bottom: 3px; }
+  .hm-cell {
+    flex: 1; min-width: 110px; padding: 7px 8px; border-radius: 4px;
+    font-size: 10px; font-weight: 500; line-height: 1.35;
+    cursor: pointer; transition: filter .15s, transform .1s; position: relative;
+  }
+  .hm-cell:hover { filter: brightness(1.2); transform: scale(1.025); z-index: 2; }
+  .hm-cell .hm-count { font-family: var(--mono); font-size: 9px; display: block; margin-top: 4px; opacity: .8; }
+  /* heat levels 0-5 */
+  .heat-0 { background: #1a1e24; color: var(--faint); border: 1px solid #252a30; }
+  .heat-1 { background: #0e2535; color: #5090c0; border: 1px solid #1a3a52; }
+  .heat-2 { background: #102a1a; color: #409060; border: 1px solid #1a4030; }
+  .heat-3 { background: #2a2010; color: #b08030; border: 1px solid #403010; }
+  .heat-4 { background: #2e1010; color: #d06050; border: 1px solid #4a2020; }
+  .heat-5 { background: #3a0d1a; color: #e0507a; border: 1px solid #5a1530; }
+  .hm-legend { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .hm-legend-label { font-size: 11px; color: var(--muted); }
+  .hm-swatch { width: 22px; height: 14px; border-radius: 3px; }
+  .hm-legend-text { font-size: 10px; color: var(--faint); }
+
+  /* ── detail panel ── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.65); z-index: 200;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .panel {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 10px; width: 100%; max-width: 600px;
+    max-height: 85vh; overflow-y: auto; padding: 24px;
+  }
+  .panel-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .panel-tid { font-size: 10px; font-family: var(--mono); color: var(--muted); margin-bottom: 4px; }
+  .panel-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .panel-tactic { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .panel-close {
+    background: transparent; border: 1px solid var(--border2);
+    border-radius: 5px; color: var(--muted); font-size: 12px;
+    padding: 4px 10px; cursor: pointer; flex-shrink: 0;
+  }
+  .panel-close:hover { background: var(--bg3); }
+  .panel-desc { font-size: 13px; color: var(--muted); line-height: 1.65; margin-bottom: 18px; }
+  .panel-section-label {
+    font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .06em; color: var(--faint); margin-bottom: 10px;
+  }
+  .dt-list { display: flex; flex-direction: column; gap: 8px; }
+  .dt-item {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 12px;
+  }
+  .dt-item-id { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-bottom: 3px; }
+  .dt-item-name { font-size: 12px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .dt-item-desc { font-size: 11px; color: var(--muted); line-height: 1.55; }
+
+  /* ── stats bar ── */
+  .stats-bar {
+    display: flex; gap: 20px; padding: 12px 28px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .stat { display: flex; flex-direction: column; }
+  .stat-num { font-size: 18px; font-weight: 600; color: var(--text); font-family: var(--mono); }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 1px; }
+
+  /* ── search highlight ── */
+  .dim { opacity: .22; pointer-events: none; }
+  .highlight { outline: 2px solid rgba(79,142,247,.6) !important; outline-offset: 1px; }
+
+  /* ── footer ── */
+  .site-footer {
+    margin-top: 40px; padding: 20px 28px;
+    border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--faint);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+  .site-footer a { color: var(--muted); text-decoration: none; }
+  .site-footer a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div>
+    <h1>Insider Threat Matrix</h1>
+    <p>MITRE ATT&CK–style framework for computer-enabled insider threat detection and investigation</p>
+    <div class="header-badges">
+      <span class="badge badge-blue">8 Tactics</span>
+      <span class="badge badge-blue">50 Techniques</span>
+      <span class="badge badge-green">130+ Detection Mappings</span>
+      <span class="badge badge-amber">Custom Framework</span>
+    </div>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><span class="stat-num" id="stat-tactics">8</span><span class="stat-label">Tactics</span></div>
+  <div class="stat"><span class="stat-num" id="stat-techniques">50</span><span class="stat-label">Techniques</span></div>
+  <div class="stat"><span class="stat-num" id="stat-detections">0</span><span class="stat-label">Detection IDs</span></div>
+  <div class="stat"><span class="stat-num" id="stat-coverage">0%</span><span class="stat-label">Technique Coverage</span></div>
+</div>
+
+<div class="toolbar">
+  <span class="toolbar-label">View</span>
+  <button class="view-btn active" id="btn-matrix" onclick="switchView('matrix')">Matrix</button>
+  <button class="view-btn" id="btn-heatmap" onclick="switchView('heatmap')">Heatmap</button>
+  <div class="toolbar-sep"></div>
+  <span class="toolbar-label">Filter</span>
+  <button class="view-btn active" id="filter-all" onclick="filterTactic('all',this)">All</button>
+  <button class="view-btn" id="filter-T0" onclick="filterTactic('T0',this)">Precursor</button>
+  <button class="view-btn" id="filter-T1" onclick="filterTactic('T1',this)">Collection</button>
+  <button class="view-btn" id="filter-T2" onclick="filterTactic('T2',this)">Exfil Prep</button>
+  <button class="view-btn" id="filter-T3" onclick="filterTactic('T3',this)">Exfiltration</button>
+  <button class="view-btn" id="filter-T4" onclick="filterTactic('T4',this)">Obfuscation</button>
+  <button class="view-btn" id="filter-T5" onclick="filterTactic('T5',this)">Privilege Abuse</button>
+  <button class="view-btn" id="filter-T6" onclick="filterTactic('T6',this)">Behavioral</button>
+  <button class="view-btn" id="filter-T7" onclick="filterTactic('T7',this)">Escalation</button>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" placeholder="Search techniques, DT IDs…" id="searchInput" oninput="doSearch(this.value)">
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- MATRIX VIEW -->
+  <div id="matrix-view">
+    <div id="tactic-headers" style="display:flex;gap:6px;margin-bottom:4px;min-width:900px"></div>
+    <div id="technique-rows" style="min-width:900px"></div>
+  </div>
+
+  <!-- HEATMAP VIEW -->
+  <div id="heatmap-view">
+    <div class="hm-legend">
+      <span class="hm-legend-label">Detection coverage:</span>
+      <div class="hm-swatch heat-0"></div><span class="hm-legend-text">0</span>
+      <div class="hm-swatch heat-1"></div><span class="hm-legend-text">1–2</span>
+      <div class="hm-swatch heat-2"></div><span class="hm-legend-text">3–4</span>
+      <div class="hm-swatch heat-3"></div><span class="hm-legend-text">5–6</span>
+      <div class="hm-swatch heat-4"></div><span class="hm-legend-text">7–8</span>
+      <div class="hm-swatch heat-5"></div><span class="hm-legend-text">9+</span>
+    </div>
+    <div id="hm-headers" style="display:flex;gap:6px;margin-bottom:4px;min-width:900px"></div>
+    <div id="hm-rows" style="min-width:900px"></div>
+  </div>
+
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="overlay" id="overlay" onclick="closePanel(event)">
+  <div class="panel" id="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-tid" id="p-tid"></div>
+        <div class="panel-title" id="p-title"></div>
+        <div class="panel-tactic" id="p-tactic"></div>
+      </div>
+      <button class="panel-close" onclick="document.getElementById('overlay').classList.remove('open')">✕ close</button>
+    </div>
+    <p class="panel-desc" id="p-desc"></p>
+    <div class="panel-section-label" id="p-dt-label"></div>
+    <div class="dt-list" id="p-dts"></div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <span>Insider Threat Matrix — Custom MITRE-Style Framework</span>
+  <span>Reference: <a href="https://attack.mitre.org" target="_blank">MITRE ATT&CK®</a></span>
+</footer>
+
+<script>
+const DT={
+DT001:{name:"ConsoleHost_history.txt Created Timestamp Discrepancy",desc:"Recent modifications to ConsoleHost_history.txt may indicate the file was deleted and auto-recreated — a potential anti-forensics technique if PowerShell was used prior to the 'Created' timestamp."},
+DT002:{name:"ConsoleHost_history.txt File Missing",desc:"A missing ConsoleHost_history.txt indicates deletion. May represent anti-forensics if the subject used PowerShell at any point."},
+DT003:{name:"Windows File Deleted — Event Logs",desc:"Event IDs 4660 and 4663 track object deletion. May indicate anti-forensics if no reasonable explanation for the deletion exists."},
+DT004:{name:"Windows System Logging Cleared",desc:"Event ID 1102 indicates the Security audit log was cleared, including account details of who cleared it."},
+DT005:{name:"Print Spooler Service",desc:"Spool files (.SPL, .SHD) in C:\\Windows\\System32\\spool can reveal print job activity. File carving may recover deleted entries."},
+DT007:{name:"Printed Documents via Event Logs",desc:"Event IDs 307, 310, 1000, 1001 log print activity including job creation, completion, and failure details."},
+DT009:{name:"Cyber Deception — File Canary",desc:"Canary token files act as tripwires for collection activities. Strategic placement on endpoints and shares triggers alerts on access."},
+DT010:{name:"Cyber Deception — Honeypot",desc:"A decoy system mimicking a legitimate service. All interactions are recorded for later review."},
+DT011:{name:"Cyber Deception — Honey User",desc:"A decoy user account designed to detect malicious activity. Any interaction is flagged as highly suspicious."},
+DT012:{name:"Windows OS Installed Date",desc:"CMD /K WMIC OS GET InstallDate provides OS installation date, helping identify if a system was reinstalled after provisioning."},
+DT013:{name:"NTFS Timestamp Discrepancy",desc:"Files with suspiciously round timestamps (e.g., 2023-10-10 10:10:00.000) are statistically improbable, indicating possible timestomping."},
+DT014:{name:"Cold Storage for Logs",desc:"Autonomously collecting logs to a SIEM collector prevents subjects from deleting them locally. Critical for anti-forensics investigations."},
+DT015:{name:"Windows Local Account Deleted",desc:"Event ID 4726 logs local account deletion. May represent anti-forensics if no reasonable explanation exists for the removal."},
+DT017:{name:"Firefox Browser History",desc:"Firefox stores history in places.sqlite and favicons.sqlite under the user AppData Roaming profile."},
+DT018:{name:"Edge Browser History",desc:"Edge stores browsing history and downloads in history.sqlite. The 'downloads' and 'urls' tables are of primary interest."},
+DT019:{name:"Chrome Browser History",desc:"Chrome stores history and downloads in history.sqlite. The 'downloads' and 'urls' tables are of primary interest."},
+DT020:{name:"Shellbags — USB Removable Storage",desc:"Registry keys recording user-viewed folders, including USB drive letters and files accessed from removable storage."},
+DT021:{name:"USBSTOR Registry Key",desc:"HKLM\\SYSTEM\\ControlSet001\\Enum\\USBSTOR holds timestamps, serial numbers, and device details for every connected USB device."},
+DT022:{name:"USB Registry Key",desc:"HKLM\\SYSTEM\\ControlSet001\\Enum\\USB provides connection status, last write time, and installation date for USB devices."},
+DT023:{name:"MountedDevices Registry Key",desc:"HKLM\\SYSTEM\\MountedDevices records most recently mounted devices including drive letters and volume GUIDs."},
+DT024:{name:"DriverFrameworks-UserMode Event Log",desc:"Event IDs 2003, 2100, 2102 track USB device connection and disconnection, enabling duration analysis per device."},
+DT025:{name:"Windows Setupapi.dev.log",desc:"Documents the first time a specific device was connected to the computer. Located at %systemroot%\\INF\\setupAPI.dev."},
+DT026:{name:"Windows LNK Files",desc:"Shortcut files in AppData\\Roaming\\Microsoft\\Windows\\Recent Items reveal file access even after the original file is deleted."},
+DT027:{name:"Windows Prefetch",desc:"Cache files in c:\\windows\\prefetch contain run count, last run time, and process path for every executed application."},
+DT033:{name:"CCTV",desc:"Closed-circuit television to observe activity within or around a site, detecting preparation or infringement activities."},
+DT034:{name:"Terminal Service Client Registry Key",desc:"Registry entries for Remote Desktop connections persist after session ends at HKCU\\...\\Terminal Server Client\\Servers."},
+DT035:{name:"RDP Bitmap Cache",desc:"Persistent bitmap caching allows cached images from RDP sessions to be reconstructed using specialist tools."},
+DT038:{name:"Windows Recycle Bin",desc:"C:\\$Recycle.Bin contains $R (file contents) and $I (metadata with deletion timestamps). Carving is possible if emptied."},
+DT039:{name:"Web Proxy Logs",desc:"Web proxies provide IP, URL, response codes, and timestamps. SSL/TLS interception provides the most complete data."},
+DT040:{name:"Microsoft Exchange Message Trace",desc:"Identifies inbound and outbound emails including mailboxes, time, subject lines, and recipients."},
+DT041:{name:"Email Gateway",desc:"Traces inbound and outbound emails with content, attachments, timestamps, and recipient details."},
+DT042:{name:"Network Intrusion Detection Systems",desc:"NIDS alerts on abnormal, suspicious, or malicious network behavior patterns in real time."},
+DT044:{name:"Linux dpkg Log",desc:"Debian package management log at /var/log/dpkg.log records installs and removals with timestamps."},
+DT045:{name:"User Activity Monitoring Agent",desc:"UAM software agent recording OS, application, and network activity focused on human user behavior patterns."},
+DT046:{name:"Endpoint Detection and Response Agent",desc:"EDR agent recording endpoint activity with remote shell, isolation capability, and rule-based alerting."},
+DT047:{name:"User Behaviour Analytics Agent",desc:"UBA agent baselining normal user behavior using ML to identify statistical anomalies."},
+DT048:{name:"Data Loss Prevention Solution",desc:"DLP policies and controls preventing accidental or deliberate data loss, with automated response options."},
+DT050:{name:"Impossible Travel",desc:"Detection logic identifying authentication from two geographic locations in a timeframe infeasible for legitimate travel."},
+DT051:{name:"DNS Logging",desc:"Logging DNS requests from corporate devices to identify what web resources a system has accessed or attempted to access."},
+DT052:{name:"Audit Logging",desc:"Audit logs document user actions, system modifications, and access patterns across systems and applications."},
+DT053:{name:"Missing .bash_history File",desc:"Missing .bash_history indicates possible deletion if the user previously used a shell utility on the system."},
+DT054:{name:".bash_history Timestamp Discrepancy",desc:"A Created timestamp on .bash_history when prior shell use is known may indicate the file was deleted and recreated."},
+DT055:{name:"PowerShell Logging",desc:"Module (4103), Script Block (4104), and Transcription logging capture PowerShell command execution in detail."},
+DT057:{name:"Chrome Browser Cookies",desc:"Chrome cookie database reveals login details, session durations, and frequently visited sites."},
+DT058:{name:"Chrome Browser Login Data",desc:"Chrome stores login URLs and usernames. Passwords are encrypted but can be decrypted using the locally stored key."},
+DT060:{name:"Chrome Browser Extensions",desc:"Extension directories in Chrome reveal installed tools and their functionality via manifest.json files."},
+DT061:{name:"Notepad.exe TabState",desc:"Notepad session contents including unsaved files can be recovered from the TabState AppData directory."},
+DT062:{name:"Microsoft 365 Admin Center Sign-in Activity",desc:"Limited 30-day sign-in activity per user showing date, status, and failure reason."},
+DT063:{name:"Microsoft Entra ID Sign-in Logs",desc:"Detailed sign-in logs including date, user, application, status, IP address, and geographic location."},
+DT083:{name:"Map Network Drive MRU",desc:"Registry key HKCU\\...\\Map Network Drive MRU stores recently mapped network drives and their assigned drive letters."},
+DT084:{name:"TypedPaths",desc:"Registry key recording the last 25 paths entered into the Windows File Explorer path bar."},
+DT085:{name:"Network Registry Key",desc:"HKEY_CURRENT_USER\\Network records persistently mapped network drives with share paths and connection usernames."},
+DT086:{name:"Shellbags — Network Drives",desc:"Shellbags record information about mapped network drives including FTP servers and samba share paths."},
+DT087:{name:"USB MountPoints2",desc:"HKCU\\...\\MountPoints2 stores information about previously connected removable devices by GUID."},
+DT088:{name:"Bash History",desc:"Command history from shell sessions stored in ~/.bash_history. Trivially modifiable but a useful forensic artifact."},
+DT089:{name:"AzureAD PowerShell Log",desc:"TXT log files in AppData\\Local\\Microsoft\\AzureAD\\Powershell recording AzureAD PowerShell session activity."},
+DT090:{name:"Clipboard Payloads via ActivitiesCache.db",desc:"ActivitiesCache.db records clipboard history with StartTime, ExpirationTime, and Base64-encoded ClipboardPayload fields."},
+DT091:{name:"MFT Entry Number Sequence Irregularities",desc:"Inconsistencies in MFT entry sequence vs. file timestamps can indicate file manipulation or timestomping."},
+DT092:{name:"MFT Unusual Timestamp Patterns",desc:"Multiple files with suspiciously identical or aligned timestamps may indicate manually set values rather than system-generated ones."},
+DT093:{name:"MFT and Shimcache Executable Timestamp Comparison",desc:"Comparing MFT and Shimcache timestamps identifies inconsistencies indicative of timestomping on executable files."},
+DT094:{name:"Microsoft Unified Audit Log",desc:"Microsoft Purview audit covering SharePoint, OneDrive, Outlook, and other M365 services with extensive search filters."},
+DT095:{name:"Windows Event Log — Software Uninstallation",desc:"Event IDs 11724 and 1034 log software uninstallation with product name, version, and initiating user."},
+DT096:{name:"DNS Monitoring",desc:"Monitoring outbound DNS queries for anomalous patterns that may indicate tunneling or malicious resolution activity."},
+DT097:{name:"Deep Packet Inspection",desc:"DPI tools inspect packet content beyond headers to identify unusual patterns and hidden data in legitimate protocols."},
+DT098:{name:"NetFlow Analysis",desc:"Network flow data providing insights into the volume, direction, and nature of traffic for tunneling detection."},
+DT099:{name:"Audit Removable Storage Event Logs",desc:"Event IDs 4663 and 4656 detect removable storage access attempts via Group Policy Advanced Audit configuration."},
+DT100:{name:"VPN Logs",desc:"VPN logs providing user IDs, device types, IPs, and connection timestamps. Anomalies indicate suspicious behavior patterns."},
+DT101:{name:"User Behavior Analytics",desc:"UBA tools continuously monitoring user activities, detecting anomalies such as excessive downloads or off-hours access."},
+DT102:{name:"User and Entity Behavior Analytics",desc:"UEBA monitoring users, applications, and network devices to detect insider risk through behavioral anomaly detection."},
+DT104:{name:"Leaver Watchlist",desc:"Watchlist in SIEM/EDR monitoring all activity from accounts belonging to employees who have left the organization."},
+DT105:{name:"vssadmin Shadow Copy Deletion",desc:"Monitor command-line arguments for 'vssadmin delete shadows' to detect shadow copy deletion events."},
+DT106:{name:"Microsoft Entra ID PIM Resource Audit",desc:"PIM Resource Audit records privileged role elevations including requestor, subject, action, and duration."},
+DT107:{name:"Microsoft Teams Meeting and Call History",desc:"Teams admin center logs for previous meetings and calls with start time, duration, and participant lists."},
+DT108:{name:"macOS FSEvents Store Database",desc:"Records file system changes on macOS volumes including creation, modification, deletion, and mount events."},
+DT109:{name:"Windows Event Log — System Time Modification",desc:"Event ID 4616 records system time modifications with original time, modified time, and responsible account."},
+DT110:{name:"MIP Label Activity Monitoring",desc:"Microsoft Information Protection label events detect downgrading, bypassing, or misuse of sensitivity labels."},
+DT111:{name:"Cyber Deception — Honey SPN",desc:"Decoy Service Principal Names detect Kerberoasting attempts via Event ID 4769 TGS requests for fake SPNs."},
+DT112:{name:"Asset Discovery Audit",desc:"Scheduled systematic audit reconciling discovered assets against approved inventories to detect unauthorized hardware."},
+DT113:{name:"Tracking Patterns of Policy Violations",desc:"Centralized logging and analysis of minor violations over time to detect behavioral drift and boundary-testing patterns."},
+DT114:{name:"Baseline System Performance Profiling",desc:"Monitoring CPU, GPU, memory, disk I/O, and network against baselines to detect crypto mining, staging, or malware."},
+DT115:{name:"AWS Unauthorized System or Service Modification",desc:"CloudTrail monitoring for unauthorized EC2, S3, Lambda, and cluster creation or modification events."},
+DT116:{name:"GCP Unauthorized System or Service Modification",desc:"GCP Audit Logs monitoring for unauthorized VM, bucket, disk, and IAM service account creation."},
+DT117:{name:"Azure Unauthorized System or Service Modification",desc:"Azure Activity Logs monitoring for unauthorized VM, storage, Key Vault, and role assignment operations."},
+DT118:{name:"OCI Unauthorized System or Service Modification",desc:"OCI Audit Logs monitoring for unauthorized compute, object storage, block volume, and VCN creation."},
+DT119:{name:"SystemPropertiesRemote.exe Execution",desc:"Alerts when SystemPropertiesRemote.exe is executed, particularly by non-administrative users configuring RDP."},
+DT120:{name:"Modification of RDP Registry Keys",desc:"Monitor HKLM\\...\\Terminal Server\\fDenyTSConnections changes from 1 to 0, enabling unauthorized RDP access."},
+DT121:{name:"RDP Group Membership Changes",desc:"Event ID 4732 alerts when users are added to the Remote Desktop Users group (SID: S-1-5-32-555)."},
+DT122:{name:"DNS/HTTPS Traffic to Remote Access Platforms",desc:"Monitor DNS and proxy traffic to logmein.com, anydesk.com, teamviewer.com, and similar remote access service domains."},
+DT123:{name:"Access to /mnt/c/ from WSL",desc:"Monitor WSL-based file access targeting the Windows host file system at /mnt/c/, bypassing standard Windows auditing."},
+DT124:{name:"Installation of New WSL Distributions",desc:"Monitor wsl --install and --import commands and new subdirectory creation for Linux distro packages."},
+DT125:{name:"Threat Intelligence Feeds for Insider Indicators",desc:"Insider-specific TI feeds enriching detection with behavioral markers, recruitment indicators, and exfil infrastructure IOCs."},
+DT126:{name:"Registry Value Audit — Start_TrackProgs",desc:"Monitor Start_TrackProgs at HKCU\\...\\Explorer\\Advanced. Value 0 disables app launch tracking — an anti-forensics signal."},
+DT127:{name:"Absence of Entries in RunMRU and UserAssist",desc:"Unexpected absence or cessation of updates to RunMRU and UserAssist keys may indicate intentional activity suppression."},
+DT128:{name:"Microsoft Purview eDiscovery",desc:"Cross-workload search of Exchange, SharePoint, OneDrive, and Teams for insider threat indicators and staged content."},
+DT129:{name:"Snipping Tool Cached Screenshots",desc:"Screenshots saved to %USER%\\Pictures\\Screenshots with naming convention Screenshot YYYY-MM-DD HHMMSS.png."},
+DT130:{name:"Snipping Tool TempState Snips",desc:"Fallback screenshot artifact when auto-save is disabled, saved to Microsoft.ScreenSketch TempState\\Snips directory."},
+DT131:{name:"Snipping Tool Cached Recordings",desc:"Screen recordings saved to %USER%\\Videos\\Screen Recordings as MP4 files with timestamp naming convention."},
+DT133:{name:"Snipping Tool Autosave Setting Modification",desc:"Settings.dat in Snipping Tool packages reveals whether AutoSaveCaptures or AutoSaveScreenRecordings has been disabled."},
+DT134:{name:"Python History File",desc:"~/.python_history records interactive Python REPL commands. Only created during interactive sessions, not script execution."},
+DT135:{name:"OneDrive SafeDelete.db",desc:"SQLite database at OneDrive settings recording files sent to Recycle Bin with item names and deletion timestamps."},
+DT137:{name:"Physical Access vs System Auth Discrepancy",desc:"Correlating badge access logs with login events. Logins without corresponding badge entries indicate credential misuse."},
+DT138:{name:"Modification of etc/hosts File",desc:"FIM or manual inspection of the hosts file can reveal DNS resolution tampering to impair security agent telemetry."},
+DT139:{name:"Microsoft Defender — Printed File Alert",desc:"Defender for Endpoint alert policy triggering on file print events, providing device and account attribution."},
+DT140:{name:"Microsoft Defender — Forwarding Rule Created",desc:"Default alert policy generating alerts when a forwarding or redirect rule is created in Exchange or OWA."},
+DT141:{name:"Microsoft Defender — Mailbox Permission Granted",desc:"Alert on mailbox read permissions being granted, enabling detection of unauthorized mailbox access attempts."},
+DT142:{name:"Microsoft Defender — File Shared Externally",desc:"Alerts when SharePoint or OneDrive files are shared with external users, with file URL and target identity details."},
+DT143:{name:"Automated Visual and Thermal Baseline Scanning",desc:"Automated visual and thermal scanning of server environments to detect unauthorized physical device implants."},
+DT144:{name:"Asset Register Correlation",desc:"Correlating device ownership, user assignment, and provisioning status to detect orphaned or unauthorized endpoints."},
+DT145:{name:"Exchange Auto Forwarded Message Report",desc:"Pre-built Exchange report identifying automated forwarding to external domains with forwarder, recipient, and message count."},
+DT146:{name:"File Integrity Monitoring",desc:"FIM detecting unauthorized file modification, deletion, or creation using hash comparison and OS-native event hooks."},
+DT147:{name:"Endpoint Network Access Agent Telemetry",desc:"Zscaler/AnyConnect telemetry analysis for split tunneling, geographic mismatches, and traffic redirection indicators."},
+DT148:{name:"Installed Software via Registry",desc:"Three registry paths under CurrentVersion\\Uninstall enumerate installed software with name, version, and install location."},
+DT149:{name:"Unauthorized USB HID Device Connections",desc:"Monitor for new USB HID peripherals not previously associated with the system — may indicate IP-KVM deployment."},
+DT150:{name:"Discovery of IP-KVM Management Interfaces",desc:"Internal network scans identifying embedded web interfaces associated with IP-KVM hardware remote access systems."},
+DT151:{name:"Internal Whistleblowing",desc:"Process for staff to report suspicious behavior to the security team with privacy safeguards for reporters."},
+DT152:{name:"Financial Auditing",desc:"Structured financial auditing to identify misuse, manipulation, or misrepresentation of organizational financial resources."},
+DT153:{name:"Watermark-Based Attribution",desc:"Digital watermarking enabling attribution of externally captured media to a specific subject, session, or endpoint."},
+DT154:{name:"Microsoft Purview Communication Compliance",desc:"Detects policy-violating communications across M365 channels using ML classifiers, keyword matching, and investigator workflows."},
+DT155:{name:"Slack Data Export Analysis",desc:"Analyze authorized Slack exports to review message content, participants, timestamps, and file links for insider indicators."},
+DT156:{name:"auditd System Clock Modification Rule",desc:"Linux auditd rules auditing adjtimex, settimeofday, and clock_settime system calls to detect clock tampering."},
+DT157:{name:"auditd Time Zone Modification Rule",desc:"auditd rule watching /etc/localtime for write and attribute changes to detect time zone tampering on Linux systems."}
+};
+
+const MATRIX=[
+{id:'T0',label:'Initial Risk Conditions',cls:'t0',hcls:'t0h',desc:'Precursor state amplifiers — not standalone triggers. Used as risk context only.',techniques:[
+{id:'T0.1',name:'Pre-departure risk',desc:'Subject preparing to leave the organization. HR/leaver flag combined with increased data access activity.',dts:['DT104']},
+{id:'T0.2',name:'Sensitive role exposure',desc:'Access to high-value repositories or sensitive systems beyond normal operational scope.',dts:['DT052','DT106']},
+{id:'T0.3',name:'Privileged access',desc:'Elevated permissions and admin roles that increase the potential impact of insider activity.',dts:['DT055','DT106','DT063']},
+{id:'T0.4',name:'Policy violation history',desc:'Prior recorded policy violations indicating boundary testing or behavioral drift.',dts:['DT113']},
+{id:'T0.5',name:'Financial stress indicators',desc:'Behavioral or financial signals suggesting susceptibility to insider threat motivation.',dts:['DT152','DT151']}
+]},
+{id:'T1',label:'Collection',cls:'t1',hcls:'t1h',desc:'Data access and staging behaviors indicating unauthorized collection of organizational information.',techniques:[
+{id:'T1.1',name:'Bulk data access',desc:'Large volume document or repository access significantly deviating from 7-day and peer cohort baselines.',dts:['DT045','DT047','DT094','DT101','DT102']},
+{id:'T1.2',name:'Sensitive repo enumeration',desc:'Access to files, workspaces, or repositories outside normal operational scope.',dts:['DT009','DT052','DT110']},
+{id:'T1.3',name:'Staging activity',desc:'File consolidation, compression, or archival patterns preparing data for movement.',dts:['DT026','DT027','DT090','DT134']},
+{id:'T1.4',name:'Print-based collection',desc:'Printing sensitive documents to physical media for offline exfiltration.',dts:['DT005','DT007','DT139']},
+{id:'T1.5',name:'Screen capture collection',desc:'Taking screenshots or screen recordings of sensitive content to bypass DLP controls.',dts:['DT129','DT130','DT131','DT133']},
+{id:'T1.6',name:'Clipboard harvesting',desc:'Copying sensitive content through clipboard mechanisms to aggregate data.',dts:['DT090']},
+{id:'T1.7',name:'Browser artifact collection',desc:'Using browser-stored credentials, cookies, or history to access and collect sensitive resources.',dts:['DT017','DT018','DT019','DT057','DT058','DT060']}
+]},
+{id:'T2',label:'Exfil Preparation',cls:'t2',hcls:'t2h',desc:'Behavioral shifts and technical preparation indicating readiness for data exfiltration.',techniques:[
+{id:'T2.1',name:'Abnormal working patterns',desc:'Off-hours access, unusual geographic location, or time-of-day anomalies relative to established baseline.',dts:['DT050','DT100','DT101','DT102']},
+{id:'T2.2',name:'Workflow deviation',desc:'Use of new tools, access paths, or applications deviating from established behavioral baseline.',dts:['DT044','DT045','DT047','DT148']},
+{id:'T2.3',name:'Compression and archiving',desc:'Creation of archives (.zip, .7z, .rar, .tar.gz) particularly on sensitive file directories.',dts:['DT027','DT128','DT134']},
+{id:'T2.4',name:'Unauthorized remote access setup',desc:'Enabling RDP, installing remote tools, or configuring unauthorized remote access channels.',dts:['DT119','DT120','DT121','DT122','DT034','DT035']},
+{id:'T2.5',name:'WSL abuse for staging',desc:'Using Windows Subsystem for Linux to stage data or bypass host-based security controls.',dts:['DT123','DT124']},
+{id:'T2.6',name:'Hardware implant preparation',desc:'Connecting unauthorized USB HID devices or IP-KVM hardware for covert remote access.',dts:['DT149','DT150']},
+{id:'T2.7',name:'Cloud storage preparation',desc:'Accessing or configuring personal cloud storage or file transfer services for data staging.',dts:['DT039','DT051','DT096','DT147']}
+]},
+{id:'T3',label:'Exfiltration',cls:'t3',hcls:'t3h',desc:'Active movement of organizational data outside authorized boundaries.',techniques:[
+{id:'T3.1',name:'External email sharing',desc:'Sending sensitive data as email attachments to external or personal email addresses.',dts:['DT040','DT041','DT140','DT145']},
+{id:'T3.2',name:'External file sharing',desc:'Sharing files from OneDrive or SharePoint with external users or personal accounts.',dts:['DT094','DT142','DT128']},
+{id:'T3.3',name:'Removable media transfer',desc:'Copying data to USB drives, external storage, or other removable media.',dts:['DT020','DT021','DT022','DT023','DT024','DT025','DT087','DT099']},
+{id:'T3.4',name:'Network-based exfiltration',desc:'Data transfer via web uploads, cloud services, DNS tunneling, or covert network channels.',dts:['DT039','DT042','DT096','DT097','DT098','DT100']},
+{id:'T3.5',name:'Messaging platform exfil',desc:'Using collaboration tools (Teams, Slack) or messaging apps to transfer sensitive data.',dts:['DT154','DT155','DT128']},
+{id:'T3.6',name:'Physical media exfiltration',desc:'Printed documents, photographs, or media captures physically removed from the organization.',dts:['DT033','DT153','DT129','DT131']},
+{id:'T3.7',name:'Mailbox forwarding rules',desc:'Setting automatic forwarding rules to route email copies to external addresses continuously.',dts:['DT140','DT141','DT145']}
+]},
+{id:'T4',label:'Obfuscation / Evasion',cls:'t4',hcls:'t4h',desc:'Anti-forensics techniques to suppress, delete, or corrupt evidence of insider activity.',techniques:[
+{id:'T4.1',name:'Log deletion and clearing',desc:'Deleting Windows event logs, bash history, or PowerShell history to remove evidence of activity.',dts:['DT001','DT002','DT003','DT004','DT053','DT054','DT014']},
+{id:'T4.2',name:'Timestomping',desc:'Manipulating file system timestamps to obscure the true timeline of file creation or modification.',dts:['DT013','DT091','DT092','DT093','DT109','DT156','DT157']},
+{id:'T4.3',name:'Security tool tampering',desc:'Disabling or tampering with endpoint agents, FIM, or audit capabilities to reduce detection visibility.',dts:['DT138','DT146','DT126']},
+{id:'T4.4',name:'Activity tracking suppression',desc:'Disabling UserAssist, RunMRU, or application launch tracking to prevent forensic reconstruction.',dts:['DT126','DT127']},
+{id:'T4.5',name:'Shadow copy deletion',desc:'Deleting VSS shadow copies to prevent data recovery or forensic timeline analysis.',dts:['DT105']},
+{id:'T4.6',name:'Alternate runtime evasion',desc:'Using WSL, virtual machines, or alternate OS environments to operate outside monitored contexts.',dts:['DT012','DT123','DT124']},
+{id:'T4.7',name:'Account and artifact cleanup',desc:'Deleting local accounts, Recycle Bin contents, or temporary artifacts to remove forensic evidence.',dts:['DT015','DT038','DT056','DT135']}
+]},
+{id:'T5',label:'Privilege Abuse',cls:'t5',hcls:'t5h',desc:'Exploitation of legitimate access rights beyond the scope of authorized use.',techniques:[
+{id:'T5.1',name:'Role escalation',desc:'Gaining elevated access through admin role changes or unauthorized privilege escalation paths.',dts:['DT106','DT055','DT063']},
+{id:'T5.2',name:'Unauthorized system access',desc:'Accessing systems, repositories, or data clearly outside the subject\'s authorized role scope.',dts:['DT052','DT094','DT101','DT102']},
+{id:'T5.3',name:'Mailbox permission abuse',desc:'Granting or exploiting mailbox read permissions to access other users\' communications.',dts:['DT141','DT128','DT040']},
+{id:'T5.4',name:'Kerberoasting / credential attack',desc:'Requesting service tickets for weak service accounts to obtain crackable credential hashes offline.',dts:['DT111']},
+{id:'T5.5',name:'Remote access abuse',desc:'Misuse of legitimate remote access tools or sharing credentials for unauthorized remote sessions.',dts:['DT034','DT035','DT137','DT100']},
+{id:'T5.6',name:'Cloud resource abuse',desc:'Unauthorized provisioning of cloud compute, storage, or network resources for illicit use.',dts:['DT115','DT116','DT117','DT118']}
+]},
+{id:'T6',label:'Behavioral Correlation',cls:'t6',hcls:'t6h',desc:'The core detection layer: multi-signal behavioral analysis against established baselines.',techniques:[
+{id:'T6.1',name:'Multi-signal correlation',desc:'Combining independent indicators from iManage, Email, Web, and endpoint sources to meet the escalation threshold.',dts:['DT045','DT047','DT101','DT102']},
+{id:'T6.2',name:'Behavioral deviation scoring',desc:'Comparing current activity against 7-day and peer cohort baselines using UEBA analysis models.',dts:['DT047','DT101','DT102','DT050']},
+{id:'T6.3',name:'Business context validation',desc:'Validating whether activity has a legitimate business explanation such as deal work or role change.',dts:['DT052','DT107','DT063']},
+{id:'T6.4',name:'Cross-source timeline analysis',desc:'Correlating timestamps across authentication, endpoint, network, and physical access data sources.',dts:['DT137','DT052','DT100','DT063']},
+{id:'T6.5',name:'Canary and deception triggers',desc:'Using honeypots, canary tokens, and honey accounts as high-confidence behavioral signals.',dts:['DT009','DT010','DT011','DT111']},
+{id:'T6.6',name:'Threat intelligence correlation',desc:'Correlating internal behavior with known insider TTP profiles from external intelligence sources.',dts:['DT125','DT146']},
+{id:'T6.7',name:'Physical-digital correlation',desc:'Correlating physical presence (badge, CCTV) with digital activity to validate or invalidate access.',dts:['DT033','DT137','DT143']}
+]},
+{id:'T7',label:'Decision & Escalation',cls:'t7',hcls:'t7h',desc:'Governance controls governing evidence-based case creation, visibility restrictions, and controlled HR involvement.',techniques:[
+{id:'T7.1',name:'Evidence-based case creation',desc:'Case creation requiring multiple corroborated signals with no valid business explanation before proceeding.',dts:['DT045','DT047','DT101','DT102']},
+{id:'T7.2',name:'Restricted SOC visibility',desc:'Limiting investigative access to authorized SOC personnel only during active monitoring operations.',dts:['DT014','DT052']},
+{id:'T7.3',name:'Controlled HR involvement',desc:'Escalation to HR only after technical validation and legal review of gathered evidence.',dts:['DT151','DT113']},
+{id:'T7.4',name:'eDiscovery and legal hold',desc:'Initiating formal eDiscovery and preservation holds before evidence can be altered or deleted.',dts:['DT128','DT154','DT155']},
+{id:'T7.5',name:'Forensic evidence preservation',desc:'Capturing, hashing, and preserving forensic artifacts in a forensically sound and defensible manner.',dts:['DT146','DT014','DT052']},
+{id:'T7.6',name:'Whistleblower intake review',desc:'Reviewing reports from internal whistleblowers as validated investigative leads with appropriate privacy controls.',dts:['DT151']}
+]}
+];
+
+// stats
+const allDTs=new Set();
+MATRIX.forEach(t=>t.techniques.forEach(tech=>tech.dts.forEach(d=>allDTs.add(d))));
+document.getElementById('stat-detections').textContent=allDTs.size;
+const totalTechs=MATRIX.reduce((s,t)=>s+t.techniques.length,0);
+document.getElementById('stat-techniques').textContent=totalTechs;
+const covered=MATRIX.reduce((s,t)=>s+t.techniques.filter(tech=>tech.dts.length>0).length,0);
+document.getElementById('stat-coverage').textContent=Math.round(covered/totalTechs*100)+'%';
+
+// build matrix — column-based so each column ends cleanly at its own last technique
+const hdrs=document.getElementById('tactic-headers');
+const colWrap=document.getElementById('technique-rows');
+colWrap.style.display='flex';
+colWrap.style.gap='6px';
+colWrap.style.alignItems='flex-start';
+
+MATRIX.forEach(t=>{
+  // header
+  const h=document.createElement('div');
+  h.className=`tactic-header-cell ${t.cls}h`;
+  h.style.cssText='flex:1;min-width:110px';
+  h.textContent=t.label;
+  hdrs.appendChild(h);
+
+  // column
+  const col=document.createElement('div');
+  col.style.cssText='flex:1;min-width:110px;display:flex;flex-direction:column;gap:3px';
+  t.techniques.forEach(tech=>{
+    const cell=document.createElement('div');
+    cell.className=`tech-cell ${t.cls}`;
+    cell.dataset.tactic=t.id;
+    cell.dataset.tid=tech.id;
+    cell.innerHTML=`${tech.name}<span class="dt-badge">${tech.dts.length} detection${tech.dts.length!==1?'s':''}</span>`;
+    cell.onclick=()=>openPanel(t,tech);
+    col.appendChild(cell);
+  });
+  colWrap.appendChild(col);
+});
+
+// build heatmap — same column-based approach
+const hmh=document.getElementById('hm-headers');
+const hmColWrap=document.getElementById('hm-rows');
+hmColWrap.style.display='flex';
+hmColWrap.style.gap='6px';
+hmColWrap.style.alignItems='flex-start';
+
+MATRIX.forEach(t=>{
+  const h=document.createElement('div');
+  h.className='hm-tactic-cell';h.style.cssText='flex:1;min-width:110px';
+  h.textContent=t.label;hmh.appendChild(h);
+
+  const col=document.createElement('div');
+  col.style.cssText='flex:1;min-width:110px;display:flex;flex-direction:column;gap:3px';
+  t.techniques.forEach(tech=>{
+    const n=tech.dts.length;
+    const heat=n===0?0:n<=2?1:n<=4?2:n<=6?3:n<=8?4:5;
+    const cell=document.createElement('div');
+    cell.className=`hm-cell heat-${heat}`;
+    cell.dataset.tactic=t.id;
+    cell.dataset.tid=tech.id;
+    cell.innerHTML=`${tech.name}<span class="hm-count">${n} detection${n!==1?'s':''}</span>`;
+    cell.onclick=()=>openPanel(t,tech);
+    col.appendChild(cell);
+  });
+  hmColWrap.appendChild(col);
+});
+
+function switchView(v){
+  document.getElementById('matrix-view').style.display=v==='matrix'?'block':'none';
+  document.getElementById('heatmap-view').style.display=v==='heatmap'?'block':'none';
+  document.getElementById('btn-matrix').classList.toggle('active',v==='matrix');
+  document.getElementById('btn-heatmap').classList.toggle('active',v==='heatmap');
+}
+
+function filterTactic(tid,btn){
+  document.querySelectorAll('.toolbar .view-btn').forEach(b=>{
+    if(['btn-matrix','btn-heatmap'].every(id=>b.id!==id))b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  document.querySelectorAll('.tech-cell,.hm-cell').forEach(el=>{
+    el.classList.toggle('dim',tid!=='all'&&el.dataset.tactic!==tid);
+  });
+}
+
+function doSearch(val){
+  const q=val.toLowerCase().trim();
+  document.querySelectorAll('.tech-cell,.hm-cell').forEach(el=>{
+    if(!q){el.classList.remove('dim','highlight');return;}
+    const tid=el.dataset.tid;
+    const tactic=MATRIX.find(t=>t.techniques.some(te=>te.id===tid));
+    const tech=tactic&&tactic.techniques.find(te=>te.id===tid);
+    const match=tech&&(tech.name.toLowerCase().includes(q)||tech.id.toLowerCase().includes(q)||tech.dts.some(d=>d.toLowerCase().includes(q)));
+    el.classList.toggle('dim',!match);
+    el.classList.toggle('highlight',!!match);
+  });
+}
+
+function openPanel(tactic,tech){
+  document.getElementById('p-tid').textContent=tech.id+' — '+tactic.label;
+  document.getElementById('p-title').textContent=tech.name;
+  document.getElementById('p-tactic').textContent=tactic.desc;
+  document.getElementById('p-desc').textContent=tech.desc;
+  const dtLabel=document.getElementById('p-dt-label');
+  dtLabel.textContent=`Detection mappings (${tech.dts.length})`;
+  const list=document.getElementById('p-dts');
+  list.innerHTML='';
+  if(tech.dts.length===0){
+    list.innerHTML='<div style="color:#555c66;font-size:12px;font-style:italic;">No detections mapped yet.</div>';
+  }else{
+    tech.dts.forEach(id=>{
+      const d=DT[id];if(!d)return;
+      const el=document.createElement('div');
+      el.className='dt-item';
+      el.innerHTML=`<div class="dt-item-id">${id}</div><div class="dt-item-name">${d.name}</div><div class="dt-item-desc">${d.desc}</div>`;
+      list.appendChild(el);
+    });
+  }
+  document.getElementById('overlay').classList.add('open');
+}
+function closePanel(e){if(e.target===document.getElementById('overlay'))document.getElementById('overlay').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('overlay').classList.remove('open');});
+</script>
+</body>
+</html>
