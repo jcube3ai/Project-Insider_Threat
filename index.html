@@ -198,10 +198,48 @@
   }
   .site-footer a { color: var(--muted); text-decoration: none; }
   .site-footer a:hover { color: var(--text); }
+
+  /* ── top nav bar ── */
+  .top-nav {
+    position: sticky; top: 0; z-index: 300;
+    background: #0a0c0f;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; gap: 0;
+    font-size: 12px; font-weight: 500;
+    height: 36px;
+  }
+  .top-nav a {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 16px; height: 100%;
+    color: #8b919a; text-decoration: none;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+  }
+  .top-nav a:hover { background: rgba(255,255,255,0.05); color: #e8eaed; }
+  .top-nav a.current { color: #78aeff; background: rgba(79,142,247,0.08); }
+  .top-nav .nav-spacer { flex: 1; }
+  .top-nav .nav-ext {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 16px; height: 100%;
+    color: #555c66; text-decoration: none;
+    border-left: 1px solid rgba(255,255,255,0.07);
+    transition: background .15s, color .15s;
+    white-space: nowrap; font-size: 11px;
+  }
+  .top-nav .nav-ext:hover { background: rgba(255,255,255,0.04); color: #8b919a; }
 </style>
 </head>
 <body>
 
+<nav class="top-nav">
+  <a class="current" href="index.html">🛡️ ITM Matrix</a>
+  <a href="crosswalk.html">🔁 ATT&amp;CK Crosswalk</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-ext" href="attack-navigator-layer.json" download="attack-navigator-layer.json">⬇ Navigator Layer (.json)</a>
+  <a class="nav-ext" href="https://mitre-attack.github.io/attack-navigator/" target="_blank">↗ ATT&amp;CK Navigator</a>
+  <a class="nav-ext" href="https://github.com/jcube3ai/Project-Insider_Threat" target="_blank">GitHub ↗</a>
+</nav>
 <header class="site-header">
   <div>
     <h1>Insider Threat Matrix</h1>
@@ -212,6 +250,7 @@
       <span class="badge badge-green">130+ Detection Mappings</span>
       <span class="badge badge-amber">Custom Framework</span>
     </div>
+
   </div>
 </header>
 
