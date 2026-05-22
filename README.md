@@ -26,7 +26,7 @@ The full framework is mapped to MITRE ATT&CK® Enterprise with a Navigator-compa
 
 ```
 insider-threat-matrix/
-├── insider-threat-matrix.html     # Full interactive matrix (self-contained)
+├── index.html                     # Full interactive matrix (rename from insider-threat-matrix.html)
 ├── crosswalk.html                 # ITM × ATT&CK technique crosswalk reference
 ├── attack-navigator-layer.json    # MITRE ATT&CK Navigator layer (58 techniques)
 └── README.md                      # This file
@@ -38,22 +38,36 @@ insider-threat-matrix/
 
 **Option 1 — Open locally:**
 ```bash
-git clone https://github.com/YOUR_USERNAME/insider-threat-matrix.git
-cd insider-threat-matrix
-open insider-threat-matrix.html   # macOS
+git clone https://github.com/jcube3ai/Project-Insider_Threat.git
+cd Project-Insider_Threat
+open index.html   # macOS
 # or double-click the file in Windows / Linux
 ```
 
 **Option 2 — Host on GitHub Pages:**
-1. Go to your repo → **Settings → Pages**
-2. Set source to **Deploy from branch → main → / (root)**
-3. Live at `https://YOUR_USERNAME.github.io/insider-threat-matrix/`
+1. Rename `insider-threat-matrix.html` → `index.html` before pushing
+2. Go to your repo → **Settings → Pages**
+3. Set source to **Deploy from branch → main → / (root)** → Save
+4. Wait ~60 seconds, then your files are live at:
+
+| File | URL |
+|------|-----|
+| Matrix | `https://jcube3ai.github.io/Project-Insider_Threat/` |
+| Crosswalk | `https://jcube3ai.github.io/Project-Insider_Threat/crosswalk.html` |
+| Navigator Layer | `https://jcube3ai.github.io/Project-Insider_Threat/attack-navigator-layer.json` |
 
 **Option 3 — Load the ATT&CK Navigator layer:**
+
+*If using GitHub Pages (easiest):*
+1. Go to [mitre-attack.github.io/attack-navigator](https://mitre-attack.github.io/attack-navigator/)
+2. Click the folder icon → **Open Existing Layer → Open URL**
+3. Paste your raw file URL: `https://jcube3ai.github.io/Project-Insider_Threat/attack-navigator-layer.json`
+4. Your ITM coverage lights up across the ATT&CK Enterprise matrix, color-coded by tactic
+
+*If running locally:*
 1. Go to [mitre-attack.github.io/attack-navigator](https://mitre-attack.github.io/attack-navigator/)
 2. Click the folder icon → **Open Existing Layer → Upload File**
-3. Select `attack-navigator-layer.json`
-4. Your ITM coverage lights up across the ATT&CK Enterprise matrix, color-coded by tactic
+3. Select `attack-navigator-layer.json` from your local folder
 
 ---
 
