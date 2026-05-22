@@ -67,20 +67,52 @@ td{padding:9px 10px;vertical-align:middle;}
 .site-footer{margin-top:40px;padding:16px 28px;border-top:1px solid var(--border);font-size:11px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
 .site-footer a{color:var(--muted);text-decoration:none;}
 .site-footer a:hover{color:var(--text);}
+
+  /* ── top nav bar ── */
+  .top-nav {
+    position: sticky; top: 0; z-index: 300;
+    background: #0a0c0f;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; gap: 0;
+    font-size: 12px; font-weight: 500;
+    height: 36px;
+  }
+  .top-nav a {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 16px; height: 100%;
+    color: #8b919a; text-decoration: none;
+    border-right: 1px solid rgba(255,255,255,0.07);
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+  }
+  .top-nav a:hover { background: rgba(255,255,255,0.05); color: #e8eaed; }
+  .top-nav a.current { color: #78aeff; background: rgba(79,142,247,0.08); }
+  .top-nav .nav-spacer { flex: 1; }
+  .top-nav .nav-ext {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 16px; height: 100%;
+    color: #555c66; text-decoration: none;
+    border-left: 1px solid rgba(255,255,255,0.07);
+    transition: background .15s, color .15s;
+    white-space: nowrap; font-size: 11px;
+  }
+  .top-nav .nav-ext:hover { background: rgba(255,255,255,0.04); color: #8b919a; }
 </style>
 </head>
 <body>
 
+<nav class="top-nav">
+  <a href="index.html">🛡️ ITM Matrix</a>
+  <a class="current" href="crosswalk.html">🔁 ATT&amp;CK Crosswalk</a>
+  <div class="nav-spacer"></div>
+  <a class="nav-ext" href="attack-navigator-layer.json" download="attack-navigator-layer.json">⬇ Navigator Layer (.json)</a>
+  <a class="nav-ext" href="https://mitre-attack.github.io/attack-navigator/" target="_blank">↗ ATT&amp;CK Navigator</a>
+  <a class="nav-ext" href="https://github.com/jcube3ai/Project-Insider_Threat" target="_blank">GitHub ↗</a>
+</nav>
 <header class="site-header">
   <h1>ITM × ATT&CK Crosswalk</h1>
   <p>Every technique in the Insider Threat Matrix mapped to its MITRE ATT&CK® Enterprise equivalent. Techniques in T0 (Precursor), T6 (Behavioral Correlation), and T7 (Escalation) have no ATT&CK equivalent — they are unique to this framework and represent its most operationally distinctive layers.</p>
-  <div class="nav-links">
-    <a class="nav-link" href="index.html">← Back to Matrix</a>
-    <a class="nav-link" href="attack-navigator-layer.json" download="attack-navigator-layer.json">⬇ Download Navigator Layer (.json)</a>
-    <a class="nav-link" href="https://mitre-attack.github.io/attack-navigator/" target="_blank">Open ATT&CK Navigator ↗</a>
-    <a class="nav-link" href="README.md">README</a>
-  </div>
-</header>
+  </header>
 
 <div class="stats-bar">
   <div class="stat-pill"><div class="dot dot-d"></div><span id="cnt-direct">0</span> Direct mappings</div>
