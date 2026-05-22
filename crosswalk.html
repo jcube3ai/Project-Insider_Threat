@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ITM × ATT&CK Crosswalk</title>
+<style>
+:root{--bg:#0d0f12;--bg2:#13161a;--bg3:#1a1e24;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#e8eaed;--muted:#8b919a;--faint:#555c66;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;--mono:'SF Mono','Fira Code','Cascadia Code',monospace;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh;}
+.site-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:20px 28px;}
+.site-header h1{font-size:18px;font-weight:600;letter-spacing:-.3px;}
+.site-header p{font-size:12px;color:var(--muted);margin-top:4px;max-width:680px;line-height:1.6;}
+.nav-links{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;}
+.nav-link{font-size:11px;font-weight:500;padding:4px 10px;border:1px solid var(--border2);border-radius:4px;color:var(--muted);text-decoration:none;transition:all .15s;}
+.nav-link:hover,.nav-link.active{background:rgba(79,142,247,.15);color:#78aeff;border-color:rgba(79,142,247,.4);}
+.toolbar{display:flex;align-items:center;gap:8px;padding:12px 28px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.filter-btn{font-size:11px;font-weight:500;padding:4px 10px;border:1px solid var(--border2);border-radius:4px;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
+.filter-btn.active,.filter-btn:hover{background:rgba(79,142,247,.15);color:#78aeff;border-color:rgba(79,142,247,.4);}
+.match-btn{font-size:11px;font-weight:500;padding:4px 10px;border:1px solid;border-radius:4px;background:transparent;cursor:pointer;transition:all .15s;}
+.match-btn.direct{color:#5dd97a;border-color:rgba(52,199,89,.3);}
+.match-btn.direct.active,.match-btn.direct:hover{background:rgba(52,199,89,.12);}
+.match-btn.partial{color:#ffba45;border-color:rgba(255,159,10,.3);}
+.match-btn.partial.active,.match-btn.partial:hover{background:rgba(255,159,10,.12);}
+.match-btn.none{color:#ff6b6b;border-color:rgba(255,107,107,.3);}
+.match-btn.none.active,.match-btn.none:hover{background:rgba(255,107,107,.12);}
+.sep{width:1px;height:18px;background:var(--border2);}
+.search-wrap{position:relative;margin-left:auto;}
+.search-wrap input{background:var(--bg3);border:1px solid var(--border2);border-radius:5px;color:var(--text);font-size:12px;padding:5px 10px 5px 28px;outline:none;width:220px;}
+.search-wrap input:focus{border-color:rgba(79,142,247,.5);}
+.search-icon{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--faint);pointer-events:none;}
+.stats-bar{display:flex;gap:20px;padding:10px 28px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.stat-pill{display:flex;align-items:center;gap:6px;font-size:11px;}
+.dot{width:8px;height:8px;border-radius:50%;}
+.dot-d{background:#34c759;}.dot-p{background:#ff9f0a;}.dot-n{background:#ff453a;}
+.main{padding:20px 28px;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:800px;}
+thead th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border2);white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:hover{background:var(--bg3);}
+tbody tr.hidden{display:none;}
+td{padding:9px 10px;vertical-align:middle;}
+.itm-id{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;}
+.itm-name{font-size:12px;font-weight:500;color:var(--text);}
+.tactic-badge{display:inline-block;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 6px;border-radius:3px;white-space:nowrap;}
+.tb-T0{background:#2a2d33;color:#9ba3ae;}
+.tb-T1{background:#0f2d52;color:#7ab5f5;}
+.tb-T2{background:#221550;color:#a899f0;}
+.tb-T3{background:#4d1212;color:#f5a090;}
+.tb-T4{background:#103826;color:#5dcba5;}
+.tb-T5{background:#3a2108;color:#d4923a;}
+.tb-T6{background:#142e14;color:#74c25a;}
+.tb-T7{background:#3a1025;color:#d46090;}
+.tb-T8{background:#270d3a;color:#b06ee0;}
+.attack-ids{display:flex;flex-wrap:wrap;gap:4px;}
+.attack-chip{font-family:var(--mono);font-size:10px;font-weight:500;padding:2px 7px;border-radius:3px;background:var(--bg3);border:1px solid var(--border2);color:#78aeff;text-decoration:none;transition:all .1s;white-space:nowrap;}
+.attack-chip:hover{background:rgba(79,142,247,.15);border-color:rgba(79,142,247,.4);}
+.none-text{font-size:11px;color:var(--faint);font-style:italic;}
+.match-pill{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.match-direct{background:rgba(52,199,89,.15);color:#5dd97a;border:1px solid rgba(52,199,89,.25);}
+.match-partial{background:rgba(255,159,10,.12);color:#ffba45;border:1px solid rgba(255,159,10,.2);}
+.match-none{background:rgba(255,69,58,.1);color:#ff6b6b;border:1px solid rgba(255,69,58,.2);}
+.note-text{font-size:11px;color:var(--muted);line-height:1.5;}
+.callout{margin:0 28px 20px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;border-left:3px solid rgba(79,142,247,.5);}
+.callout p{font-size:12px;color:var(--muted);line-height:1.65;}
+.callout strong{color:var(--text);}
+.site-footer{margin-top:40px;padding:16px 28px;border-top:1px solid var(--border);font-size:11px;color:var(--faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.site-footer a{color:var(--muted);text-decoration:none;}
+.site-footer a:hover{color:var(--text);}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>ITM × ATT&CK Crosswalk</h1>
+  <p>Every technique in the Insider Threat Matrix mapped to its MITRE ATT&CK® Enterprise equivalent. Techniques in T0 (Precursor), T6 (Behavioral Correlation), and T7 (Escalation) have no ATT&CK equivalent — they are unique to this framework and represent its most operationally distinctive layers.</p>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">← Back to Matrix</a>
+    <a class="nav-link" href="attack-navigator-layer.json" download="attack-navigator-layer.json">⬇ Download Navigator Layer (.json)</a>
+    <a class="nav-link" href="https://mitre-attack.github.io/attack-navigator/" target="_blank">Open ATT&CK Navigator ↗</a>
+    <a class="nav-link" href="README.md">README</a>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat-pill"><div class="dot dot-d"></div><span id="cnt-direct">0</span> Direct mappings</div>
+  <div class="stat-pill"><div class="dot dot-p"></div><span id="cnt-partial">0</span> Partial mappings</div>
+  <div class="stat-pill"><div class="dot dot-n"></div><span id="cnt-none">0</span> No ATT&CK equivalent</div>
+</div>
+
+<div class="toolbar">
+  <span style="font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Tactic</span>
+  <button class="filter-btn active" onclick="filterTactic('all',this)">All</button>
+  <button class="filter-btn" onclick="filterTactic('T0',this)">T0 Precursor</button>
+  <button class="filter-btn" onclick="filterTactic('T1',this)">T1 Collection</button>
+  <button class="filter-btn" onclick="filterTactic('T2',this)">T2 Exfil Prep</button>
+  <button class="filter-btn" onclick="filterTactic('T3',this)">T3 Exfiltration</button>
+  <button class="filter-btn" onclick="filterTactic('T4',this)">T4 Obfuscation</button>
+  <button class="filter-btn" onclick="filterTactic('T5',this)">T5 Privilege</button>
+  <button class="filter-btn" onclick="filterTactic('T6',this)">T6 Behavioral</button>
+  <button class="filter-btn" onclick="filterTactic('T7',this)">T7 Escalation</button>
+  <button class="filter-btn" onclick="filterTactic('T8',this)">T8 Sabotage</button>
+  <div class="sep"></div>
+  <span style="font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em;">Match</span>
+  <button class="match-btn direct" onclick="filterMatch('direct',this)">Direct</button>
+  <button class="match-btn partial" onclick="filterMatch('partial',this)">Partial</button>
+  <button class="match-btn none" onclick="filterMatch('none',this)">None</button>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" placeholder="Search ITM ID, ATT&CK ID, name…" oninput="doSearch(this.value)">
+  </div>
+</div>
+
+<div class="main">
+<div class="callout">
+  <p><strong>How to use this crosswalk:</strong> The Navigator layer JSON loads your ITM coverage directly into the official ATT&CK Navigator at mitre-attack.github.io/attack-navigator — go there, click the folder icon → Open Existing Layer → Upload File, then select <code>attack-navigator-layer.json</code>. Each highlighted cell is color-coded by ITM tactic. <strong>Direct</strong> = the ATT&CK technique is a precise match. <strong>Partial</strong> = conceptual overlap but ATT&CK models it differently or more narrowly. <strong>None</strong> = no ATT&CK equivalent exists — these are the unique value of this framework.</p>
+</div>
+<table id="crosswalk-table">
+  <thead>
+    <tr>
+      <th>ITM ID</th>
+      <th>ITM Technique</th>
+      <th>ITM Tactic</th>
+      <th>ATT&CK ID(s)</th>
+      <th>ATT&CK Technique Name</th>
+      <th>Match</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody id="tbody"></tbody>
+</table>
+</div>
+
+<footer class="site-footer">
+  <span>Insider Threat Matrix — ATT&CK Crosswalk &nbsp;|&nbsp; Custom MITRE-Style Framework</span>
+  <span>Reference: <a href="https://attack.mitre.org" target="_blank">MITRE ATT&CK®</a></span>
+</footer>
+
+<script>
+const ROWS = [
+  // T0 — Initial Risk Conditions
+  {tac:'T0',id:'T0.1',name:'Pre-departure risk',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. ATT&CK does not model precursor risk state or intent context.'},
+  {tac:'T0',id:'T0.2',name:'Sensitive role exposure',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Role-based risk amplifiers are unique to insider threat frameworks.'},
+  {tac:'T0',id:'T0.3',name:'Privileged access',atk:['T1078'],atkNames:['Valid Accounts'],match:'partial',note:'ATT&CK T1078 covers valid account abuse but not the precursor risk of holding elevated access.'},
+  {tac:'T0',id:'T0.4',name:'Policy violation history',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Behavioral history as a risk amplifier is unique to insider threat detection.'},
+  {tac:'T0',id:'T0.5',name:'Financial stress indicators',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. ATT&CK does not model motivation or psychosocial risk factors.'},
+  {tac:'T0',id:'T0.6',name:'Coercion / third party collusion',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. External recruitment of insiders is not modeled in ATT&CK Enterprise.'},
+  {tac:'T0',id:'T0.7',name:'Ideology / espionage motivation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Motive classification is unique to insider threat frameworks.'},
+  {tac:'T0',id:'T0.8',name:'Joiner / mover risk',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Lifecycle-based risk windows are unique to insider threat frameworks.'},
+
+  // T1 — Collection
+  {tac:'T1',id:'T1.1',name:'Bulk data access',atk:['T1005','T1039','T1213'],atkNames:['Data from Local System','Data from Network Shared Drive','Data from Information Repositories'],match:'direct',note:'Strong match across all three ATT&CK techniques covering local, network, and repository-based bulk access.'},
+  {tac:'T1',id:'T1.2',name:'Sensitive repo enumeration',atk:['T1213','T1213.002'],atkNames:['Data from Information Repositories','SharePoint'],match:'direct',note:'Direct match. T1213.002 specifically covers SharePoint enumeration as a sub-technique.'},
+  {tac:'T1',id:'T1.3',name:'Staging activity',atk:['T1074','T1074.001'],atkNames:['Data Staged','Local Data Staging'],match:'direct',note:'Direct match. T1074 and its sub-techniques specifically model data staging before exfiltration.'},
+  {tac:'T1',id:'T1.4',name:'Print-based collection',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Physical printing as a data collection method is not modeled in ATT&CK Enterprise.'},
+  {tac:'T1',id:'T1.5',name:'Screen capture collection',atk:['T1113'],atkNames:['Screen Capture'],match:'direct',note:'Direct match. ATT&CK T1113 specifically covers screen capture as a collection technique.'},
+  {tac:'T1',id:'T1.6',name:'Clipboard harvesting',atk:['T1115'],atkNames:['Clipboard Data'],match:'direct',note:'Direct match. ATT&CK T1115 specifically covers clipboard data collection.'},
+  {tac:'T1',id:'T1.7',name:'Browser artifact collection',atk:['T1539','T1555.003'],atkNames:['Steal Web Session Cookie','Credentials from Web Browsers'],match:'direct',note:'Direct match across credential theft and session cookie stealing from browser stores.'},
+
+  // T2 — Exfil Preparation
+  {tac:'T2',id:'T2.1',name:'Abnormal working patterns',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Behavioral baseline deviation is unique to UEBA and insider threat frameworks.'},
+  {tac:'T2',id:'T2.2',name:'Workflow deviation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Tool or path deviation from behavioral baseline is not modeled in ATT&CK.'},
+  {tac:'T2',id:'T2.3',name:'Compression and archiving',atk:['T1560','T1560.001'],atkNames:['Archive Collected Data','Archive via Utility'],match:'direct',note:'Direct match. ATT&CK T1560 specifically models compression and archiving of collected data pre-exfil.'},
+  {tac:'T2',id:'T2.4',name:'Unauthorized remote access setup',atk:['T1021.001','T1219'],atkNames:['Remote Desktop Protocol','Remote Access Software'],match:'direct',note:'Direct match. RDP setup maps to T1021.001 and third-party remote tools (AnyDesk, TeamViewer) map to T1219.'},
+  {tac:'T2',id:'T2.5',name:'WSL abuse for staging',atk:['T1202'],atkNames:['Indirect Command Execution'],match:'partial',note:'Partial match. T1202 covers indirect execution but does not specifically address WSL as an evasion and staging mechanism.'},
+  {tac:'T2',id:'T2.6',name:'Hardware implant preparation',atk:['T1200'],atkNames:['Hardware Additions'],match:'direct',note:'Direct match. ATT&CK T1200 specifically models unauthorized hardware devices used for access or implant purposes.'},
+  {tac:'T2',id:'T2.7',name:'Cloud storage preparation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Preparatory configuration of personal cloud services is not modeled as a distinct technique.'},
+  {tac:'T2',id:'T2.8',name:'Security software enumeration',atk:['T1518.001'],atkNames:['Security Software Discovery'],match:'direct',note:'Direct match. T1518.001 specifically covers discovery of security products deployed on a system.'},
+  {tac:'T2',id:'T2.9',name:'Private / incognito browsing',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Browser privacy mode as an anti-forensic preparation is not modeled in ATT&CK.'},
+  {tac:'T2',id:'T2.10',name:'Social engineering outbound',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. ATT&CK models inbound social engineering against the org — not an insider helping an outsider in.'},
+
+  // T3 — Exfiltration
+  {tac:'T3',id:'T3.1',name:'External email sharing',atk:['T1048.003','T1567'],atkNames:['Exfiltration over Unencrypted Protocol','Exfiltration over Web Service'],match:'direct',note:'Direct match. Email-based exfiltration maps to both unencrypted protocol and web service exfiltration in ATT&CK.'},
+  {tac:'T3',id:'T3.2',name:'External file sharing',atk:['T1567.002'],atkNames:['Exfiltration to Cloud Storage'],match:'direct',note:'Direct match. T1567.002 specifically covers exfiltration to OneDrive, SharePoint, Dropbox, and Google Drive.'},
+  {tac:'T3',id:'T3.3',name:'Removable media transfer',atk:['T1052','T1052.001'],atkNames:['Exfiltration over Physical Medium','Exfiltration over USB'],match:'direct',note:'Direct match. T1052.001 specifically covers USB-based exfiltration as a sub-technique.'},
+  {tac:'T3',id:'T3.4',name:'Network-based exfiltration',atk:['T1048'],atkNames:['Exfiltration over Alternative Protocol'],match:'direct',note:'Direct match. T1048 covers DNS tunneling, custom protocols, and alternative channel exfiltration.'},
+  {tac:'T3',id:'T3.5',name:'Messaging platform exfil',atk:['T1567'],atkNames:['Exfiltration over Web Service'],match:'partial',note:'Partial match. T1567 covers web service exfil broadly but does not specifically model Teams or Slack as channels.'},
+  {tac:'T3',id:'T3.6',name:'Physical media exfiltration',atk:['T1052'],atkNames:['Exfiltration over Physical Medium'],match:'direct',note:'Direct match. T1052 covers physical medium exfiltration including printed documents and captured media.'},
+  {tac:'T3',id:'T3.7',name:'Mailbox forwarding rules',atk:['T1114.003'],atkNames:['Email Forwarding Rule'],match:'direct',note:'Direct match. T1114.003 specifically models email forwarding rule creation as a collection and exfiltration technique.'},
+  {tac:'T3',id:'T3.8',name:'SMS / MMS exfiltration',atk:['T1052'],atkNames:['Exfiltration over Physical Medium'],match:'partial',note:'Partial match. ATT&CK T1052 covers physical medium broadly. SMS/MMS as a specific channel is not sub-categorised.'},
+  {tac:'T3',id:'T3.9',name:'Screen sharing exfiltration',atk:['T1113'],atkNames:['Screen Capture'],match:'partial',note:'Partial match. T1113 covers screen capture but not the specific vector of live screen sharing to external parties during calls.'},
+  {tac:'T3',id:'T3.10',name:'Automated transcription exfiltration',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. AI meeting transcription tools as an exfil vector are not yet modeled in ATT&CK v14.'},
+  {tac:'T3',id:'T3.11',name:'Bluetooth transfer',atk:['T1052'],atkNames:['Exfiltration over Physical Medium'],match:'partial',note:'Partial match. ATT&CK T1052 covers physical medium broadly but does not model Bluetooth as a distinct sub-technique.'},
+
+  // T4 — Obfuscation
+  {tac:'T4',id:'T4.1',name:'Log deletion and clearing',atk:['T1070','T1070.001','T1070.003'],atkNames:['Indicator Removal','Clear Windows Event Logs','Clear Command History'],match:'direct',note:'Direct match across multiple sub-techniques covering Windows event logs, bash history, and PowerShell history.'},
+  {tac:'T4',id:'T4.2',name:'Timestomping',atk:['T1070.006'],atkNames:['Timestomp'],match:'direct',note:'Direct match. ATT&CK T1070.006 specifically models NTFS timestamp manipulation.'},
+  {tac:'T4',id:'T4.3',name:'Security tool tampering',atk:['T1562','T1562.001'],atkNames:['Impair Defenses','Disable or Modify Tools'],match:'direct',note:'Direct match. T1562.001 specifically covers disabling or modifying EDR, DLP, and monitoring agents.'},
+  {tac:'T4',id:'T4.4',name:'Activity tracking suppression',atk:['T1112'],atkNames:['Modify Registry'],match:'partial',note:'Partial match. T1112 covers registry modification broadly. Disabling UserAssist/RunMRU specifically is an insider-focused application not sub-categorised in ATT&CK.'},
+  {tac:'T4',id:'T4.5',name:'Shadow copy deletion',atk:['T1490'],atkNames:['Inhibit System Recovery'],match:'direct',note:'Direct match. T1490 specifically models deletion of shadow copies and recovery inhibition.'},
+  {tac:'T4',id:'T4.6',name:'Alternate runtime evasion',atk:['T1564.006','T1202'],atkNames:['Run Virtual Instance','Indirect Command Execution'],match:'partial',note:'Partial match. T1564.006 covers virtual instances and T1202 covers WSL/indirect execution, but neither specifically targets the insider evasion use case.'},
+  {tac:'T4',id:'T4.7',name:'Account and artifact cleanup',atk:['T1070.004','T1531'],atkNames:['File Deletion','Account Access Removal'],match:'direct',note:'Direct match. T1070.004 covers file deletion and T1531 covers account deletion as anti-forensic techniques.'},
+  {tac:'T4',id:'T4.8',name:'Steganography',atk:['T1027.003'],atkNames:['Steganography'],match:'direct',note:'Direct match. ATT&CK T1027.003 specifically models steganography for hiding data in media files.'},
+  {tac:'T4',id:'T4.9',name:'File encryption',atk:['T1027'],atkNames:['Obfuscated Files or Information'],match:'partial',note:'Partial match. T1027 covers file obfuscation broadly. File encryption as a pre-exfil DLP bypass is not a distinct ATT&CK sub-technique.'},
+  {tac:'T4',id:'T4.10',name:'Disk wiping / physical destruction',atk:['T1561'],atkNames:['Disk Wipe'],match:'direct',note:'Direct match. ATT&CK T1561 models disk wiping to destroy forensic evidence.'},
+  {tac:'T4',id:'T4.11',name:'Network obfuscation',atk:['T1090','T1090.003'],atkNames:['Proxy','Multi-hop Proxy'],match:'direct',note:'Direct match. T1090.003 specifically covers Tor and multi-hop proxy usage to anonymise traffic.'},
+
+  // T5 — Privilege Abuse
+  {tac:'T5',id:'T5.1',name:'Role escalation',atk:['T1548','T1078'],atkNames:['Abuse Elevation Control Mechanism','Valid Accounts'],match:'direct',note:'Direct match. T1548 covers privilege escalation abuse and T1078 covers use of valid credentials beyond scope.'},
+  {tac:'T5',id:'T5.2',name:'Unauthorized system access',atk:['T1078'],atkNames:['Valid Accounts'],match:'partial',note:'Partial match. T1078 covers valid account use but does not specifically model access scope violations by insiders.'},
+  {tac:'T5',id:'T5.3',name:'Mailbox permission abuse',atk:['T1114','T1114.002'],atkNames:['Email Collection','Remote Email Collection'],match:'direct',note:'Direct match. T1114.002 covers accessing mailboxes via delegated permissions.'},
+  {tac:'T5',id:'T5.4',name:'Kerberoasting / credential attack',atk:['T1558.003'],atkNames:['Kerberoasting'],match:'direct',note:'Direct match. ATT&CK T1558.003 specifically models Kerberoasting as a credential theft technique.'},
+  {tac:'T5',id:'T5.5',name:'Remote access abuse',atk:['T1021.001','T1078'],atkNames:['Remote Desktop Protocol','Valid Accounts'],match:'direct',note:'Direct match. Legitimate RDP credential reuse and valid account abuse are both well-modeled in ATT&CK.'},
+  {tac:'T5',id:'T5.6',name:'Cloud resource abuse',atk:['T1578'],atkNames:['Modify Cloud Compute Infrastructure'],match:'partial',note:'Partial match. T1578 covers cloud resource modification but focuses on adversary persistence rather than insider compute abuse.'},
+
+  // T6 — Behavioral Correlation
+  {tac:'T6',id:'T6.1',name:'Multi-signal correlation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Multi-signal behavioral correlation is a detection layer unique to UEBA and insider threat frameworks.'},
+  {tac:'T6',id:'T6.2',name:'Behavioral deviation scoring',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Baseline comparison and anomaly scoring are detection concepts, not adversary techniques.'},
+  {tac:'T6',id:'T6.3',name:'Business context validation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Context validation before escalation is a governance concept unique to insider threat frameworks.'},
+  {tac:'T6',id:'T6.4',name:'Cross-source timeline analysis',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Cross-source forensic correlation is an investigative technique with no ATT&CK modelling.'},
+  {tac:'T6',id:'T6.5',name:'Canary and deception triggers',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Cyber deception and honeypot detection are defender-side concepts not in ATT&CK.'},
+  {tac:'T6',id:'T6.6',name:'Threat intelligence correlation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. TI enrichment as a detection method is not modeled in ATT&CK.'},
+  {tac:'T6',id:'T6.7',name:'Physical-digital correlation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Correlating badge access with login events is unique to insider threat investigations.'},
+
+  // T7 — Decision & Escalation
+  {tac:'T7',id:'T7.1',name:'Evidence-based case creation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Case creation thresholds and governance gates are unique to insider threat frameworks.'},
+  {tac:'T7',id:'T7.2',name:'Restricted SOC visibility',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Access control within the investigation team is not modeled in ATT&CK.'},
+  {tac:'T7',id:'T7.3',name:'Controlled HR involvement',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. HR escalation governance is unique to insider threat frameworks.'},
+  {tac:'T7',id:'T7.4',name:'eDiscovery and legal hold',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Legal preservation processes are outside the scope of ATT&CK.'},
+  {tac:'T7',id:'T7.5',name:'Forensic evidence preservation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Evidence chain of custody procedures are not modeled in ATT&CK.'},
+  {tac:'T7',id:'T7.6',name:'Whistleblower intake review',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Human reporting processes are unique to insider threat governance frameworks.'},
+
+  // T8 — Sabotage & Harm
+  {tac:'T8',id:'T8.1',name:'Denial of service',atk:['T1498','T1499'],atkNames:['Network Denial of Service','Endpoint Denial of Service'],match:'direct',note:'Direct match. ATT&CK T1498 and T1499 cover network and endpoint DoS attacks respectively.'},
+  {tac:'T8',id:'T8.2',name:'Codebase integrity compromise',atk:['T1195.001'],atkNames:['Compromise Software Dependencies and Development Tools'],match:'direct',note:'Direct match. T1195.001 covers supply chain compromise via malicious code in repositories or dependencies.'},
+  {tac:'T8',id:'T8.3',name:'Digital defacement',atk:['T1491.001','T1491.002'],atkNames:['Internal Defacement','External Website Defacement'],match:'direct',note:'Direct match across both internal and external defacement sub-techniques in ATT&CK T1491.'},
+  {tac:'T8',id:'T8.4',name:'Physical sabotage',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Physical destruction of infrastructure is outside the scope of ATT&CK Enterprise (which focuses on digital techniques).'},
+  {tac:'T8',id:'T8.5',name:'AI platform data exposure',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Feeding org data into external AI platforms is an emerging vector not yet modeled in ATT&CK v14.'}
+];
+
+const tBody = document.getElementById('tbody');
+const tacColors = {T0:'tb-T0',T1:'tb-T1',T2:'tb-T2',T3:'tb-T3',T4:'tb-T4',T5:'tb-T5',T6:'tb-T6',T7:'tb-T7',T8:'tb-T8'};
+const tacLabels = {T0:'T0 Precursor',T1:'T1 Collection',T2:'T2 Exfil Prep',T3:'T3 Exfiltration',T4:'T4 Obfuscation',T5:'T5 Privilege',T6:'T6 Behavioral',T7:'T7 Escalation',T8:'T8 Sabotage'};
+const matchLabel = {direct:'Direct',partial:'Partial',none:'None'};
+
+let direct=0,partial=0,none=0;
+ROWS.forEach(r=>{
+  if(r.match==='direct')direct++;
+  else if(r.match==='partial')partial++;
+  else none++;
+
+  const tr=document.createElement('tr');
+  tr.dataset.tac=r.tac;
+  tr.dataset.match=r.match;
+  tr.dataset.search=(r.id+' '+r.name+' '+r.atk.join(' ')+' '+r.atkNames.join(' ')).toLowerCase();
+
+  const attackCells = r.atk.length>0
+    ? r.atk.map((id,i)=>`<a class="attack-chip" href="https://attack.mitre.org/techniques/${id.replace('.','/')}/" target="_blank">${id}</a>`).join('')
+    : '<span class="none-text">—</span>';
+
+  const atkNames = r.atkNames.length>0
+    ? r.atkNames.join(', ')
+    : '<span class="none-text">No equivalent</span>';
+
+  tr.innerHTML=`
+    <td><span class="itm-id">${r.id}</span></td>
+    <td><span class="itm-name">${r.name}</span></td>
+    <td><span class="tactic-badge ${tacColors[r.tac]}">${tacLabels[r.tac]}</span></td>
+    <td><div class="attack-ids">${attackCells}</div></td>
+    <td><span class="note-text">${atkNames}</span></td>
+    <td><span class="match-pill match-${r.match}">${matchLabel[r.match]}</span></td>
+    <td><span class="note-text">${r.note}</span></td>`;
+  tBody.appendChild(tr);
+});
+
+document.getElementById('cnt-direct').textContent=direct;
+document.getElementById('cnt-partial').textContent=partial;
+document.getElementById('cnt-none').textContent=none;
+
+let tacFilter='all', matchFilter='all', searchQ='';
+
+function applyFilters(){
+  document.querySelectorAll('#tbody tr').forEach(tr=>{
+    const tacOk = tacFilter==='all'||tr.dataset.tac===tacFilter;
+    const matchOk = matchFilter==='all'||tr.dataset.match===matchFilter;
+    const searchOk = !searchQ||tr.dataset.search.includes(searchQ);
+    tr.classList.toggle('hidden',!(tacOk&&matchOk&&searchOk));
+  });
+}
+
+function filterTactic(t,btn){
+  tacFilter=t;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function filterMatch(m,btn){
+  matchFilter = matchFilter===m?'all':m;
+  document.querySelectorAll('.match-btn').forEach(b=>b.classList.remove('active'));
+  if(matchFilter!=='all')btn.classList.add('active');
+  applyFilters();
+}
+
+function doSearch(v){
+  searchQ=v.toLowerCase().trim();
+  applyFilters();
+}
+</script>
+</body>
+</html>
