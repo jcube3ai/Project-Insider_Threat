@@ -133,14 +133,14 @@ The framework is fully mapped to MITRE ATT&CK® Enterprise v14 across two delive
 - Load at [mitre-attack.github.io/attack-navigator](https://mitre-attack.github.io/attack-navigator/)
 
 ### Crosswalk (`crosswalk.html`)
-- Every ITM technique mapped with match quality: **Direct**, **Partial**, or **None**
-- Filterable by ITM tactic and match quality
+- Every ITDF technique mapped with match quality: **Direct**, **Partial**, or **None**
+- Filterable by ITDF tactic and match quality
 - ATT&CK IDs link directly to the corresponding ATT&CK technique page
 - Highlights where this framework goes beyond ATT&CK (T0, T6, T7 have no ATT&CK equivalent)
 
 ### Where this framework goes beyond ATT&CK
 
-| ITM Tactic | Why there's no ATT&CK equivalent |
+| ITDF Tactic | Why there's no ATT&CK equivalent |
 |---|---|
 | **T0 — Initial Risk Conditions** | ATT&CK doesn't model precursor risk state, motive, or psychosocial context |
 | **T6 — Behavioral Correlation** | Multi-signal UEBA analysis is a detection concept, not an adversary technique |
