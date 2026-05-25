@@ -1,6 +1,6 @@
 # 🛡️ Insider Threat Detection Framework
 
-> A behavioral detection framework for computer-enabled insider threat detection and investigation — structured as a kill chain, mapped to ATT&CK, with 130+ detection ID mappings.
+> A behavioral detection framework for insider threat detection and investigation — structured as a kill chain, mapped to ATT&CK, with 130+ detection ID mappings.
 
 ![Tactics](https://img.shields.io/badge/Tactics-9-4f8ef7?style=flat-square)
 ![Techniques](https://img.shields.io/badge/Techniques-69-7c6cf5?style=flat-square)
