@@ -1,6 +1,6 @@
-# 🛡️ Insider Threat Matrix
+# 🛡️ Insider Threat Detection Framework
 
-> A custom MITRE ATT&CK®-style framework for computer-enabled insider threat detection and investigation — structured as a kill chain, mapped to ATT&CK, with 130+ detection ID mappings.
+> A behavioral detection framework for computer-enabled insider threat detection and investigation — structured as a kill chain, mapped to ATT&CK, with 130+ detection ID mappings.
 
 ![Tactics](https://img.shields.io/badge/Tactics-9-4f8ef7?style=flat-square)
 ![Techniques](https://img.shields.io/badge/Techniques-69-7c6cf5?style=flat-square)
@@ -25,9 +25,9 @@ The full framework is mapped to MITRE ATT&CK® Enterprise with a Navigator-compa
 ## 🗂️ Repository Structure
 
 ```
-insider-threat-matrix/
-├── index.html                     # Full interactive matrix (rename from insider-threat-matrix.html)
-├── crosswalk.html                 # ITM × ATT&CK technique crosswalk reference
+insider-threat-detection-framework/
+├── index.html                     # Full interactive matrix (rename from insider-threat-detection-framework.html)
+├── crosswalk.html                 # ITDF × ATT&CK technique crosswalk reference
 ├── attack-navigator-layer.json    # MITRE ATT&CK Navigator layer (58 techniques)
 └── README.md                      # This file
 ```
@@ -45,7 +45,7 @@ open index.html   # macOS
 ```
 
 **Option 2 — Host on GitHub Pages:**
-1. Rename `insider-threat-matrix.html` → `index.html` before pushing
+1. Rename `insider-threat-detection-framework.html` → `index.html` before pushing
 2. Go to your repo → **Settings → Pages**
 3. Set source to **Deploy from branch → main → / (root)** → Save
 4. Wait ~60 seconds, then your files are live at:
@@ -170,7 +170,7 @@ The framework is fully mapped to MITRE ATT&CK® Enterprise v14 across two delive
 
 ## 🔧 Customization
 
-All framework data lives in `insider-threat-matrix.html` as plain JavaScript. No build tools, no config files.
+All framework data lives in `insider-threat-detection-framework.html` as plain JavaScript. No build tools, no config files.
 
 **Add a technique** — find `const MATRIX=` and add to the relevant tactic:
 ```javascript
@@ -217,7 +217,7 @@ Click any technique cell in the matrix to see all mapped detections with full de
 
 - [MITRE ATT&CK®](https://attack.mitre.org) — Enterprise adversary tactics and techniques framework
 - [ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/) — Official layer visualization tool
-- [Insider Threat Matrix™](https://www.insiderthreatmatrix.org) — Detection ID reference source (Forscie Limited)
+- [Insider Threat Detection Framework™](https://www.insiderthreatmatrix.org) — Detection ID reference source (Forscie Limited)
 - [CERT Insider Threat Center](https://www.sei.cmu.edu/our-work/insider-threats/) — Research and case studies
 - [MITRE ATLAS](https://atlas.mitre.org) — AI-focused threat matrix
 
