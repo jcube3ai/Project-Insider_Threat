@@ -217,7 +217,6 @@ Click any technique cell in the matrix to see all mapped detections with full de
 
 - [MITRE ATT&CK®](https://attack.mitre.org) — Enterprise adversary tactics and techniques framework
 - [ATT&CK Navigator](https://mitre-attack.github.io/attack-navigator/) — Official layer visualization tool
-- [Insider Threat Detection Framework™](https://www.insiderthreatmatrix.org) — Detection ID reference source (Forscie Limited)
 - [CERT Insider Threat Center](https://www.sei.cmu.edu/our-work/insider-threats/) — Research and case studies
 - [MITRE ATLAS](https://atlas.mitre.org) — AI-focused threat matrix
 
