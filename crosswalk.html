@@ -203,6 +203,7 @@ const ROWS = [
   {tac:'T2',id:'T2.8',name:'Security software enumeration',atk:['T1518.001'],atkNames:['Security Software Discovery'],match:'direct',note:'Direct match. T1518.001 specifically covers discovery of security products deployed on a system.'},
   {tac:'T2',id:'T2.9',name:'Private / incognito browsing',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Browser privacy mode as an anti-forensic preparation is not modeled in ATT&CK.'},
   {tac:'T2',id:'T2.10',name:'Social engineering outbound',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. ATT&CK models inbound social engineering against the org — not an insider helping an outsider in.'},
+  {tac:'T2',id:'T2.11',name:'Identity infrastructure reconnaissance',atk:['T1087.004'],atkNames:['Account Discovery: Cloud Account'],match:'direct',note:'Azure AD Graph API enumeration maps directly to T1087.004 Cloud Account discovery.'},
 
   // T3 — Exfiltration
   {tac:'T3',id:'T3.1',name:'External email sharing',atk:['T1048.003','T1567'],atkNames:['Exfiltration over Unencrypted Protocol','Exfiltration over Web Service'],match:'direct',note:'Direct match. Email-based exfiltration maps to both unencrypted protocol and web service exfiltration in ATT&CK.'},
@@ -216,6 +217,7 @@ const ROWS = [
   {tac:'T3',id:'T3.9',name:'Screen sharing exfiltration',atk:['T1113'],atkNames:['Screen Capture'],match:'partial',note:'Partial match. T1113 covers screen capture but not the specific vector of live screen sharing to external parties during calls.'},
   {tac:'T3',id:'T3.10',name:'Automated transcription exfiltration',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. AI meeting transcription tools as an exfil vector are not yet modeled in ATT&CK v14.'},
   {tac:'T3',id:'T3.11',name:'Bluetooth transfer',atk:['T1052'],atkNames:['Exfiltration over Physical Medium'],match:'partial',note:'Partial match. ATT&CK T1052 covers physical medium broadly but does not model Bluetooth as a distinct sub-technique.'},
+  {tac:'T3',id:'T3.12',name:'Web exfil and email corroboration',atk:['T1567','T1041'],atkNames:['Exfiltration Over Web Service','Exfiltration Over C2 Channel'],match:'direct',note:'Cloud storage uploads map to T1567. Freemail attachment exfil maps to T1041.'},
 
   // T4 — Obfuscation
   {tac:'T4',id:'T4.1',name:'Log deletion and clearing',atk:['T1070','T1070.001','T1070.003'],atkNames:['Indicator Removal','Clear Windows Event Logs','Clear Command History'],match:'direct',note:'Direct match across multiple sub-techniques covering Windows event logs, bash history, and PowerShell history.'},
@@ -229,6 +231,7 @@ const ROWS = [
   {tac:'T4',id:'T4.9',name:'File encryption',atk:['T1027'],atkNames:['Obfuscated Files or Information'],match:'partial',note:'Partial match. T1027 covers file obfuscation broadly. File encryption as a pre-exfil DLP bypass is not a distinct ATT&CK sub-technique.'},
   {tac:'T4',id:'T4.10',name:'Disk wiping / physical destruction',atk:['T1561'],atkNames:['Disk Wipe'],match:'direct',note:'Direct match. ATT&CK T1561 models disk wiping to destroy forensic evidence.'},
   {tac:'T4',id:'T4.11',name:'Network obfuscation',atk:['T1090','T1090.003'],atkNames:['Proxy','Multi-hop Proxy'],match:'direct',note:'Direct match. T1090.003 specifically covers Tor and multi-hop proxy usage to anonymise traffic.'},
+  {tac:'T4',id:'T4.12',name:'Conditional access policy tampering',atk:['T1484.001'],atkNames:['Domain Policy Modification: Group Policy Modification'],match:'partial',note:'T1484.001 covers group policy modification. CA policy tampering is the Azure AD equivalent — partial match as ATT&CK focuses on on-prem AD policy.'},
 
   // T5 — Privilege Abuse
   {tac:'T5',id:'T5.1',name:'Role escalation',atk:['T1548','T1078'],atkNames:['Abuse Elevation Control Mechanism','Valid Accounts'],match:'direct',note:'Direct match. T1548 covers privilege escalation abuse and T1078 covers use of valid credentials beyond scope.'},
@@ -237,6 +240,9 @@ const ROWS = [
   {tac:'T5',id:'T5.4',name:'Kerberoasting / credential attack',atk:['T1558.003'],atkNames:['Kerberoasting'],match:'direct',note:'Direct match. ATT&CK T1558.003 specifically models Kerberoasting as a credential theft technique.'},
   {tac:'T5',id:'T5.5',name:'Remote access abuse',atk:['T1021.001','T1078'],atkNames:['Remote Desktop Protocol','Valid Accounts'],match:'direct',note:'Direct match. Legitimate RDP credential reuse and valid account abuse are both well-modeled in ATT&CK.'},
   {tac:'T5',id:'T5.6',name:'Cloud resource abuse',atk:['T1578'],atkNames:['Modify Cloud Compute Infrastructure'],match:'partial',note:'Partial match. T1578 covers cloud resource modification but focuses on adversary persistence rather than insider compute abuse.'},
+  {tac:'T5',id:'T5.7',name:'Multi-stage privilege abuse',atk:['T1078.004','T1098.001','T1484.001'],atkNames:['Valid Accounts: Cloud Accounts','Account Manipulation: Additional Cloud Credentials','Domain Policy Modification'],match:'direct',note:'PIM activation = T1078.004. Secret/credential add = T1098.001. CA policy change = T1484.001. Direct multi-technique mapping.'},
+  {tac:'T5',id:'T5.8',name:'OAuth application abuse',atk:['T1528','T1098.001'],atkNames:['Steal Application Access Token','Account Manipulation: Additional Cloud Credentials'],match:'direct',note:'OAuth scope grant to app = T1528. Credential addition to app = T1098.001. Both are direct ATT&CK matches.'},
+  {tac:'T5',id:'T5.9',name:'Directory enumeration burst',atk:['T1087.004'],atkNames:['Account Discovery: Cloud Account'],match:'direct',note:'High-volume Azure AD Graph enumeration maps directly to T1087.004 Cloud Account discovery.'},,,
 
   // T6 — Behavioral Correlation
   {tac:'T6',id:'T6.1',name:'Multi-signal correlation',atk:[],atkNames:[],match:'none',note:'No ATT&CK equivalent. Multi-signal behavioral correlation is a detection layer unique to UEBA and insider threat frameworks.'},
