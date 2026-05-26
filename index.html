@@ -260,7 +260,7 @@
 
 <div class="stats-bar">
   <div class="stat"><span class="stat-num" id="stat-tactics">9</span><span class="stat-label">Tactics</span></div>
-  <div class="stat"><span class="stat-num" id="stat-techniques">69</span><span class="stat-label">Techniques</span></div>
+  <div class="stat"><span class="stat-num" id="stat-techniques">77</span><span class="stat-label">Techniques</span></div>
   <div class="stat"><span class="stat-num" id="stat-detections">0</span><span class="stat-label">Detection IDs</span></div>
   <div class="stat"><span class="stat-num" id="stat-coverage">0%</span><span class="stat-label">Technique Coverage</span></div>
 </div>
@@ -475,7 +475,10 @@ const MATRIX=[
 {id:'T5.3',name:'Mailbox permission abuse',desc:'Granting or exploiting mailbox read permissions to access other users\' communications.',dts:['DT141','DT128','DT040']},
 {id:'T5.4',name:'Kerberoasting / credential attack',desc:'Requesting service tickets for weak service accounts to obtain crackable credential hashes offline.',dts:['DT111']},
 {id:'T5.5',name:'Remote access abuse',desc:'Misuse of legitimate remote access tools or sharing credentials for unauthorized remote sessions.',dts:['DT034','DT035','DT137','DT100']},
-{id:'T5.6',name:'Cloud resource abuse',desc:'Unauthorized provisioning of cloud compute, storage, or network resources for illicit use.',dts:['DT115','DT116','DT117','DT118']}
+{id:'T5.6',name:'Cloud resource abuse',desc:'Unauthorized provisioning of cloud compute, storage, or network resources for illicit use.',dts:['DT115','DT116','DT117','DT118']},
+{id:'T5.7',name:'Multi-stage privilege abuse',desc:'PIM role activation followed by CA policy modification and credential addition within a 4-hour window. Near-zero false positive rate when all three signals fire simultaneously.',dts:['DT106','DT063','DT052']},
+{id:'T5.8',name:'OAuth application abuse',desc:'Human user granting sensitive OAuth scopes (Mail.Read, Files.Read.All, Directory.Read.All) to an application — especially high risk for new or unrecognised apps.',dts:['DT063','DT052','DT094']},
+{id:'T5.9',name:'Directory enumeration burst',desc:'200+ Azure AD Graph API calls within a 10-minute window by a user account — automated directory mapping indicating pre-escalation reconnaissance.',dts:['DT063','DT052']}
 ]},
 {id:'T1',label:'Collection',cls:'t1',hcls:'t1h',desc:'Data access and staging behaviors indicating unauthorized collection of organizational information.',techniques:[
 {id:'T1.1',name:'Bulk data access',desc:'Large volume document or repository access significantly deviating from 7-day and peer cohort baselines.',dts:['DT045','DT047','DT094','DT101','DT102']},
@@ -496,7 +499,8 @@ const MATRIX=[
 {id:'T2.7',name:'Cloud storage preparation',desc:'Accessing or configuring personal cloud storage or file transfer services for data staging.',dts:['DT039','DT051','DT096','DT147']},
 {id:'T2.8',name:'Security software enumeration',desc:'Subject actively scoping which monitoring tools, EDR agents, and DLP controls are deployed before taking action — a direct pre-evasion step.',dts:['DT045','DT046','DT055']},
 {id:'T2.9',name:'Private / incognito browsing',desc:'Using browser private mode to suppress local history artifacts during reconnaissance or cloud storage access, leaving gaps in browser forensic artifacts.',dts:['DT017','DT018','DT019','DT039']},
-{id:'T2.10',name:'Social engineering outbound',desc:'Insider actively assisting an external actor to gain access, credentials, or sensitive information — bridging insider and external threat vectors.',dts:['DT049','DT151','DT039']}
+{id:'T2.10',name:'Social engineering outbound',desc:'Insider actively assisting an external actor to gain access, credentials, or sensitive information — bridging insider and external threat vectors.',dts:['DT049','DT151','DT039']},
+{id:'T2.11',name:'Identity infrastructure reconnaissance',desc:'Low-volume Azure AD Graph API enumeration mapping group memberships, roles, and directory objects before privilege escalation. Precursor signal for T5.7 and T5.9.',dts:['DT063','DT052','DT045']}
 ]},
 {id:'T4',label:'Obfuscation / Evasion',cls:'t4',hcls:'t4h',desc:'Anti-forensics techniques to suppress, delete, or corrupt evidence of insider activity.',techniques:[
 {id:'T4.1',name:'Log deletion and clearing',desc:'Deleting Windows event logs, bash history, or PowerShell history to remove evidence of activity.',dts:['DT001','DT002','DT003','DT004','DT053','DT054','DT014']},
@@ -509,7 +513,8 @@ const MATRIX=[
 {id:'T4.8',name:'Steganography',desc:'Hiding data inside image, audio, or video files before transfer — content passes DLP inspection as benign media while carrying concealed data.',dts:['DT048','DT097']},
 {id:'T4.9',name:'File encryption',desc:'Encrypting files before transfer to obscure content from DLP and proxy inspection, making payload analysis impossible without the key.',dts:['DT048','DT146']},
 {id:'T4.10',name:'Disk wiping / physical destruction',desc:'Wiping storage media using secure erase utilities or physically destroying devices to prevent forensic recovery of any data or artifacts.',dts:['DT146','DT014','DT008']},
-{id:'T4.11',name:'Network obfuscation',desc:'Using Tor, proxychains, or commercial VPNs to anonymise exfiltration traffic and prevent network-layer attribution.',dts:['DT096','DT097','DT098','DT100','DT147']}
+{id:'T4.11',name:'Network obfuscation',desc:'Using Tor, proxychains, or commercial VPNs to anonymise exfiltration traffic and prevent network-layer attribution.',dts:['DT096','DT097','DT098','DT100','DT147']},
+{id:'T4.12',name:'Conditional access policy tampering',desc:'Deletion or disabling of Azure AD conditional access policies to weaken security controls before exfiltration. Score increases for off-hours modification or policy deletion.',dts:['DT052','DT063','DT106']}
 ]},
 {id:'T3',label:'Exfiltration',cls:'t3',hcls:'t3h',desc:'Active movement of organizational data outside authorized boundaries.',techniques:[
 {id:'T3.1',name:'External email sharing',desc:'Sending sensitive data as email attachments to external or personal email addresses.',dts:['DT040','DT041','DT140','DT145']},
@@ -522,7 +527,8 @@ const MATRIX=[
 {id:'T3.8',name:'SMS / MMS exfiltration',desc:'Forwarding sensitive content via personal mobile messaging, bypassing all corporate network and email monitoring controls.',dts:['DT033','DT048']},
 {id:'T3.9',name:'Screen sharing exfiltration',desc:'Sharing screen during video calls (Teams, Zoom, Meet) to expose sensitive data to external parties without any file transfer or DLP trigger.',dts:['DT033','DT048','DT107']},
 {id:'T3.10',name:'Automated transcription exfiltration',desc:'AI meeting tools (Copilot, Otter.ai, Fireflies) capturing and storing sensitive meeting content to locations outside organizational control.',dts:['DT094','DT154']},
-{id:'T3.11',name:'Bluetooth transfer',desc:'Short-range wireless transfer of files to a personal device, completely bypassing network monitoring, DLP, and web proxy controls.',dts:['DT033','DT048']}
+{id:'T3.11',name:'Bluetooth transfer',desc:'Short-range wireless transfer of files to a personal device, completely bypassing network monitoring, DLP, and web proxy controls.',dts:['DT033','DT048']},
+{id:'T3.12',name:'Web exfil and email corroboration',desc:'Cloud storage or freemail web browsing corroborated by email attachments to personal domains on the same day. Points-based multi-signal — highest confidence exfiltration indicator.',dts:['DT039','DT041','DT048','DT051']}
 ]},
 {id:'T8',label:'Sabotage & Harm',cls:'t8',hcls:'t8h',desc:'Deliberate actions designed to damage, disrupt, deface, or destroy organizational systems, data, infrastructure, or reputation.',techniques:[
 {id:'T8.1',name:'Denial of service',desc:'Deliberately overwhelming or crashing internal systems, networks, or services to disrupt business operations.',dts:['DT114','DT042']},
@@ -681,7 +687,3 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementB
 </script>
 </body>
 </html>
-
-
-
-
