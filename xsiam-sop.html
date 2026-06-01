@@ -784,12 +784,12 @@ pre .n { color: #6ee7d4; }
 
 <div class="hero">
   <div class="hero-eyebrow">Standard Operating Procedure</div>
-  <h1>ITDF × XSIAM<br><strong>Integration Workflow</strong></h1>
-  <p class="hero-sub">Step-by-step implementation guide for deploying the Insider Threat Detection Framework into Cortex XSIAM. Follow each step in order — each layer depends on the one before it.</p>
+  <h1>ITM × XSIAM<br><strong>Integration Workflow</strong></h1>
+  <p class="hero-sub">Step-by-step implementation guide for deploying the Insider Threat Detection Framework detection framework into Cortex XSIAM. Follow each step in order — each layer depends on the one before it.</p>
   <div class="hero-meta">
     <div class="meta-item">
       <span class="meta-label">Total Steps</span>
-      <span class="meta-val">6 steps</span>
+      <span class="meta-val">7 steps</span>
     </div>
     <div class="meta-item">
       <span class="meta-label">Est. Time</span>
@@ -801,7 +801,7 @@ pre .n { color: #6ee7d4; }
     </div>
     <div class="meta-item">
       <span class="meta-label">Version</span>
-      <span class="meta-val">ITDF v1.0</span>
+      <span class="meta-val">ITM v1.0</span>
     </div>
     <div class="meta-item">
       <span class="meta-label">Framework</span>
@@ -854,12 +854,16 @@ pre .n { color: #6ee7d4; }
         <span class="step-num" id="num-step6">6</span>
         End-to-End Testing
       </button>
+      <button class="sidebar-link" id="nav-step7" onclick="showStep('step7',this)">
+        <span class="step-num" id="num-step7">7</span>
+        Dashboard
+      </button>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-label">Reference</div>
       <button class="sidebar-link" onclick="showStep('reference',this)">
         <span class="step-num">R</span>
-        Quick Reference
+        Tagging &amp; Dashboard
       </button>
     </div>
   </aside>
@@ -870,7 +874,7 @@ pre .n { color: #6ee7d4; }
     <!-- OVERVIEW -->
     <section class="step-section active" id="s-overview">
       <div class="step-header">
-        <div class="step-number-big">ITDF</div>
+        <div class="step-number-big">ITM</div>
         <div class="step-header-text">
           <div class="step-tag">SOP — Introduction</div>
           <div class="step-title">How This Integration Works</div>
@@ -969,6 +973,12 @@ pre .n { color: #6ee7d4; }
           <div class="oc-title">Testing</div>
           <div class="oc-desc">5 scenarios proving every layer works end to end before prod.</div>
           <div class="oc-time">⏱ ~4 hours</div>
+        </div>
+        <div class="overview-card" onclick="showStepById('step7')">
+          <div class="oc-step">Step 7 — Operationalise</div>
+          <div class="oc-title">Native Dashboard</div>
+          <div class="oc-desc">3 XQL panels in XSIAM — attack chain, coverage map, risk leaderboard.</div>
+          <div class="oc-time">⏱ ~2 hours</div>
         </div>
       </div>
 
@@ -1618,7 +1628,7 @@ notes:                   Authorized bulk access for client review</pre>
           <span class="substep-num">XQL</span>
           <span class="substep-title">The Full T6 Engine</span>
         </div>
-        <div class="substep-body">Paste this as the XQL body of the correlation rule. Read the stage comments — they map directly to your ITDF T6 techniques.</div>
+        <div class="substep-body">Paste this as the XQL body of the correlation rule. Read the stage comments — they map directly to your ITM T6 techniques.</div>
 
         <div class="code-wrap">
           <div class="code-header">
@@ -1933,7 +1943,7 @@ ${assigned_assets}
         <div class="substep-header"><span class="substep-num">STEP 7</span><span class="substep-title">Send Analyst Notification</span></div>
         <div class="code-wrap">
           <div class="code-header"><span class="code-lang">Message</span><span class="code-label">Teams / Email / Slack</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre> ITDF INSIDER RISK ALERT
+          <pre>🚨 ITDF INSIDER RISK ALERT
 Subject:    ${subject_username}
 Score:      ${final_score} → ${escalation_level}
 Techniques: ${techniques_fired}
@@ -2058,16 +2068,658 @@ Link:       [XSIAM incident URL]</pre>
       </div>
     </section>
 
+
+    <!-- STEP 7 -->
+    <section class="step-section" id="s-step7">
+      <div class="step-header">
+        <div class="step-number-big">07</div>
+        <div class="step-header-text">
+          <div class="step-tag">Operationalise</div>
+          <div class="step-title">Native XSIAM Dashboard</div>
+          <div class="step-desc">Three XQL queries that power the live ITDF dashboard inside XSIAM. No external datasets. No GitHub dependency. Everything reads directly from <code>xdr_alerts</code> using the itm tags from your deployed rules.</div>
+          <div class="step-time">⏱ ~2 hours &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Dashboards → New Dashboard → Add Widget</div>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>Dependency:</strong> These panels return data only after your alert rules are deployed and generating tagged alerts. Complete Steps 1–6 first. Fire at least one test alert from T4.1 or T3.7 before building the dashboard — otherwise all panels show empty.
+      </div>
+
+      <div class="callout callout-success">
+        <strong>Robert's architecture.</strong> This is the native platform approach — no static website, no external sync, no drift. Your framework lives in XSIAM as rule metadata. The dashboard reads it live. Minimal maintenance by design.
+      </div>
+
+      <!-- Panel 1 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">PANEL 1</span>
+          <span class="substep-title">Attack Chain Per User</span>
+          <span class="badge badge-xsiam">Table widget</span>
+        </div>
+        <div class="substep-body">Every ITDF technique fired for any user in chronological order. This is the insider threat kill chain — the technique, tactic, score, and timestamp for each signal. When a case escalates this is the first panel an analyst opens. Shows how the subject moved through the kill chain over 30 days.</div>
+
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Widget type</td><td>Table</td></tr>
+          <tr><td>Refresh</td><td>Every 15 minutes</td></tr>
+          <tr><td>Lookback</td><td>30 days (built into query)</td></tr>
+          <tr><td>Filter</td><td>Uncomment the username filter line to scope to one user</td></tr>
+        </table>
+
+        <div class="nav-path">
+          <span class="path-icon">▸</span>
+          Dashboards <span class="arrow">→</span>
+          New Dashboard <span class="arrow">→</span>
+          + Add Widget <span class="arrow">→</span>
+          XQL <span class="arrow">→</span>
+          <span class="current-path">Paste query → Type: Table → Save</span>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-info">Panel 1 — Attack Chain Per User</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Panel 1 — Attack Chain Per User
+// Widget: Table | Refresh: 15 min | Lookback: 30d
+// Shows kill chain progression per user chronologically</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+
+<span class="c">// Uncomment to filter to a specific user:
+// | filter actor_effective_username = "john.smith@company.com"</span>
+
+| <span class="k">comp</span>
+    count() <span class="k">as</span> alert_count,
+    max(to_integer(itm_score)) <span class="k">as</span> max_score,
+    min(_time) <span class="k">as</span> first_seen,
+    max(_time) <span class="k">as</span> last_seen
+  <span class="k">by</span> actor_effective_username,
+     itm_technique,
+     itm_tactic
+
+| <span class="k">alter</span> tactic_name = <span class="k">if</span>(
+    itm_tactic = <span class="s">"T0"</span>, <span class="s">"Precursor"</span>,
+    itm_tactic = <span class="s">"T1"</span>, <span class="s">"Collection"</span>,
+    itm_tactic = <span class="s">"T2"</span>, <span class="s">"Exfil Prep"</span>,
+    itm_tactic = <span class="s">"T3"</span>, <span class="s">"Exfiltration"</span>,
+    itm_tactic = <span class="s">"T4"</span>, <span class="s">"Obfuscation"</span>,
+    itm_tactic = <span class="s">"T5"</span>, <span class="s">"Privilege Abuse"</span>,
+    itm_tactic = <span class="s">"T6"</span>, <span class="s">"Behavioral"</span>,
+    itm_tactic = <span class="s">"T8"</span>, <span class="s">"Sabotage"</span>,
+    itm_tactic
+  )
+
+| <span class="k">sort</span> asc last_seen
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> User,
+    itm_technique <span class="k">as</span> Technique,
+    tactic_name <span class="k">as</span> Tactic,
+    alert_count <span class="k">as</span> Alerts,
+    max_score <span class="k">as</span> Score,
+    first_seen <span class="k">as</span> First,
+    last_seen <span class="k">as</span> Last</pre>
+        </div>
+      </div>
+
+      <!-- Panel 2 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">PANEL 2</span>
+          <span class="substep-title">Detection Coverage Map</span>
+          <span class="badge badge-xsiam">Bar chart widget</span>
+        </div>
+        <div class="substep-body">Which techniques have fired alerts in the last 30 days and which are silent. Active means the rule is deployed and firing. Silent means either the rule is not deployed yet, or deployed but no matching activity in your environment. This is your live coverage view — the equivalent of the ATT&CK Navigator heatmap but driven by real alert data.</div>
+
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Widget type</td><td>Bar chart (horizontal)</td></tr>
+          <tr><td>X axis</td><td>Technique</td></tr>
+          <tr><td>Y axis</td><td>Alerts</td></tr>
+          <tr><td>Group by</td><td>Tactic</td></tr>
+          <tr><td>Refresh</td><td>Every 6 hours</td></tr>
+        </table>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-info">Panel 2 — Detection Coverage Map</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Panel 2 — Detection Coverage Map
+// Widget: Bar chart | Refresh: 6 hours | Lookback: 30d
+// Active = rule firing | Silent = no alerts (gap or no activity)</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+
+| <span class="k">comp</span>
+    count() <span class="k">as</span> alert_count,
+    count_distinct(actor_effective_username)
+      <span class="k">as</span> unique_users
+  <span class="k">by</span> itm_tactic, itm_technique
+
+| <span class="k">alter</span> tactic_name = <span class="k">if</span>(
+    itm_tactic = <span class="s">"T0"</span>, <span class="s">"T0 Precursor"</span>,
+    itm_tactic = <span class="s">"T1"</span>, <span class="s">"T1 Collection"</span>,
+    itm_tactic = <span class="s">"T2"</span>, <span class="s">"T2 Exfil Prep"</span>,
+    itm_tactic = <span class="s">"T3"</span>, <span class="s">"T3 Exfiltration"</span>,
+    itm_tactic = <span class="s">"T4"</span>, <span class="s">"T4 Obfuscation"</span>,
+    itm_tactic = <span class="s">"T5"</span>, <span class="s">"T5 Privilege Abuse"</span>,
+    itm_tactic = <span class="s">"T6"</span>, <span class="s">"T6 Behavioral"</span>,
+    itm_tactic = <span class="s">"T8"</span>, <span class="s">"T8 Sabotage"</span>,
+    itm_tactic
+  )
+
+| <span class="k">alter</span> status = <span class="k">if</span>(
+    alert_count > 0, <span class="s">"Active"</span>, <span class="s">"Silent"</span>
+  )
+
+| <span class="k">sort</span> asc itm_tactic, asc itm_technique
+| <span class="k">fields</span>
+    tactic_name <span class="k">as</span> Tactic,
+    itm_technique <span class="k">as</span> Technique,
+    alert_count <span class="k">as</span> Alerts,
+    unique_users <span class="k">as</span> Users,
+    status <span class="k">as</span> Status</pre>
+        </div>
+      </div>
+
+      <!-- Panel 3 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">PANEL 3</span>
+          <span class="substep-title">Risk Score Leaderboard</span>
+          <span class="badge badge-xsiam">Table widget</span>
+        </div>
+        <div class="substep-body">Top 10 users by aggregated ITM score in the last 24 hours. Applies the leaver multiplier live from <code>hr_risk_context</code>. This is the primary SOC triage view — the analyst opens the dashboard and immediately sees who needs attention, what techniques fired, and whether they are a leaver. No manual investigation needed to get to this point.</div>
+
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Widget type</td><td>Table</td></tr>
+          <tr><td>Refresh</td><td>Every 15 minutes</td></tr>
+          <tr><td>Lookback</td><td>24 hours (built into query)</td></tr>
+          <tr><td>Conditional colour</td><td>CRITICAL = red | ESCALATE = orange | INVESTIGATE = yellow</td></tr>
+        </table>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-info">Panel 3 — Risk Score Leaderboard</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Panel 3 — Risk Score Leaderboard
+// Widget: Table | Refresh: 15 min | Lookback: 24h
+// Applies leaver multiplier from hr_risk_context</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(24h))
+
+| <span class="k">comp</span>
+    sum(to_integer(itm_score)) <span class="k">as</span> raw_score,
+    values(itm_technique) <span class="k">as</span> techniques_fired,
+    count_distinct(itm_tactic) <span class="k">as</span> tactic_count,
+    count() <span class="k">as</span> total_alerts,
+    min(_time) <span class="k">as</span> first_signal,
+    max(_time) <span class="k">as</span> last_signal
+  <span class="k">by</span> actor_effective_username
+
+| <span class="k">join</span> type = <span class="k">left</span> (
+    <span class="k">dataset</span> = hr_risk_context
+    | <span class="k">fields</span> username, is_leaver,
+             days_to_departure
+  ) <span class="k">as</span> hr
+  hr.username = actor_effective_username
+
+| <span class="k">alter</span> multiplier = <span class="k">if</span>(
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 14, 2.0,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 30, 1.5,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 60, 1.25,
+    1.0
+  )
+
+| <span class="k">alter</span> final_score = round(
+    multiply(to_float(raw_score), multiplier), 1
+  )
+
+| <span class="k">alter</span> escalation = <span class="k">if</span>(
+    final_score >= 15, <span class="s">"CRITICAL"</span>,
+    final_score >= 10, <span class="s">"ESCALATE"</span>,
+    final_score >= 5,  <span class="s">"INVESTIGATE"</span>,
+    <span class="s">"WATCH"</span>
+  )
+
+| <span class="k">filter</span> escalation != <span class="s">"WATCH"</span>
+| <span class="k">sort</span> desc final_score
+| <span class="k">limit</span> 10
+
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> User,
+    final_score <span class="k">as</span> Score,
+    escalation <span class="k">as</span> Level,
+    tactic_count <span class="k">as</span> Tactics,
+    total_alerts <span class="k">as</span> Alerts,
+    hr.is_leaver <span class="k">as</span> Leaver,
+    hr.days_to_departure <span class="k">as</span> DaysLeft,
+    techniques_fired <span class="k">as</span> Techniques,
+    first_signal <span class="k">as</span> First,
+    last_signal <span class="k">as</span> Last</pre>
+        </div>
+      </div>
+
+      <!-- Build guide -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">BUILD</span>
+          <span class="substep-title">How to Build in XSIAM — Step by Step</span>
+        </div>
+        <div class="substep-body">All three panels are built inside XSIAM natively. No code deployment. No external dependencies.</div>
+        <table class="config-table">
+          <tr><th>Step</th><th>Action</th><th>Detail</th></tr>
+          <tr><td>1</td><td>Create dashboard</td><td>XSIAM → Dashboards → + New Dashboard → Name: "Insider Threat Detection Framework"</td></tr>
+          <tr><td>2</td><td>Set permissions</td><td>Dashboard Settings → Permissions → Assign to ITM Analyst role only. Remove from general SOC view.</td></tr>
+          <tr><td>3</td><td>Add Panel 1</td><td>+ Add Widget → XQL → paste Attack Chain query → Type: Table → Refresh: 15 min → Save</td></tr>
+          <tr><td>4</td><td>Add Panel 2</td><td>+ Add Widget → XQL → paste Coverage Map query → Type: Bar chart → Refresh: 6 hours → Save</td></tr>
+          <tr><td>5</td><td>Add Panel 3</td><td>+ Add Widget → XQL → paste Leaderboard query → Type: Table → Refresh: 15 min → Save</td></tr>
+          <tr><td>6</td><td>Arrange layout</td><td>Coverage Map top full width. Leaderboard bottom-left. Attack Chain bottom-right.</td></tr>
+          <tr><td>7</td><td>Auto-refresh</td><td>Dashboard Settings → Auto Refresh → Every 15 minutes</td></tr>
+          <tr><td>8</td><td>Validate</td><td>Fire a T4.1 test alert → confirm it appears in all three panels within 15 minutes</td></tr>
+        </table>
+      </div>
+
+      <div class="callout callout-success">
+        <strong>✓ Step 7 complete when:</strong> All three panels are live in XSIAM, a test alert appears in the attack chain, the coverage map shows at least one Active technique, and the leaderboard populates after a multi-signal test scenario from Step 6.
+      </div>
+
+      <ul class="checklist">
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Dashboard created and permissions set to ITM Analyst role</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 1 (Attack Chain) — table widget, data visible after test alert</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 2 (Coverage Map) — bar chart, Active techniques showing</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 3 (Leaderboard) — table, scores visible after multi-signal test</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Auto-refresh set to 15 minutes</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Dashboard shared with Robert for review</span></li>
+      </ul>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step6')">← Step 6</button>
+        <button class="btn btn-primary" onclick="showStepById('reference')">Reference →</button>
+      </div>
+    </section>
+
+
     <!-- REFERENCE -->
     <section class="step-section" id="s-reference">
       <div class="step-header">
         <div class="step-number-big">REF</div>
         <div class="step-header-text">
           <div class="step-tag">Reference</div>
-          <div class="step-title">Quick Reference</div>
-          <div class="step-desc">Score weights, multipliers, dampeners, thresholds, and troubleshooting.</div>
+          <div class="step-title">Tagging Standard &amp; Dashboard</div>
+          <div class="step-desc">Rule tagging convention, native XSIAM dashboard queries, score weights, multipliers, dampeners, thresholds, and troubleshooting.</div>
         </div>
       </div>
+
+      
+      <!-- TAGGING STANDARD -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">TAGGING</span>
+          <span class="substep-title">Rule Tagging Standard</span>
+        </div>
+        <div class="substep-body">
+          Every ITDF alert rule must carry these tags in its XSIAM configuration. Inconsistent tagging breaks T6, the dashboard, and the attack chain. This is the single most important convention to protect — one wrong tag format means the entire downstream system misses that signal.
+        </div>
+        <div class="callout callout-danger">
+          <strong>Non-negotiable.</strong> All 77 rules must use exactly this format. No abbreviations, no variations, no exceptions. If a rule fires without these tags T6 cannot see it and the attack chain will have gaps.
+        </div>
+
+        <table class="config-table">
+          <tr><th>Tag</th><th>Format</th><th>Example</th><th>Purpose</th></tr>
+          <tr>
+            <td>itm_detection</td>
+            <td>Fixed string — no value</td>
+            <td>itm_detection</td>
+            <td>Primary selector — T6 reads <em>only</em> alerts with this tag. Every ITDF rule must have it.</td>
+          </tr>
+          <tr>
+            <td>itm_technique</td>
+            <td>itm_technique:{T}{tactic}.{sub}</td>
+            <td>itm_technique:T1.1</td>
+            <td>Maps the alert to its ITDF technique. Used by attack chain queries and dashboard heatmap.</td>
+          </tr>
+          <tr>
+            <td>itm_tactic</td>
+            <td>itm_tactic:{T}{tactic}</td>
+            <td>itm_tactic:T1</td>
+            <td>Maps the alert to its tactic. Used by kill chain coverage and trend panels.</td>
+          </tr>
+          <tr>
+            <td>itm_score</td>
+            <td>itm_score:{integer}</td>
+            <td>itm_score:2</td>
+            <td>Score weight. T6 reads this to calculate the user risk score. Must match the score defined in the framework.</td>
+          </tr>
+        </table>
+
+        <div class="substep-header" style="margin-top:18px">
+          <span class="substep-num">XSIAM</span>
+          <span class="substep-title">Where to Set Tags in XSIAM</span>
+        </div>
+        <div class="substep-body">In XSIAM, tags are set in the alert rule configuration — not in the XQL itself. Go to: <strong>Alert Rule → Settings → Tags</strong>. Enter each tag as a separate line.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XSIAM Alert Rule Tags Field</span>
+            <span class="code-info">Enter one tag per line — example for T1.1</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>itm_detection
+itm_technique:T1.1
+itm_tactic:T1
+itm_score:2</pre>
+        </div>
+
+        <div class="substep-header" style="margin-top:18px">
+          <span class="substep-num">XQL</span>
+          <span class="substep-title">XQL Output Fields — Must Also Match</span>
+        </div>
+        <div class="substep-body">Each rule must also output these as alert fields in its XQL — this is what T6 reads when it aggregates scores. Both the XSIAM config tags AND the XQL output fields must be consistent.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Required alter block at end of every rule</span>
+            <span class="code-info">Replace values for each technique</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// Required at the end of every ITDF alert rule XQL
+// Replace T1.1 / T1 / 2 with the correct values for each technique</span>
+
+| <span class="k">alter</span>
+    itm_technique   = <span class="s">"T1.1"</span>,
+    itm_tactic      = <span class="s">"T1"</span>,
+    itm_score       = 2,
+    high_confidence = <span class="k">false</span>,
+    itm_description = <span class="k">concat</span>(
+      <span class="s">"Bulk data access — file_count: "</span>,
+      <span class="k">to_string</span>(file_count)
+    )</pre>
+        </div>
+
+        <div class="substep-header" style="margin-top:18px">
+          <span class="substep-num">TABLE</span>
+          <span class="substep-title">Complete Tag Reference — All 77 Techniques</span>
+        </div>
+        <div class="substep-body">Quick reference for the correct tag values for every technique in the framework.</div>
+        <table class="config-table">
+          <tr><th>Technique ID</th><th>itm_technique tag</th><th>itm_tactic tag</th><th>itm_score tag</th></tr>
+          <tr><td>T0.1–T0.9</td><td>itm_technique:T0.x</td><td>itm_tactic:T0</td><td>Multiplier — no score</td></tr>
+          <tr><td>T1.1</td><td>itm_technique:T1.1</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
+          <tr><td>T1.2</td><td>itm_technique:T1.2</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
+          <tr><td>T1.3</td><td>itm_technique:T1.3</td><td>itm_tactic:T1</td><td>itm_score:3</td></tr>
+          <tr><td>T1.4</td><td>itm_technique:T1.4</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
+          <tr><td>T2.1–T2.11</td><td>itm_technique:T2.x</td><td>itm_tactic:T2</td><td>itm_score:2</td></tr>
+          <tr><td>T3.1–T3.12</td><td>itm_technique:T3.x</td><td>itm_tactic:T3</td><td>itm_score:3–5</td></tr>
+          <tr><td>T4.1–T4.12</td><td>itm_technique:T4.x</td><td>itm_tactic:T4</td><td>itm_score:3–4</td></tr>
+          <tr><td>T5.1–T5.9</td><td>itm_technique:T5.x</td><td>itm_tactic:T5</td><td>itm_score:2–5</td></tr>
+          <tr><td>T6.1–T6.7</td><td>itm_technique:T6.x</td><td>itm_tactic:T6</td><td>T6 engine — no tag</td></tr>
+          <tr><td>T7.1–T7.5</td><td>itm_technique:T7.x</td><td>itm_tactic:T7</td><td>Governance — no score</td></tr>
+          <tr><td>T8.1–T8.6</td><td>itm_technique:T8.x</td><td>itm_tactic:T8</td><td>itm_score:4–5</td></tr>
+        </table>
+
+        <div class="callout callout-success">
+          <strong>Validation query.</strong> Run this in XSIAM after deploying any rule to confirm the tags are correctly persisting into alerts:
+        </div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Tag Validation Query</span>
+            <span class="code-info">Run after deploying each rule to confirm tags persist</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// Tag validation — run after deploying any ITDF rule
+// Confirms itm_detection, itm_technique, itm_score
+// are visible in xdr_alerts</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(24h))
+| <span class="k">fields</span>
+    actor_effective_username,
+    itm_technique,
+    itm_tactic,
+    itm_score,
+    high_confidence,
+    tags,
+    _time
+| <span class="k">sort</span> desc _time
+| <span class="k">limit</span> 20
+
+<span class="c">// Expected: itm_technique shows "T1.1" (not null)
+//           itm_score shows 2 (not null)
+//           tags contains "itm_detection"
+// If any field is null — check the alter block
+// in your XQL and the tags in the rule config</span></pre>
+        </div>
+      </div>
+
+      <!-- NATIVE DASHBOARD QUERIES -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">DASHBOARD</span>
+          <span class="substep-title">Native XSIAM Dashboard Queries</span>
+        </div>
+        <div class="substep-body">
+          Three XQL queries that power the live ITDF dashboard inside XSIAM. Build these as widgets in <strong>XSIAM → Dashboards → New Dashboard → Add Widget → XQL</strong>. All three read directly from <code>xdr_alerts</code> using the itm tags — no external datasets required.
+        </div>
+
+        <div class="callout callout-info">
+          <strong>Dependency:</strong> These queries return data only after your alert rules are deployed and generating alerts. Deploy your three initial rules (T4.1, T3.7, T5.1) first, trigger test alerts, then build the dashboard panels to confirm data flows through.
+        </div>
+
+        <!-- Query 1 -->
+        <div class="substep-header" style="margin-top:16px">
+          <span class="substep-num">PANEL 1</span>
+          <span class="substep-title">Attack Chain Per User</span>
+        </div>
+        <div class="substep-body">Shows every ITDF technique fired for a specific user in chronological order. This is the insider threat kill chain — exactly what Robert described. Build as a <strong>Table widget</strong> with a username filter input.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Attack Chain Per User</span>
+            <span class="code-info">Widget type: Table | Refresh: 15 min</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Attack Chain — per user kill chain view
+// Widget: Table | Refresh: every 15 minutes
+// Add a username input parameter to filter by user</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+
+<span class="c">// Uncomment to filter by specific user:
+// | filter actor_effective_username = "john.smith@company.com"</span>
+
+| <span class="k">comp</span>
+    count() <span class="k">as</span> alert_count,
+    max(itm_score) <span class="k">as</span> max_score,
+    min(_time) <span class="k">as</span> first_seen,
+    max(_time) <span class="k">as</span> last_seen
+  <span class="k">by</span> actor_effective_username,
+     itm_technique,
+     itm_tactic
+
+| <span class="k">alter</span> tactic_name = <span class="k">if</span>(
+    itm_tactic = <span class="s">"T0"</span>, <span class="s">"Precursor"</span>,
+    itm_tactic = <span class="s">"T1"</span>, <span class="s">"Collection"</span>,
+    itm_tactic = <span class="s">"T2"</span>, <span class="s">"Exfil Prep"</span>,
+    itm_tactic = <span class="s">"T3"</span>, <span class="s">"Exfiltration"</span>,
+    itm_tactic = <span class="s">"T4"</span>, <span class="s">"Obfuscation"</span>,
+    itm_tactic = <span class="s">"T5"</span>, <span class="s">"Privilege Abuse"</span>,
+    itm_tactic = <span class="s">"T6"</span>, <span class="s">"Behavioral"</span>,
+    itm_tactic = <span class="s">"T8"</span>, <span class="s">"Sabotage"</span>,
+    itm_tactic
+  )
+
+| <span class="k">sort</span> asc last_seen
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> User,
+    itm_technique <span class="k">as</span> Technique,
+    tactic_name <span class="k">as</span> Tactic,
+    alert_count <span class="k">as</span> Alerts,
+    max_score <span class="k">as</span> Score,
+    first_seen <span class="k">as</span> First,
+    last_seen <span class="k">as</span> Last</pre>
+        </div>
+
+        <!-- Query 2 -->
+        <div class="substep-header" style="margin-top:20px">
+          <span class="substep-num">PANEL 2</span>
+          <span class="substep-title">Coverage Map — Covered vs Gap</span>
+        </div>
+        <div class="substep-body">Shows which ITDF techniques have fired alerts in the last 30 days versus which have never fired. This is your live detection coverage map — techniques with zero alerts are either gaps in your rule deployment or areas with no activity. Build as a <strong>Bar chart widget</strong>.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Detection Coverage Map</span>
+            <span class="code-info">Widget type: Bar chart | Refresh: every 6 hours</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Coverage Map — which techniques are firing?
+// Widget: Bar chart (horizontal) | Refresh: every 6 hours
+// Shows covered techniques vs silent ones</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+
+| <span class="k">comp</span>
+    count() <span class="k">as</span> alert_count,
+    count_distinct(actor_effective_username)
+      <span class="k">as</span> unique_users
+  <span class="k">by</span> itm_tactic, itm_technique
+
+| <span class="k">alter</span> tactic_name = <span class="k">if</span>(
+    itm_tactic = <span class="s">"T0"</span>, <span class="s">"T0 Precursor"</span>,
+    itm_tactic = <span class="s">"T1"</span>, <span class="s">"T1 Collection"</span>,
+    itm_tactic = <span class="s">"T2"</span>, <span class="s">"T2 Exfil Prep"</span>,
+    itm_tactic = <span class="s">"T3"</span>, <span class="s">"T3 Exfiltration"</span>,
+    itm_tactic = <span class="s">"T4"</span>, <span class="s">"T4 Obfuscation"</span>,
+    itm_tactic = <span class="s">"T5"</span>, <span class="s">"T5 Privilege Abuse"</span>,
+    itm_tactic = <span class="s">"T6"</span>, <span class="s">"T6 Behavioral"</span>,
+    itm_tactic = <span class="s">"T8"</span>, <span class="s">"T8 Sabotage"</span>,
+    itm_tactic
+  )
+
+| <span class="k">alter</span> coverage_status = <span class="k">if</span>(
+    alert_count > 0, <span class="s">"Active"</span>, <span class="s">"Silent"</span>
+  )
+
+| <span class="k">sort</span> asc itm_tactic, asc itm_technique
+| <span class="k">fields</span>
+    tactic_name <span class="k">as</span> Tactic,
+    itm_technique <span class="k">as</span> Technique,
+    alert_count <span class="k">as</span> Alerts,
+    unique_users <span class="k">as</span> Users,
+    coverage_status <span class="k">as</span> Status</pre>
+        </div>
+
+        <!-- Query 3 -->
+        <div class="substep-header" style="margin-top:20px">
+          <span class="substep-num">PANEL 3</span>
+          <span class="substep-title">Risk Score Leaderboard</span>
+        </div>
+        <div class="substep-body">Top 10 users by aggregated ITM score in the last 24 hours. Applies the leaver multiplier from <code>hr_risk_context</code>. Shows escalation level. This is the primary SOC triage view — the analyst opens the dashboard and immediately knows who needs attention. Build as a <strong>Table widget</strong> with conditional row colouring by escalation level.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Risk Score Leaderboard</span>
+            <span class="code-info">Widget type: Table | Refresh: every 15 minutes</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Risk Score Leaderboard — top users by score
+// Widget: Table | Refresh: every 15 minutes
+// Applies leaver multiplier from hr_risk_context</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(24h))
+
+| <span class="k">comp</span>
+    sum(to_integer(itm_score)) <span class="k">as</span> raw_score,
+    values(itm_technique) <span class="k">as</span> techniques_fired,
+    count_distinct(itm_tactic) <span class="k">as</span> tactic_count,
+    count() <span class="k">as</span> total_alerts,
+    min(_time) <span class="k">as</span> first_signal,
+    max(_time) <span class="k">as</span> last_signal
+  <span class="k">by</span> actor_effective_username
+
+<span class="c">// Join HR context for leaver multiplier</span>
+| <span class="k">join</span> type = <span class="k">left</span> (
+    <span class="k">dataset</span> = hr_risk_context
+    | <span class="k">fields</span> username, is_leaver, days_to_departure
+  ) <span class="k">as</span> hr
+  hr.username = actor_effective_username
+
+| <span class="k">alter</span> multiplier = <span class="k">if</span>(
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 14, 2.0,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 30, 1.5,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 60, 1.25,
+    1.0
+  )
+
+| <span class="k">alter</span> final_score = <span class="k">round</span>(
+    multiply(to_float(raw_score), multiplier), 1
+  )
+
+| <span class="k">alter</span> escalation = <span class="k">if</span>(
+    final_score >= 15, <span class="s">"CRITICAL"</span>,
+    final_score >= 10, <span class="s">"ESCALATE"</span>,
+    final_score >= 5,  <span class="s">"INVESTIGATE"</span>,
+    <span class="s">"WATCH"</span>
+  )
+
+| <span class="k">filter</span> escalation != <span class="s">"WATCH"</span>
+
+| <span class="k">sort</span> desc final_score
+| <span class="k">limit</span> 10
+
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> User,
+    final_score <span class="k">as</span> Score,
+    escalation <span class="k">as</span> Level,
+    tactic_count <span class="k">as</span> Tactics,
+    total_alerts <span class="k">as</span> Alerts,
+    hr.is_leaver <span class="k">as</span> Leaver,
+    hr.days_to_departure <span class="k">as</span> DaysLeft,
+    techniques_fired <span class="k">as</span> Techniques,
+    first_signal <span class="k">as</span> First,
+    last_signal <span class="k">as</span> Last</pre>
+        </div>
+
+        <!-- Dashboard build guide -->
+        <div class="substep-header" style="margin-top:20px">
+          <span class="substep-num">BUILD</span>
+          <span class="substep-title">How to Build the Dashboard in XSIAM</span>
+        </div>
+        <div class="substep-body">Step by step — building all three panels inside XSIAM.</div>
+        <table class="config-table">
+          <tr><th>Step</th><th>Action</th><th>Detail</th></tr>
+          <tr><td>1</td><td>Create dashboard</td><td>XSIAM → Dashboards → + New Dashboard → Name: "Insider Threat Detection Framework"</td></tr>
+          <tr><td>2</td><td>Set permissions</td><td>Dashboard Settings → Permissions → Assign to ITM Analyst role. Remove from general SOC view.</td></tr>
+          <tr><td>3</td><td>Add Panel 1</td><td>+ Add Widget → XQL → paste Attack Chain query → Type: Table → Refresh: 15 min</td></tr>
+          <tr><td>4</td><td>Add Panel 2</td><td>+ Add Widget → XQL → paste Coverage Map query → Type: Bar chart → Refresh: 6 hours</td></tr>
+          <tr><td>5</td><td>Add Panel 3</td><td>+ Add Widget → XQL → paste Leaderboard query → Type: Table → Refresh: 15 min</td></tr>
+          <tr><td>6</td><td>Arrange layout</td><td>Leaderboard top-right, Coverage Map top-left full width, Attack Chain bottom full width</td></tr>
+          <tr><td>7</td><td>Set auto-refresh</td><td>Dashboard Settings → Auto Refresh → Every 15 minutes</td></tr>
+          <tr><td>8</td><td>Validate data</td><td>Fire a test alert from T4.1 or T3.7 — confirm it appears in all three panels within 15 minutes</td></tr>
+        </table>
+      </div>
+
 
       <div class="substep">
         <div class="substep-header"><span class="substep-num">SCORING</span><span class="substep-title">Score Weights</span></div>
@@ -2139,7 +2791,7 @@ Link:       [XSIAM incident URL]</pre>
 </div>
 
 <footer class="site-footer">
-  <span>ITDF × XSIAM Integration SOP — Insider Threat Detection Framework</span>
+  <span>ITM × XSIAM Integration SOP — Insider Threat Detection Framework</span>
   <span>jcube3ai.github.io/Project-Insider_Threat</span>
 </footer>
 
