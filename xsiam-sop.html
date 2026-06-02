@@ -900,7 +900,7 @@ pre .n { color: #6ee7d4; }
           <div class="flow-content">
             <div class="flow-label">Step 2</div>
             <div class="flow-title">Baseline Queries</div>
-            <div class="flow-note">Scheduled XQL that builds "what normal looks like" per user — required by 40+ of your 71 rules</div>
+            <div class="flow-note">Scheduled XQL that builds "what normal looks like" per user — required by 40+ of all 71 rules</div>
           </div>
         </div>
         <div class="flow-node">
@@ -908,7 +908,7 @@ pre .n { color: #6ee7d4; }
           <div class="flow-content">
             <div class="flow-label">Step 3</div>
             <div class="flow-title">Alert Rules (3 to start)</div>
-            <div class="flow-note">Your individual XQL detections — each tags its alerts with itm_technique, itm_tactic, itm_score</div>
+            <div class="flow-note">individual XQL detections — each tags its alerts with itm_technique, itm_tactic, itm_score</div>
           </div>
         </div>
         <div class="flow-node">
@@ -1000,7 +1000,7 @@ pre .n { color: #6ee7d4; }
       </div>
 
       <div class="callout callout-info">
-        <strong>Navigation:</strong> In XSIAM go to <strong>Settings → XQL → Lookup Tables → New Lookup Table</strong>. Create each table below. For dev testing, populate with the test rows shown — in production these will be fed from your HR system and ITSM.
+        <strong>Navigation:</strong> In XSIAM go to <strong>Settings → XQL → Lookup Tables → New Lookup Table</strong>. Create each table below. For dev testing, populate with the test rows shown — in production these will be fed from your HR system and ITSM which will be a future workflow
       </div>
 
       <!-- Table 1 -->
@@ -1042,7 +1042,7 @@ on_pip:             false</pre>
           <span class="substep-title">business_context</span>
           <span class="badge badge-required">Required</span>
         </div>
-        <div class="substep-body">Legitimate business explanations that dampen the risk score before escalation. This is your false positive reduction gate — the T6.3 technique.</div>
+        <div class="substep-body">Legitimate business explanations that dampen the risk score before escalation. This is the false positive reduction gate — the T6.3 technique.</div>
         <table class="config-table">
           <tr><th>Column Name</th><th>Type</th><th>Purpose</th></tr>
           <tr><td>username</td><td>string</td><td>User's email address</td></tr>
@@ -1050,7 +1050,7 @@ on_pip:             false</pre>
           <tr><td>approved_data_transfer</td><td>boolean</td><td>true = score multiplied by 0.4</td></tr>
           <tr><td>open_helpdesk_ticket</td><td>boolean</td><td>true = score multiplied by 0.8</td></tr>
           <tr><td>deal_name</td><td>string</td><td>Name of the active deal (for incident note)</td></tr>
-          <tr><td>ticket_number</td><td>string</td><td>ServiceNow/Jira ticket reference</td></tr>
+          <tr><td>ticket_number</td><td>string</td><td>BMC/Jira ticket reference</td></tr>
           <tr><td>notes</td><td>string</td><td>Free text explanation for analyst</td></tr>
         </table>
         <div class="code-wrap">
@@ -1076,7 +1076,7 @@ notes:                   Authorized bulk access for client review</pre>
           <span class="substep-title">itm_correlation_output</span>
           <span class="badge badge-required">Required</span>
         </div>
-        <div class="substep-body">Where T6 writes its output. Your playbook reads from this. Leave it empty — T6 populates it automatically.</div>
+        <div class="substep-body">Where T6 writes its output. The playbook reads from this. Leave it empty — T6 populates it automatically.</div>
         <table class="config-table">
           <tr><th>Column Name</th><th>Type</th><th>Notes</th></tr>
           <tr><td>username</td><td>string</td><td>Subject of the correlation</td></tr>
@@ -1091,7 +1091,7 @@ notes:                   Authorized bulk access for client review</pre>
       </div>
 
       <div class="callout callout-success">
-        <strong>✓ Step 1 complete when:</strong> All three lookup tables exist in XSIAM. hr_risk_context has your test user row. business_context has your clean user row. itm_correlation_output is empty and ready.
+        <strong>✓ Step 1 complete when:</strong> All three lookup tables exist in XSIAM. hr_risk_context has the test user row. business_context has the clean user row. itm_correlation_output is empty and ready.
       </div>
 
       <ul class="checklist" id="checklist-step1">
@@ -1115,13 +1115,13 @@ notes:                   Authorized bulk access for client review</pre>
         <div class="step-header-text">
           <div class="step-tag">Foundation</div>
           <div class="step-title">Build Baseline Queries</div>
-          <div class="step-desc">Scheduled XQL queries that build "what normal looks like" for each user. Required by 40+ of your 71 detection rules. Run each query manually once before setting the schedule.</div>
+          <div class="step-desc">Scheduled XQL queries that build "what normal looks like" for each user. Required by 40+ of the 71 detection rules. Run each query manually once before setting the schedule.</div>
           <div class="step-time">⏱ ~1 hour &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Incidents &amp; Alerts → Alert Rules → New Scheduled Query</div>
         </div>
       </div>
 
       <div class="callout callout-warn">
-        <strong>Important:</strong> Run each baseline query manually immediately after creating it. The first run populates the tables. Without data in the baseline tables, your deviation-based detection rules will not fire. Wait at least <strong>5 days</strong> of baseline data before trusting the p95 threshold values.
+        <strong>Important:</strong> Run each baseline query manually immediately after creating it. The first run populates the tables. Without data in the baseline tables, the deviation-based detection rules will not fire. Wait at least <strong>5 days</strong> of baseline data before trusting the p95 threshold values.
       </div>
 
       <!-- Baseline 1 -->
@@ -1250,7 +1250,7 @@ notes:                   Authorized bulk access for client review</pre>
         <div class="substep-body">Tracks each user's normal external email volume and known recipient domains. T3.1 uses this to distinguish legitimate external communication from bulk data sharing.</div>
 
         <div class="callout callout-warn">
-          <strong>Replace yourdomain.com</strong> with your actual email domain in this query before saving.
+          <strong>Replace with our domain.com</strong> with our actual email domain in this query before saving.
         </div>
 
         <table class="config-table">
@@ -1263,11 +1263,11 @@ notes:                   Authorized bulk access for client review</pre>
         <div class="code-wrap">
           <div class="code-header">
             <span class="code-lang">XQL</span>
-            <span class="code-label">baseline_email — replace yourdomain.com</span>
+            <span class="code-label">baseline_email — replace ourdomain.com</span>
             <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
           </div>
           <pre><span class="c">// ITDF Baseline — External Email
-// *** Replace yourdomain.com with your actual domain ***</span>
+// *** Replace ourdomain.com with our actual domain ***</span>
 
 <span class="k">dataset</span> = msft_o365_audit
 | <span class="k">filter</span> operation = <span class="s">"Send"</span>
@@ -1276,7 +1276,7 @@ notes:                   Authorized bulk access for client review</pre>
 | <span class="k">alter</span> recipient_domain = extract(
     recipient_email_address, <span class="s">"@(.+)$"</span>
   )
-| <span class="k">filter</span> recipient_domain != <span class="s">"yourdomain.com"</span>
+| <span class="k">filter</span> recipient_domain != <span class="s">"ourdomain.com"</span>
 
 | <span class="k">bin</span> _time span = 1d
 | <span class="k">summarize</span> daily_external = count()
@@ -1299,7 +1299,7 @@ notes:                   Authorized bulk access for client review</pre>
       </div>
 
       <div class="callout callout-success">
-        <strong>✓ Step 2 complete when:</strong> All 3 baselines created, scheduled, and manually run at least once. Each lookup table has rows in it. If tables are empty after running — check your dataset names match your XSIAM environment.
+        <strong>✓ Step 2 complete when:</strong> All 3 baselines created, scheduled, and manually run at least once. Each lookup table has rows in it. If tables are empty after running — check the dataset names match your XSIAM environment.
       </div>
 
       <ul class="checklist">
@@ -1307,7 +1307,7 @@ notes:                   Authorized bulk access for client review</pre>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_file_access Run Now clicked — table has rows</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_logon query created and scheduled daily 01:30</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_logon Run Now clicked — table has rows</span></li>
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_email query created (yourdomain.com replaced) — scheduled 02:00</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_email query created (ourdomain.com replaced) — scheduled 02:00</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_email Run Now clicked — table has rows</span></li>
       </ul>
 
@@ -1426,7 +1426,7 @@ notes:                   Authorized bulk access for client review</pre>
         <div class="substep-body">Detects inbox rules that forward email to external addresses. Score 5. High confidence — no legitimate reason for silent external forwarding.</div>
 
         <div class="callout callout-warn">
-          <strong>Replace yourdomain.com</strong> in two places in this query with your actual email domain.
+          <strong>Replace ourdomain.com</strong> in two places in this query with your actual email domain.
         </div>
 
         <table class="config-table">
@@ -1441,12 +1441,12 @@ notes:                   Authorized bulk access for client review</pre>
         <div class="code-wrap">
           <div class="code-header">
             <span class="code-lang">XQL</span>
-            <span class="code-label">ITM-T3.7 — replace yourdomain.com twice</span>
+            <span class="code-label">ITM-T3.7 — replace ourdomain.com twice</span>
             <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
           </div>
           <pre><span class="c">// ITM T3.7 — Mailbox Forwarding Rules
 // Score: 5 | High confidence | No baseline needed
-// *** Replace yourdomain.com with your actual domain ***</span>
+// *** Replace ourdomain.com with our actual domain ***</span>
 
 <span class="k">dataset</span> = msft_o365_audit
 | <span class="k">filter</span> _time > to_epoch(now() - duration(30m))
@@ -1469,8 +1469,8 @@ notes:                   Authorized bulk access for client review</pre>
 <span class="c">// Only flag external destinations</span>
 | <span class="k">filter</span> forward_to  != <span class="k">null</span>
     <span class="k">or</span>  redirect_to != <span class="k">null</span>
-| <span class="k">filter</span> forward_to  <span class="k">not</span> <span class="k">contains</span> <span class="s">"yourdomain.com"</span>
-    <span class="k">or</span>  redirect_to <span class="k">not</span> <span class="k">contains</span> <span class="s">"yourdomain.com"</span>
+| <span class="k">filter</span> forward_to  <span class="k">not</span> <span class="k">contains</span> <span class="s">"ourdomain.com"</span>
+    <span class="k">or</span>  redirect_to <span class="k">not</span> <span class="k">contains</span> <span class="s">"ourdomain.com"</span>
 
 | <span class="k">alter</span>
     itm_technique   = <span class="s">"T3.7"</span>,
@@ -1628,7 +1628,7 @@ notes:                   Authorized bulk access for client review</pre>
           <span class="substep-num">XQL</span>
           <span class="substep-title">The Full T6 Engine</span>
         </div>
-        <div class="substep-body">Paste this as the XQL body of the correlation rule. Read the stage comments — they map directly to your ITM T6 techniques.</div>
+        <div class="substep-body">Paste this as the XQL body of the correlation rule. Read the stage comments — they map directly to the ITM T6 techniques.</div>
 
         <div class="code-wrap">
           <div class="code-header">
@@ -1933,7 +1933,7 @@ ${assigned_assets}
         <div class="substep-header"><span class="substep-num">STEP 6</span><span class="substep-title">Set SLA and Assign Queue</span></div>
         <table class="config-table">
           <tr><th>Level</th><th>SLA</th><th>Queue</th></tr>
-          <tr><td>CRITICAL</td><td>4 hours</td><td>ITM Queue — immediate page</td></tr>
+          <tr><td>CRITICAL</td><td>4 hours</td><td>ITDF Queue — immediate page</td></tr>
           <tr><td>ESCALATE</td><td>24 hours</td><td>ITDF Analyst Queue</td></tr>
           <tr><td>INVESTIGATE</td><td>72 hours</td><td>ITDF Analyst Queue</td></tr>
         </table>
@@ -1942,7 +1942,7 @@ ${assigned_assets}
       <div class="substep">
         <div class="substep-header"><span class="substep-num">STEP 7</span><span class="substep-title">Send Analyst Notification</span></div>
         <div class="code-wrap">
-          <div class="code-header"><span class="code-lang">Message</span><span class="code-label">Teams / Email / Slack</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
+          <div class="code-header"><span class="code-lang">Message</span><span class="code-label">Teams / Email / Engage</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
           <pre>🚨 ITDF INSIDER RISK ALERT
 Subject:    ${subject_username}
 Score:      ${final_score} → ${escalation_level}
@@ -2076,7 +2076,7 @@ Link:       [XSIAM incident URL]</pre>
         <div class="step-header-text">
           <div class="step-tag">Operationalise</div>
           <div class="step-title">Native XSIAM Dashboard</div>
-          <div class="step-desc">Three XQL queries that power the live ITDF dashboard inside XSIAM. No external datasets. No GitHub dependency. Everything reads directly from <code>xdr_alerts</code> using the itm tags from your deployed rules.</div>
+          <div class="step-desc">Three XQL queries that power the live ITDF dashboard inside XSIAM. No external datasets. No GitHub dependency. Everything reads directly from <code>xdr_alerts</code> using the itm tags from our deployed rules.</div>
           <div class="step-time">⏱ ~2 hours &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Dashboards → New Dashboard → Add Widget</div>
         </div>
       </div>
@@ -2172,7 +2172,7 @@ Link:       [XSIAM incident URL]</pre>
           <span class="substep-title">Detection Coverage Map</span>
           <span class="badge badge-xsiam">Bar chart widget</span>
         </div>
-        <div class="substep-body">Which techniques have fired alerts in the last 30 days and which are silent. Active means the rule is deployed and firing. Silent means either the rule is not deployed yet, or deployed but no matching activity in your environment. This is your live coverage view — the equivalent of the ATT&CK Navigator heatmap but driven by real alert data.</div>
+        <div class="substep-body">Which techniques have fired alerts in the last 30 days and which are silent. Active means the rule is deployed and firing. Silent means either the rule is not deployed yet, or deployed but no matching activity in your environment. This is our live coverage view — the equivalent of the ATT&CK Navigator heatmap but driven by real alert data.</div>
 
         <table class="config-table">
           <tr><th>Setting</th><th>Value</th></tr>
@@ -2340,7 +2340,7 @@ Link:       [XSIAM incident URL]</pre>
       </div>
 
       <ul class="checklist">
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Dashboard created and permissions set to ITM Analyst role</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Dashboard created and permissions set to Analyst role</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 1 (Attack Chain) — table widget, data visible after test alert</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 2 (Coverage Map) — bar chart, Active techniques showing</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 3 (Leaderboard) — table, scores visible after multi-signal test</span></li>
@@ -2580,7 +2580,7 @@ itm_score:2</pre>
           <span class="substep-num">PANEL 2</span>
           <span class="substep-title">Coverage Map — Covered vs Gap</span>
         </div>
-        <div class="substep-body">Shows which ITDF techniques have fired alerts in the last 30 days versus which have never fired. This is your live detection coverage map — techniques with zero alerts are either gaps in your rule deployment or areas with no activity. Build as a <strong>Bar chart widget</strong>.</div>
+        <div class="substep-body">Shows which ITDF techniques have fired alerts in the last 30 days versus which have never fired. This is our live detection coverage map — techniques with zero alerts are either gaps in our rule deployment or areas with no activity. Build as a <strong>Bar chart widget</strong>.</div>
         <div class="code-wrap">
           <div class="code-header">
             <span class="code-lang p95">XQL — Detection Coverage Map</span>
