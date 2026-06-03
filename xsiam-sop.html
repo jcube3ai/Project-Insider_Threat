@@ -1,0 +1,2991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insider Threat Detection Framework — XSIAM Integration SOP</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0a0c10;
+  --ink2: #141820;
+  --ink3: #1e2430;
+  --rule: rgba(255,255,255,0.07);
+  --rule2: rgba(255,255,255,0.12);
+  --text: #e2e8f0;
+  --muted: #7c8a9e;
+  --faint: #3d4a5c;
+  --accent: #00d4aa;
+  --accent2: #0099ff;
+  --warn: #ff8c42;
+  --danger: #ff4d6d;
+  --success: #00d4aa;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── scan lines texture ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── nav ── */
+.top-nav {
+  position: sticky; top: 0; z-index: 300;
+  background: rgba(10,12,16,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--rule2);
+  display: flex; align-items: center; height: 40px;
+  font-family: var(--mono); font-size: 11px;
+  font-weight: 500;
+}
+.top-nav a {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 16px; height: 100%;
+  color: var(--muted); text-decoration: none;
+  border-right: 1px solid var(--rule);
+  transition: all .15s; white-space: nowrap;
+  letter-spacing: .03em;
+}
+.top-nav a:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.top-nav a.current { color: var(--accent); }
+.top-nav .spacer { flex: 1; }
+.top-nav .ext {
+  border-right: none;
+  border-left: 1px solid var(--rule);
+  color: var(--faint); font-size: 10px;
+}
+.top-nav .ext:hover { color: var(--muted); }
+
+/* ── hero ── */
+.hero {
+  position: relative;
+  padding: 60px 48px 48px;
+  border-bottom: 1px solid var(--rule2);
+  overflow: hidden;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 400px; height: 400px;
+  background: radial-gradient(
+    circle,
+    rgba(0,212,170,0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: var(--accent);
+}
+.hero h1 {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 300;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.hero h1 strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+.hero-sub {
+  font-size: 14px;
+  color: var(--muted);
+  max-width: 560px;
+  margin-top: 14px;
+  line-height: 1.7;
+}
+.hero-meta {
+  display: flex;
+  gap: 24px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.meta-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.meta-val {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── layout ── */
+.layout {
+  display: flex;
+  min-height: calc(100vh - 200px);
+  position: relative;
+  z-index: 1;
+}
+
+/* ── sidebar ── */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  border-right: 1px solid var(--rule);
+  padding: 28px 0;
+  position: sticky;
+  top: 40px;
+  height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+.sidebar-section {
+  padding: 0 20px;
+  margin-bottom: 24px;
+}
+.sidebar-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 12px;
+  color: var(--muted);
+  transition: all .12s;
+  margin-bottom: 2px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+.sidebar-link:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+}
+.sidebar-link.active {
+  background: rgba(0,212,170,0.08);
+  color: var(--accent);
+}
+.sidebar-link .step-num {
+  font-family: var(--mono);
+  font-size: 9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--ink3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--faint);
+}
+.sidebar-link.active .step-num {
+  background: rgba(0,212,170,0.2);
+  color: var(--accent);
+}
+.sidebar-link.done .step-num {
+  background: rgba(0,212,170,0.15);
+  color: var(--accent);
+}
+.sidebar-link.done .step-num::after {
+  content: '✓';
+}
+.progress-bar {
+  height: 3px;
+  background: var(--ink3);
+  border-radius: 2px;
+  margin: 0 20px 20px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px;
+  transition: width .4s ease;
+  width: 0%;
+}
+.progress-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  padding: 0 20px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* ── main content ── */
+.main {
+  flex: 1;
+  padding: 40px 48px;
+  max-width: 860px;
+}
+
+/* ── step sections ── */
+.step-section {
+  display: none;
+  animation: fadeIn .2s ease;
+}
+.step-section.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.step-number-big {
+  font-family: var(--mono);
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--ink3);
+  line-height: 1;
+  flex-shrink: 0;
+  letter-spacing: -.04em;
+  user-select: none;
+}
+.step-header-text {}
+.step-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.step-title {
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -.02em;
+  margin-bottom: 8px;
+}
+.step-desc {
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 560px;
+  line-height: 1.7;
+}
+.step-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  margin-top: 8px;
+}
+
+/* ── callout boxes ── */
+.callout {
+  padding: 14px 18px;
+  border-radius: 6px;
+  border-left: 3px solid;
+  margin-bottom: 20px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.callout-info {
+  background: rgba(0,153,255,0.06);
+  border-color: var(--accent2);
+  color: #93c5fd;
+}
+.callout-warn {
+  background: rgba(255,140,66,0.06);
+  border-color: var(--warn);
+  color: #fbbf75;
+}
+.callout-danger {
+  background: rgba(255,77,109,0.06);
+  border-color: var(--danger);
+  color: #fca5a5;
+}
+.callout-success {
+  background: rgba(0,212,170,0.06);
+  border-color: var(--accent);
+  color: #6ee7d4;
+}
+.callout strong { color: inherit; font-weight: 600; }
+
+/* ── sub-steps ── */
+.substep {
+  margin-bottom: 28px;
+}
+.substep-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.substep-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(0,212,170,0.1);
+  border: 1px solid rgba(0,212,170,0.2);
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: .05em;
+}
+.substep-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.substep-body {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+
+/* ── path / navigation hint ── */
+.nav-path {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--ink2);
+  border: 1px solid var(--rule2);
+  border-radius: 5px;
+  padding: 10px 14px;
+  color: var(--muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.nav-path .path-icon {
+  color: var(--accent);
+  font-size: 12px;
+}
+.nav-path .arrow {
+  color: var(--faint);
+}
+.nav-path .current-path {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ── code blocks ── */
+.code-wrap {
+  background: var(--ink2);
+  border: 1px solid var(--rule2);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--rule);
+  background: rgba(255,255,255,0.02);
+}
+.code-lang {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+.code-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+}
+.copy-code-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border: 1px solid var(--rule2);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  transition: all .15s;
+}
+.copy-code-btn:hover {
+  color: var(--accent);
+  border-color: rgba(0,212,170,0.3);
+}
+pre {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.7;
+  padding: 16px;
+  overflow-x: auto;
+  color: #a8d8a8;
+}
+pre .c { color: #3d5266; font-style: italic; }
+pre .k { color: #60a5fa; }
+pre .s { color: #fbbf24; }
+pre .f { color: #f9a8d4; }
+pre .n { color: #6ee7d4; }
+
+/* ── table config ── */
+.config-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 18px;
+  font-size: 12px;
+}
+.config-table th {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--rule2);
+}
+.config-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.config-table td:first-child {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.config-table td:last-child {
+  color: var(--muted);
+}
+.config-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── checklist ── */
+.checklist {
+  list-style: none;
+  margin-bottom: 20px;
+}
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  color: var(--muted);
+}
+.checklist li:last-child { border-bottom: none; }
+.check-box {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--faint);
+  border-radius: 3px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all .15s;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.check-box:hover { border-color: var(--accent); }
+.check-box.checked {
+  background: rgba(0,212,170,0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-size: 10px;
+}
+.check-text.done {
+  text-decoration: line-through;
+  opacity: .4;
+}
+
+/* ── status badges ── */
+.badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.badge-required { background: rgba(255,77,109,.12); color: #ff4d6d; border: 1px solid rgba(255,77,109,.2); }
+.badge-optional { background: rgba(124,138,158,.1); color: #7c8a9e; border: 1px solid rgba(124,138,158,.2); }
+.badge-xsiam { background: rgba(0,153,255,.1); color: #60a5fa; border: 1px solid rgba(0,153,255,.2); }
+.badge-test { background: rgba(0,212,170,.1); color: #00d4aa; border: 1px solid rgba(0,212,170,.2); }
+
+/* ── test scenario ── */
+.test-scenario {
+  background: var(--ink2);
+  border: 1px solid var(--rule2);
+  border-radius: 6px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.test-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  transition: background .12s;
+}
+.test-header:hover { background: rgba(255,255,255,0.02); }
+.test-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+}
+.test-body {
+  padding: 16px;
+  font-size: 12px;
+  display: none;
+}
+.test-body.open { display: block; }
+.test-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+.test-row-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  min-width: 120px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+.test-row-val {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.test-row-val.expect { color: #6ee7d4; }
+
+/* ── nav buttons ── */
+.step-nav {
+  display: flex;
+  gap: 10px;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+}
+.btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: all .15s;
+  text-transform: uppercase;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--ink);
+}
+.btn-primary:hover { background: #00e6ba; }
+.btn-secondary {
+  background: var(--ink3);
+  color: var(--muted);
+  border: 1px solid var(--rule2);
+}
+.btn-secondary:hover { color: var(--text); border-color: var(--rule2); }
+.btn:disabled { opacity: .3; cursor: not-allowed; }
+
+/* ── overview cards ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.overview-card {
+  background: var(--ink2);
+  border: 1px solid var(--rule2);
+  border-radius: 6px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.overview-card:hover {
+  border-color: rgba(0,212,170,0.25);
+  background: rgba(0,212,170,0.03);
+}
+.oc-step {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.oc-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.oc-desc {
+  font-size: 11px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+.oc-time {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--faint);
+  margin-top: 8px;
+}
+
+/* ── flow diagram ── */
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 24px;
+}
+.flow-node {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+.flow-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40px;
+  flex-shrink: 0;
+}
+.flow-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  margin-top: 14px;
+}
+.flow-connector {
+  width: 1px;
+  flex: 1;
+  background: linear-gradient(var(--accent), rgba(0,212,170,0.2));
+  min-height: 20px;
+}
+.flow-content {
+  flex: 1;
+  padding: 10px 0 20px 12px;
+}
+.flow-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.flow-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+.flow-note {
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* ── footer ── */
+.site-footer {
+  padding: 20px 48px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html">🛡 ITDF</a>
+  <a href="crosswalk.html">🔁 ATT&CK Crosswalk</a>
+  <a href="rules.html">⚡ XSIAM Rules</a>
+  <a href="xsiam-sop.html" class="current">📋 Integration SOP</a>
+  <a href="baseline-builders.html">📊 Baselines</a>
+  <div class="spacer"></div>
+  <a href="https://github.com/jcube3ai/Project-Insider_Threat" target="_blank" class="ext">GitHub ↗</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Standard Operating Procedure</div>
+  <h1>ITM × XSIAM<br><strong>Integration Workflow</strong></h1>
+  <p class="hero-sub">Step-by-step implementation guide for deploying the Insider Threat Detection Framework detection framework into Cortex XSIAM. Follow each step in order — each layer depends on the one before it.</p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <span class="meta-label">Total Steps</span>
+      <span class="meta-val">7 steps</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Est. Time</span>
+      <span class="meta-val">4–6 weeks (dev)</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Environment</span>
+      <span class="meta-val">XSIAM Dev Tenant</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Version</span>
+      <span class="meta-val">ITM v1.0</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Framework</span>
+      <span class="meta-val">XSIAM + XQL</span>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="progress-label">
+      <span>Progress</span>
+      <span id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Overview</div>
+      <button class="sidebar-link active" onclick="showStep('overview',this)">
+        <span class="step-num">◈</span>
+        Introduction
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Build Steps</div>
+      <button class="sidebar-link" id="nav-step1" onclick="showStep('step1',this)">
+        <span class="step-num" id="num-step1">1</span>
+        Lookup Tables
+      </button>
+      <button class="sidebar-link" id="nav-step2" onclick="showStep('step2',this)">
+        <span class="step-num" id="num-step2">2</span>
+        Baseline Queries
+      </button>
+      <button class="sidebar-link" id="nav-step3" onclick="showStep('step3',this)">
+        <span class="step-num" id="num-step3">3</span>
+        Alert Rules
+      </button>
+      <button class="sidebar-link" id="nav-step4" onclick="showStep('step4',this)">
+        <span class="step-num" id="num-step4">4</span>
+        Correlation Rule
+      </button>
+      <button class="sidebar-link" id="nav-step5" onclick="showStep('step5',this)">
+        <span class="step-num" id="num-step5">5</span>
+        Playbook
+      </button>
+      <button class="sidebar-link" id="nav-step6" onclick="showStep('step6',this)">
+        <span class="step-num" id="num-step6">6</span>
+        End-to-End Testing
+      </button>
+      <button class="sidebar-link" id="nav-step7" onclick="showStep('step7',this)">
+        <span class="step-num" id="num-step7">7</span>
+        Dashboard
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reference</div>
+      <button class="sidebar-link" onclick="showStep('reference',this)">
+        <span class="step-num">R</span>
+        Tagging &amp; Dashboard
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <section class="step-section active" id="s-overview">
+      <div class="step-header">
+        <div class="step-number-big">ITM</div>
+        <div class="step-header-text">
+          <div class="step-tag">SOP — Introduction</div>
+          <div class="step-title">How This Integration Works</div>
+          <div class="step-desc">Before starting, understand the architecture. Each step builds on the last. Skipping steps will break the detection chain.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <strong>Start in Dev.</strong> Complete all 6 steps and validate all 5 test scenarios before touching your production XSIAM tenant. The T6 correlation rule will create incidents — you need to confirm thresholds are correct first.
+      </div>
+
+      <div class="flow">
+        <div class="flow-node">
+          <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector"></div></div>
+          <div class="flow-content">
+            <div class="flow-label">Step 1</div>
+            <div class="flow-title">Lookup Tables</div>
+            <div class="flow-note">hr_risk_context, business_context, itm_correlation_output — the data T6 reads to make decisions</div>
+          </div>
+        </div>
+        <div class="flow-node">
+          <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector"></div></div>
+          <div class="flow-content">
+            <div class="flow-label">Step 2</div>
+            <div class="flow-title">Baseline Queries</div>
+            <div class="flow-note">Scheduled XQL that builds "what normal looks like" per user — required by 40+ of your 71 rules</div>
+          </div>
+        </div>
+        <div class="flow-node">
+          <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector"></div></div>
+          <div class="flow-content">
+            <div class="flow-label">Step 3</div>
+            <div class="flow-title">Alert Rules (3 to start)</div>
+            <div class="flow-note">Your individual XQL detections — each tags its alerts with itm_technique, itm_tactic, itm_score</div>
+          </div>
+        </div>
+        <div class="flow-node">
+          <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector"></div></div>
+          <div class="flow-content">
+            <div class="flow-label">Step 4</div>
+            <div class="flow-title">T6 Correlation Rule</div>
+            <div class="flow-note">The engine — watches all tagged alerts, scores per user, applies multipliers, creates incidents</div>
+          </div>
+        </div>
+        <div class="flow-node">
+          <div class="flow-line"><div class="flow-dot"></div><div class="flow-connector"></div></div>
+          <div class="flow-content">
+            <div class="flow-label">Step 5</div>
+            <div class="flow-title">Playbook</div>
+            <div class="flow-note">Automated response — enriches, summarizes, notifies, sets SLA when an incident is created</div>
+          </div>
+        </div>
+        <div class="flow-node">
+          <div class="flow-line"><div class="flow-dot"></div></div>
+          <div class="flow-content">
+            <div class="flow-label">Step 6</div>
+            <div class="flow-title">End-to-End Testing</div>
+            <div class="flow-note">5 test scenarios validate every layer — single signal, multi-signal, leaver multiplier, dampener, critical</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="overview-grid">
+        <div class="overview-card" onclick="showStepById('step1')">
+          <div class="oc-step">Step 1 — Required</div>
+          <div class="oc-title">Lookup Tables</div>
+          <div class="oc-desc">Create 3 tables in XSIAM. Populate with test data manually for dev.</div>
+          <div class="oc-time">⏱ ~30 min</div>
+        </div>
+        <div class="overview-card" onclick="showStepById('step2')">
+          <div class="oc-step">Step 2 — Required</div>
+          <div class="oc-title">Baseline Queries</div>
+          <div class="oc-desc">3 scheduled XQL queries. Run manually once, then set to daily schedule.</div>
+          <div class="oc-time">⏱ ~1 hour</div>
+        </div>
+        <div class="overview-card" onclick="showStepById('step3')">
+          <div class="oc-step">Step 3 — Required</div>
+          <div class="oc-title">Alert Rules</div>
+          <div class="oc-desc">Deploy T4.1, T3.7, T5.1 first. Validate tagging before adding more.</div>
+          <div class="oc-time">⏱ ~2 hours</div>
+        </div>
+        <div class="overview-card" onclick="showStepById('step4')">
+          <div class="oc-step">Step 4 — Core</div>
+          <div class="oc-title">T6 Correlation Rule</div>
+          <div class="oc-desc">The engine. One XQL rule that aggregates everything and creates incidents.</div>
+          <div class="oc-time">⏱ ~2 hours</div>
+        </div>
+        <div class="overview-card" onclick="showStepById('step5')">
+          <div class="oc-step">Step 5 — Required</div>
+          <div class="oc-title">Playbook</div>
+          <div class="oc-desc">7-step automated response. Runs the moment an incident is created.</div>
+          <div class="oc-time">⏱ ~3 hours</div>
+        </div>
+        <div class="overview-card" onclick="showStepById('step6')">
+          <div class="oc-step">Step 6 — Validation</div>
+          <div class="oc-title">Testing</div>
+          <div class="oc-desc">5 scenarios proving every layer works end to end before prod.</div>
+          <div class="oc-time">⏱ ~4 hours</div>
+        </div>
+        <div class="overview-card" onclick="showStepById('step7')">
+          <div class="oc-step">Step 7 — Operationalise</div>
+          <div class="oc-title">Native Dashboard</div>
+          <div class="oc-desc">3 XQL panels in XSIAM — attack chain, coverage map, risk leaderboard.</div>
+          <div class="oc-time">⏱ ~2 hours</div>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="btn btn-primary" onclick="showStepById('step1')">Start Step 1 →</button>
+      </div>
+    </section>
+
+    <!-- STEP 1 -->
+    <section class="step-section" id="s-step1">
+      <div class="step-header">
+        <div class="step-number-big">01</div>
+        <div class="step-header-text">
+          <div class="step-tag">Foundation</div>
+          <div class="step-title">Create Lookup Tables</div>
+          <div class="step-desc">Three lookup tables that the T6 correlation engine reads at runtime. Create these before any rules or queries.</div>
+          <div class="step-time">⏱ Estimated time: 30 minutes &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Settings → XQL → Lookup Tables</div>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>Navigation:</strong> In XSIAM go to <strong>Settings → XQL → Lookup Tables → New Lookup Table</strong>. Create each table below. For dev testing, populate with the test rows shown — in production these will be fed from your HR system and ITSM.
+      </div>
+
+      <!-- Table 1 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">TABLE 1</span>
+          <span class="substep-title">hr_risk_context</span>
+          <span class="badge badge-required">Required</span>
+        </div>
+        <div class="substep-body">Tells T6 whether a user is a leaver, on a PIP, or recently changed roles. Used to apply the precursor score multiplier.</div>
+        <table class="config-table">
+          <tr><th>Column Name</th><th>Type</th><th>Purpose</th></tr>
+          <tr><td>username</td><td>string</td><td>User's email address — e.g. john.smith@company.com</td></tr>
+          <tr><td>is_leaver</td><td>boolean</td><td>true if the user has a confirmed departure date</td></tr>
+          <tr><td>days_to_departure</td><td>integer</td><td>Days remaining until departure — drives multiplier strength</td></tr>
+          <tr><td>departure_date</td><td>string</td><td>Formatted date e.g. 2025-06-15</td></tr>
+          <tr><td>role_changed</td><td>boolean</td><td>true if role changed in the last 30 days</td></tr>
+          <tr><td>on_pip</td><td>boolean</td><td>true if user is on a Performance Improvement Plan</td></tr>
+        </table>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">Test Data Row</span>
+            <span class="code-label">Add manually in dev</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>config timeframe = 15m
+
+// ITM T4.1 — Log Deletion and Clearing
+// Score: 4 | High confidence | No baseline needed
+// Tags: itm_detection, itm_technique:T4.1, itm_tactic:T4, itm_score:4
+
+dataset = xdr_data
+| filter (
+    // Windows event log cleared via wevtutil
+    (
+        event_type = ENUM.PROCESS
+        and event_sub_type = ENUM.PROCESS_START
+        and actor_process_command_line != null
+        and actor_process_command_line contains "wevtutil"
+        and actor_process_command_line contains " cl"
+    )
+    or
+    // Security log (1102) or System log (104) cleared
+    (
+        event_type = ENUM.EVENT_LOG
+        and action_evtlog_event_id in (1102, 104)
+    )
+    or
+    // PowerShell history deleted
+    (
+        event_type = ENUM.FILE
+                and action_file_path != null
+        and action_file_path contains "ConsoleHost_history.txt"
+        and actor_process_image_name != "pwsh.exe"
+        and actor_process_image_name != "powershell.exe"
+    )
+    or
+    // Bash history deleted or modified
+    (
+        event_type = ENUM.FILE
+        
+        and action_file_path != null
+        and action_file_path contains ".bash_history"
+    )
+    or
+    // VSS shadow copies deleted
+    (
+        event_type = ENUM.PROCESS
+        and event_sub_type = ENUM.PROCESS_START
+        and actor_process_command_line != null
+        and actor_process_command_line contains "vssadmin"
+        and actor_process_command_line contains "delete shadows"
+    )
+)
+| filter actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+| comp
+    count() as evasion_events,
+    values(event_type) as evasion_types,
+    values(actor_process_command_line) as commands,
+    min(_time) as first_seen,
+    max(_time) as last_seen
+  by actor_effective_username, agent_hostname
+| alter
+    itm_technique   = "T4.1",
+    itm_tactic      = "T4",
+    itm_score       = 4,
+    high_confidence = true,
+    itm_description = "Log deletion or clearing detected"
+| fields
+    actor_effective_username,
+    agent_hostname,
+    evasion_events,
+    evasion_types,
+    commands,
+    first_seen,
+    last_seen,
+    itm_technique,
+    itm_tactic,
+    itm_score,
+    high_confidence,
+    itm_description</pre>
+        </div>
+      </div>
+
+      <!-- Rule 2 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">RULE 2</span>
+          <span class="substep-title">T3.7 — External Mailbox Forwarding</span>
+          <span class="badge badge-required">Deploy second</span>
+        </div>
+        <div class="substep-body">Detects inbox rules that forward email to external addresses. Score 5. High confidence — no legitimate reason for silent external forwarding.</div>
+
+        <div class="callout callout-warn">
+          <strong>Replace aoshearman.com</strong> in two places in this query with your actual email domain.
+        </div>
+
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITM-T3.7 — External Mailbox Forwarding Rule</td></tr>
+          <tr><td>Severity</td><td>High</td></tr>
+          <tr><td>Schedule</td><td>Every 30 minutes</td></tr>
+          <tr><td>Tags</td><td>itm_detection, itm_technique:T3.7, itm_tactic:T3, itm_score:5</td></tr>
+          <tr><td>MITRE ATT&CK</td><td>T1114.003</td></tr>
+        </table>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-label">ITM-T3.7 — replace aoshearman.com twice</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>config timeframe = 30m
+
+<span class="c">// ITM T3.7 — Mailbox Forwarding Rules
+// Score: 5 | High confidence | No baseline needed
+// *** Replace aoshearman.com with your actual domain ***</span>
+
+<span class="k">dataset</span> = msft_o365_audit
+| <span class="k">filter</span> operation <span class="k">in</span> (
+    <span class="s">"New-InboxRule"</span>,
+    <span class="s">"Set-InboxRule"</span>,
+    <span class="s">"UpdateInboxRules"</span>
+  )
+
+| <span class="k">alter</span>
+    forward_to = json_extract(
+      audit_data,
+      <span class="s">"$.Parameters[?(@.Name=='ForwardTo')].Value"</span>
+    ),
+    redirect_to = json_extract(
+      audit_data,
+      <span class="s">"$.Parameters[?(@.Name=='RedirectTo')].Value"</span>
+    )
+
+<span class="c">// Only flag external destinations</span>
+| <span class="k">filter</span> forward_to  != <span class="k">null</span>
+    <span class="k">or</span>  redirect_to != <span class="k">null</span>
+| <span class="k">filter</span> forward_to  <span class="k">not</span> <span class="k">contains</span> <span class="s">"aoshearman.com"</span>
+    <span class="k">or</span>  redirect_to <span class="k">not</span> <span class="k">contains</span> <span class="s">"aoshearman.com"</span>
+
+| <span class="k">alter</span>
+    itm_technique   = <span class="s">"T3.7"</span>,
+    itm_tactic      = <span class="s">"T3"</span>,
+    itm_score       = 5,
+    high_confidence = <span class="k">true</span>,
+    itm_description = concat(
+      <span class="s">"External forwarding rule to: "</span>,
+      coalesce(forward_to, redirect_to)
+    )
+
+| <span class="k">fields</span> actor_effective_username,
+         src_ip_address, forward_to, redirect_to,
+         itm_technique, itm_tactic,
+         itm_score, high_confidence, itm_description</pre>
+        </div>
+      </div>
+
+      <!-- Rule 3 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">RULE 3</span>
+          <span class="substep-title">T5.1 — Privileged Role Assignment</span>
+          <span class="badge badge-required">Deploy third</span>
+        </div>
+        <div class="substep-body">Monitors Azure AD / PIM for high-value role assignments. Score 3 (5 if self-assigned). Low noise — only fires on Global Admin, Security Admin, and equivalent roles.</div>
+
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITM-T5.1 — Privileged Role Assignment</td></tr>
+          <tr><td>Severity</td><td>Medium</td></tr>
+          <tr><td>Schedule</td><td>Every 30 minutes</td></tr>
+          <tr><td>Tags</td><td>itm_detection, itm_technique:T5.1, itm_tactic:T5, itm_score:3</td></tr>
+          <tr><td>MITRE ATT&CK</td><td>T1548, T1078</td></tr>
+        </table>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-label">ITM-T5.1 — Role Escalation</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>config timeframe = 30m
+
+<span class="c">// ITM T5.1 — Privileged Role Assignment
+// Score: 3 (5 if self-assigned) | Low noise | No baseline</span>
+
+<span class="k">dataset</span> = msft_azure_ad_audit
+| <span class="k">filter</span> operation_name <span class="k">in</span> (
+    <span class="s">"Add member to role"</span>,
+    <span class="s">"Activate role"</span>,
+    <span class="s">"Add eligible member to role"</span>
+  )
+
+| <span class="k">alter</span>
+    role_assigned = json_extract(
+      target_resources, <span class="s">"$[0].displayName"</span>
+    ),
+    assigned_to = json_extract(
+      target_resources,
+      <span class="s">"$[0].userPrincipalName"</span>
+    ),
+    assigned_by = initiated_by_user_upn
+
+<span class="c">// Only flag high-value roles</span>
+| <span class="k">filter</span> role_assigned <span class="k">in</span> (
+    <span class="s">"Global Administrator"</span>,
+    <span class="s">"Privileged Role Administrator"</span>,
+    <span class="s">"Security Administrator"</span>,
+    <span class="s">"Exchange Administrator"</span>,
+    <span class="s">"User Administrator"</span>,
+    <span class="s">"Application Administrator"</span>
+  )
+
+| <span class="k">alter</span>
+    self_assigned = <span class="k">if</span>(
+      assigned_by = assigned_to, <span class="k">true</span>, <span class="k">false</span>
+    ),
+    itm_technique   = <span class="s">"T5.1"</span>,
+    itm_tactic      = <span class="s">"T5"</span>,
+    itm_score       = <span class="k">if</span>(self_assigned = <span class="k">true</span>, 5, 3),
+    high_confidence = <span class="k">if</span>(self_assigned = <span class="k">true</span>, <span class="k">true</span>, <span class="k">false</span>),
+    itm_description = concat(
+      <span class="s">"Role assigned: "</span>, role_assigned,
+      <span class="s">" | Self-assigned: "</span>,
+      to_string(self_assigned)
+    )
+
+| <span class="k">fields</span> assigned_by <span class="k">as</span> actor_effective_username,
+         assigned_to, role_assigned, self_assigned,
+         itm_technique, itm_tactic,
+         itm_score, high_confidence, itm_description</pre>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>After each rule:</strong> Click <strong>Run Now</strong> and verify it runs without errors. It won't return results unless the activity actually happened — that's fine. Fix any field name mismatches against your actual XSIAM dataset schema before proceeding.
+      </div>
+
+      <ul class="checklist">
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T4.1 created, saved, and Run Now — no syntax errors</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T4.1 alert tags verified: itm_detection, itm_score:4 visible in test alert</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T3.7 created with your domain substituted — Run Now clean</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T3.7 alert tags verified: itm_score:5</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T5.1 created — Run Now clean</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All three rules show scheduled status — Active</span></li>
+      </ul>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step2')">← Step 2</button>
+        <button class="btn btn-primary" onclick="showStepById('step4')">Step 4: Correlation Rule →</button>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="step-section" id="s-step2">
+      <div class="step-header">
+        <div class="step-number-big">02</div>
+        <div class="step-header-text">
+          <div class="step-tag">Foundation</div>
+          <div class="step-title">Build Baseline Queries</div>
+          <div class="step-desc">Scheduled XQL queries that build per-user behavioral baselines. Required by 40+ detection rules. Run each query manually once immediately after creating — tables are empty until the first run.</div>
+          <div class="step-time">⏱ ~1 hour &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Incidents &amp; Alerts → Alert Rules → New Scheduled Query</div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <strong>Critical:</strong> Run each baseline manually with <strong>Run Now</strong> immediately after creating. Allow at least <strong>5 days</strong> of data before trusting p95 thresholds. Weekly baselines (USB, system access) need 4 weeks. See the <a href="baseline-builders.html" style="color:var(--accent)">Baseline Builders</a> page for all 9 complete baseline queries.
+      </div>
+
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">BASELINE 1</span>
+          <span class="substep-title">baseline_file_access</span>
+          <span class="badge badge-required">Required for T1.1</span>
+        </div>
+        <div class="substep-body">30-day rolling p95 of daily file access per user. T1.1 fires when a user accesses more than 2× their personal p95 in a single day.</div>
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITDF Baseline — File Access</td></tr>
+          <tr><td>Schedule</td><td>Daily at 01:00 AM</td></tr>
+          <tr><td>Output table</td><td>baseline_file_access</td></tr>
+        </table>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-label">baseline_file_access</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Baseline — File Access | Daily 01:00 | Output → baseline_file_access</span>
+
+<span class="k">dataset</span> = xdr_data
+| <span class="k">filter</span> event_type = ENUM.FILE
+    <span class="k">and</span> event_sub_type = ENUM.FILE_OPEN
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+| <span class="k">bin</span> _time span = 1d
+| <span class="k">comp</span> count() <span class="k">as</span> daily_count
+  <span class="k">by</span> actor_effective_username, _time
+| filter actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+| <span class="k">comp</span>
+    avg(daily_count) <span class="k">as</span> avg_daily_files,
+    approx_percentile(daily_count, 0.95) <span class="k">as</span> p95_files,
+    approx_percentile(daily_count, 0.99) <span class="k">as</span> p99_files,
+    count() <span class="k">as</span> days_observed,
+    max(_time) <span class="k">as</span> last_updated
+  <span class="k">by</span> actor_effective_username
+| <span class="k">filter</span> days_observed >= 5
+| <span class="k">fields</span> actor_effective_username,
+         avg_daily_files, p95_files, p99_files,
+         days_observed, last_updated</pre>
+        </div>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">BASELINE 2</span>
+          <span class="substep-title">baseline_logon</span>
+          <span class="badge badge-required">Required for T2.1, T5.5</span>
+        </div>
+        <div class="substep-body">Each user's typical working hours, days, source locations, and endpoints over 30 days. T2.1 uses the typical_hours array to detect genuinely abnormal access times for that specific user.</div>
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITDF Baseline — Logon Patterns</td></tr>
+          <tr><td>Schedule</td><td>Daily at 01:30 AM</td></tr>
+          <tr><td>Output table</td><td>baseline_logon</td></tr>
+        </table>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-label">baseline_logon</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Baseline — Logon Patterns | Daily 01:30 | Output → baseline_logon</span>
+
+<span class="k">dataset</span> = xdr_data
+| <span class="k">filter</span> event_type = ENUM.EVENT_LOG
+    <span class="k">and</span> action_evtlog_event_id = 4624
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+    <span class="k">and</span> actor_effective_username != <span class="k">null</span>
+| <span class="k">alter</span>
+    logon_hour = hour(_time),
+    logon_day  = day_of_week(_time)
+| filter actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+| <span class="k">comp</span>
+    values(logon_hour) <span class="k">as</span> typical_hours,
+    values(logon_day) <span class="k">as</span> typical_days,
+    values(agent_hostname) <span class="k">as</span> typical_endpoints,
+    count() <span class="k">as</span> total_logons,
+    max(_time) <span class="k">as</span> last_updated
+  <span class="k">by</span> actor_effective_username
+| <span class="k">fields</span> actor_effective_username,
+         typical_hours, typical_days,
+         typical_endpoints, total_logons, last_updated</pre>
+        </div>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">BASELINE 3</span>
+          <span class="substep-title">baseline_email</span>
+          <span class="badge badge-required">Required for T3.1</span>
+        </div>
+        <div class="substep-body">Normal external email volume and known recipient domains per user. Replace <strong>aoshearman.com</strong> with your actual domain.</div>
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITDF Baseline — Email</td></tr>
+          <tr><td>Schedule</td><td>Daily at 02:00 AM</td></tr>
+          <tr><td>Output table</td><td>baseline_email_mad</td></tr>
+          <tr><td>Model</td><td>MAD cohort — replace aoshearman.com</td></tr>
+        </table>
+        <div class="callout callout-info">
+          <strong>Full baseline queries</strong> for all 9 tables — including MAD cohort baselines for iManage, SharePoint, network, and email — are on the <a href="baseline-builders.html" style="color:var(--accent)">Baseline Builders page</a>.
+        </div>
+      </div>
+
+      <ul class="checklist" id="checklist-step2">
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_file_access created and Run Now clicked — table has rows</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_logon created and Run Now clicked — table has rows</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_email_mad created (aoshearman.com replaced) — Run Now clicked</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All schedules confirmed Active in XSIAM</span></li>
+      </ul>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step1')">← Step 1</button>
+        <button class="btn btn-primary" onclick="showStepById('step3')">Step 3: Alert Rules →</button>
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="step-section" id="s-step3">
+      <div class="step-header">
+        <div class="step-number-big">03</div>
+        <div class="step-header-text">
+          <div class="step-tag">Detection</div>
+          <div class="step-title">Deploy Alert Rules</div>
+          <div class="step-desc">Start with 3 high-confidence, low-noise rules. Validate the ITM tagging works correctly before adding more. These are the signals T6 will aggregate.</div>
+          <div class="step-time">⏱ ~2 hours &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Incidents &amp; Alerts → Alert Rules → New XQL Alert Rule</div>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>Why these three first?</strong> T4.1 and T3.7 have near-zero false positive rates. T5.1 is low noise and high value. Get these running and correctly tagged before adding noisier baseline-dependent rules. The tagging is what matters most — T6 reads nothing without it.
+      </div>
+
+      <!-- Rule 1: T4.1 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">RULE 1</span>
+          <span class="substep-title">T4.1 — Log Deletion and Clearing</span>
+          <span class="badge badge-required">Deploy first</span>
+        </div>
+        <div class="substep-body">Detects Windows event log clearing, PowerShell history deletion, bash history deletion, and shadow copy deletion. Score 4. No baseline required. Near-zero false positives.</div>
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITDF-T4.1 — Log Deletion and Clearing</td></tr>
+          <tr><td>Severity</td><td>High</td></tr>
+          <tr><td>Schedule</td><td>Every 15 minutes</td></tr>
+          <tr><td>XSIAM Tags</td><td>itm_detection &nbsp;|&nbsp; itm_technique:T4.1 &nbsp;|&nbsp; itm_tactic:T4 &nbsp;|&nbsp; itm_score:4</td></tr>
+          <tr><td>MITRE ATT&amp;CK</td><td>T1070, T1070.001, T1070.003</td></tr>
+        </table>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-label">ITDF-T4.1 — confirmed working syntax</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>config timeframe = 15m
+
+<span class="c">// ITM T4.1 — Log Deletion and Clearing
+// Score: 4 | High confidence | No baseline needed
+// Tags: itm_detection, itm_technique:T4.1, itm_tactic:T4, itm_score:4</span>
+
+<span class="k">dataset</span> = xdr_data
+| <span class="k">filter</span> (
+    <span class="c">// Windows event log cleared via wevtutil</span>
+    (
+        event_type = ENUM.PROCESS
+        <span class="k">and</span> event_sub_type = ENUM.PROCESS_START
+        <span class="k">and</span> actor_process_command_line != <span class="k">null</span>
+        <span class="k">and</span> actor_process_command_line <span class="k">contains</span> <span class="s">"wevtutil"</span>
+        <span class="k">and</span> actor_process_command_line <span class="k">contains</span> <span class="s">" cl"</span>
+    )
+    <span class="k">or</span>
+    <span class="c">// Security log (1102) or System log (104) cleared</span>
+    (
+        event_type = ENUM.EVENT_LOG
+        <span class="k">and</span> action_evtlog_event_id <span class="k">in</span> (1102, 104)
+    )
+    <span class="k">or</span>
+    <span class="c">// PowerShell history deleted</span>
+    (
+        event_type = ENUM.FILE
+        <span class="k">and</span> action_file_path != <span class="k">null</span>
+        <span class="k">and</span> action_file_path <span class="k">contains</span> <span class="s">"ConsoleHost_history.txt"</span>
+        <span class="k">and</span> actor_process_image_name != <span class="s">"pwsh.exe"</span>
+        <span class="k">and</span> actor_process_image_name != <span class="s">"powershell.exe"</span>
+    )
+    <span class="k">or</span>
+    <span class="c">// Bash history deleted or modified</span>
+    (
+        event_type = ENUM.FILE
+        <span class="k">and</span> action_file_path != <span class="k">null</span>
+        <span class="k">and</span> action_file_path <span class="k">contains</span> <span class="s">".bash_history"</span>
+    )
+    <span class="k">or</span>
+    <span class="c">// VSS shadow copies deleted</span>
+    (
+        event_type = ENUM.PROCESS
+        <span class="k">and</span> event_sub_type = ENUM.PROCESS_START
+        <span class="k">and</span> actor_process_command_line != <span class="k">null</span>
+        <span class="k">and</span> actor_process_command_line <span class="k">contains</span> <span class="s">"vssadmin"</span>
+        <span class="k">and</span> actor_process_command_line <span class="k">contains</span> <span class="s">"delete shadows"</span>
+    )
+)
+| filter actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+| <span class="k">comp</span>
+    count() <span class="k">as</span> evasion_events,
+    values(event_type) <span class="k">as</span> evasion_types,
+    values(actor_process_command_line) <span class="k">as</span> commands,
+    min(_time) <span class="k">as</span> first_seen,
+    max(_time) <span class="k">as</span> last_seen
+  <span class="k">by</span> actor_effective_username, agent_hostname
+| <span class="k">alter</span>
+    itm_technique   = <span class="s">"T4.1"</span>,
+    itm_tactic      = <span class="s">"T4"</span>,
+    itm_score       = 4,
+    high_confidence = <span class="k">true</span>,
+    itm_description = <span class="s">"Log deletion or clearing detected"</span>
+| <span class="k">fields</span>
+    actor_effective_username,
+    agent_hostname,
+    evasion_events,
+    evasion_types,
+    commands,
+    first_seen,
+    last_seen,
+    itm_technique,
+    itm_tactic,
+    itm_score,
+    high_confidence,
+    itm_description</pre>
+        </div>
+      </div>
+
+      <!-- Rule 2: T3.7 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">RULE 2</span>
+          <span class="substep-title">T3.7 — External Mailbox Forwarding</span>
+          <span class="badge badge-required">Deploy second</span>
+        </div>
+        <div class="substep-body">Detects inbox rules forwarding email to external addresses. Score 5. Near-zero false positives — no legitimate reason for silent external forwarding.</div>
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITDF-T3.7 — External Mailbox Forwarding</td></tr>
+          <tr><td>Severity</td><td>High</td></tr>
+          <tr><td>Schedule</td><td>Every 30 minutes</td></tr>
+          <tr><td>XSIAM Tags</td><td>itm_detection &nbsp;|&nbsp; itm_technique:T3.7 &nbsp;|&nbsp; itm_tactic:T3 &nbsp;|&nbsp; itm_score:5</td></tr>
+          <tr><td>MITRE ATT&amp;CK</td><td>T1114.003</td></tr>
+        </table>
+        <div class="callout callout-warn">
+          <strong>Replace aoshearman.com</strong> with your actual email domain in this rule before deploying.
+        </div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-label">ITDF-T3.7 — replace aoshearman.com</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>config timeframe = 30m
+
+<span class="c">// ITM T3.7 — External Mailbox Forwarding Rule
+// Score: 5 | High confidence | No baseline needed
+// Tags: itm_detection, itm_technique:T3.7, itm_tactic:T3, itm_score:5
+// *** Replace aoshearman.com with your actual domain ***</span>
+
+<span class="k">dataset</span> = msft_azure_ad_audit_raw
+| <span class="k">filter</span> activityDisplayName <span class="k">in</span> (
+    <span class="s">"New-InboxRule"</span>,
+    <span class="s">"Set-InboxRule"</span>,
+    <span class="s">"UpdateInboxRules"</span>
+  )
+| <span class="k">alter</span> actor_upn = lowercase(
+    json_extract_scalar(initiatedBy, <span class="s">"$.user.userPrincipalName"</span>)
+  )
+| <span class="k">alter</span> forward_to = json_extract_scalar(
+    targetResources,
+    <span class="s">"$[0].modifiedProperties[?(@.displayName=='ForwardTo')].newValue"</span>
+  )
+| <span class="k">alter</span> redirect_to = json_extract_scalar(
+    targetResources,
+    <span class="s">"$[0].modifiedProperties[?(@.displayName=='RedirectTo')].newValue"</span>
+  )
+| <span class="k">filter</span> (
+    forward_to != <span class="k">null</span>
+    <span class="k">or</span> redirect_to != <span class="k">null</span>
+  )
+| <span class="k">filter</span> (
+    forward_to <span class="k">not</span> <span class="k">contains</span> <span class="s"><span class="w">"aoshearman.com"</span></span>
+    <span class="k">or</span> redirect_to <span class="k">not</span> <span class="k">contains</span> <span class="s"><span class="w">"aoshearman.com"</span></span>
+  )
+| <span class="k">alter</span>
+    itm_technique   = <span class="s">"T3.7"</span>,
+    itm_tactic      = <span class="s">"T3"</span>,
+    itm_score       = 5,
+    high_confidence = <span class="k">true</span>,
+    itm_description = concat(
+        <span class="s">"External forwarding rule — to: "</span>,
+        coalesce(forward_to, redirect_to)
+    )
+| <span class="k">fields</span>
+    actor_upn <span class="k">as</span> actor_effective_username,
+    forward_to,
+    redirect_to,
+    itm_technique,
+    itm_tactic,
+    itm_score,
+    high_confidence,
+    itm_description</pre>
+        </div>
+      </div>
+
+      <!-- Rule 3: T5.1 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">RULE 3</span>
+          <span class="substep-title">T5.1 — Privileged Role Assignment</span>
+          <span class="badge badge-required">Deploy third</span>
+        </div>
+        <div class="substep-body">Monitors Azure AD for high-value role assignments. Score 3 (5 if self-assigned). Low noise — only fires on Global Admin, Security Admin, and equivalent roles.</div>
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITDF-T5.1 — Privileged Role Assignment</td></tr>
+          <tr><td>Severity</td><td>Medium</td></tr>
+          <tr><td>Schedule</td><td>Every 30 minutes</td></tr>
+          <tr><td>XSIAM Tags</td><td>itm_detection &nbsp;|&nbsp; itm_technique:T5.1 &nbsp;|&nbsp; itm_tactic:T5 &nbsp;|&nbsp; itm_score:3</td></tr>
+          <tr><td>MITRE ATT&amp;CK</td><td>T1548, T1078.004</td></tr>
+        </table>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-label">ITDF-T5.1 — Role Escalation</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>config timeframe = 30m
+
+<span class="c">// ITM T5.1 — Privileged Role Assignment
+// Score: 3 (5 if self-assigned) | Low noise | No baseline needed
+// Tags: itm_detection, itm_technique:T5.1, itm_tactic:T5, itm_score:3</span>
+
+<span class="k">dataset</span> = msft_azure_ad_audit_raw
+| <span class="k">filter</span> (
+    activityDisplayName <span class="k">in</span> (
+        <span class="s">"Add member to role"</span>,
+        <span class="s">"Activate role"</span>,
+        <span class="s">"Add eligible member (PIM)"</span>,
+        <span class="s">"Add member to role completed (PIM activation)"</span>,
+        <span class="s">"Add member to role outside of PIM (permanent)"</span>
+    )
+    <span class="k">and</span> result = <span class="s">"success"</span>
+)
+| <span class="k">alter</span> actor_upn = lowercase(
+    json_extract_scalar(initiatedBy, <span class="s">"$.user.userPrincipalName"</span>)
+  )
+| <span class="k">alter</span> actor_ip = json_extract_scalar(
+    initiatedBy, <span class="s">"$.user.ipAddress"</span>
+  )
+| <span class="k">alter</span> role_name = json_extract_scalar(
+    targetResources, <span class="s">"$[0].displayName"</span>
+  )
+| <span class="k">alter</span> assigned_to = json_extract_scalar(
+    targetResources, <span class="s">"$[0].userPrincipalName"</span>
+  )
+| <span class="k">filter</span> (
+    role_name != <span class="k">null</span>
+    <span class="k">and</span> role_name <span class="k">in</span> (
+        <span class="s">"Global Administrator"</span>,
+        <span class="s">"Privileged Role Administrator"</span>,
+        <span class="s">"Security Administrator"</span>,
+        <span class="s">"Exchange Administrator"</span>,
+        <span class="s">"User Administrator"</span>,
+        <span class="s">"Application Administrator"</span>,
+        <span class="s">"SharePoint Administrator"</span>,
+        <span class="s">"Cloud Application Administrator"</span>
+    )
+)
+| <span class="k">filter</span> actor_upn != <span class="k">null</span>
+| <span class="k">filter</span> <span class="k">not</span> (actor_upn ~= <span class="s">"^(sa-|svc_|service_|system)"</span>)
+| <span class="k">alter</span> self_assigned = <span class="k">if</span>(
+    actor_upn = lowercase(assigned_to), <span class="k">true</span>, <span class="k">false</span>
+  )
+| <span class="k">alter</span>
+    itm_technique   = <span class="s">"T5.1"</span>,
+    itm_tactic      = <span class="s">"T5"</span>,
+    itm_score       = <span class="k">if</span>(self_assigned = <span class="k">true</span>, 5, 3),
+    high_confidence = <span class="k">if</span>(self_assigned = <span class="k">true</span>, <span class="k">true</span>, <span class="k">false</span>),
+    itm_description = concat(
+        <span class="s">"Privileged role assigned: "</span>, role_name,
+        <span class="s">" | Self-assigned: "</span>, to_string(self_assigned)
+    )
+| <span class="k">fields</span>
+    actor_upn <span class="k">as</span> actor_effective_username,
+    actor_ip,
+    role_name,
+    assigned_to,
+    self_assigned,
+    itm_technique,
+    itm_tactic,
+    itm_score,
+    high_confidence,
+    itm_description</pre>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>After each rule:</strong> Click <strong>Run Now</strong> and verify no syntax errors. Then check xdr_alerts — your test alert should appear with <code>itm_technique</code>, <code>itm_score</code>, and <code>itm_description</code> fields populated. If any field is null, fix the alter block before proceeding.
+      </div>
+
+      <ul class="checklist">
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T4.1 created — Run Now clean, no syntax errors</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">T4.1 alert tags verified in xdr_alerts: itm_technique:T4.1, itm_score:4</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T3.7 created with your domain substituted — Run Now clean</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">T3.7 alert tags verified: itm_score:5</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T5.1 created — Run Now clean</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All three rules show status: Active in XSIAM</span></li>
+      </ul>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step2')">← Step 2</button>
+        <button class="btn btn-primary" onclick="showStepById('step4')">Step 4: Correlation Rule →</button>
+      </div>
+    </section>
+
+
+    <!-- STEP 4 -->
+    <section class="step-section" id="s-step4">
+      <div class="step-header">
+        <div class="step-number-big">04</div>
+        <div class="step-header-text">
+          <div class="step-tag">Core Engine</div>
+          <div class="step-title">Build the T6 Correlation Rule</div>
+          <div class="step-desc">One XQL rule that watches all ITM-tagged alerts, aggregates scores per user, applies multipliers and dampeners, and creates XSIAM incidents when thresholds are crossed.</div>
+          <div class="step-time">⏱ ~2 hours &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Incidents &amp; Alerts → Correlation Rules → New Correlation Rule</div>
+        </div>
+      </div>
+
+      <div class="callout callout-danger">
+        <strong>This rule creates real XSIAM incidents.</strong> In dev this is fine. Before moving to production — validate all 5 test scenarios in Step 6 first. A misconfigured threshold will flood your incident queue.
+      </div>
+
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">CONFIG</span>
+          <span class="substep-title">Correlation Rule Settings</span>
+        </div>
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Name</td><td>ITM — T6 Multi-Signal Correlation Engine</td></tr>
+          <tr><td>Type</td><td>Query-based correlation</td></tr>
+          <tr><td>Schedule</td><td>Every 1 hour</td></tr>
+          <tr><td>Lookback</td><td>24 hours (built into XQL)</td></tr>
+          <tr><td>Deduplication</td><td>By subject (actor_effective_username), rolling 24h window</td></tr>
+          <tr><td>Incident tag</td><td>itm_correlation, restricted_visibility</td></tr>
+          <tr><td>Assign queue</td><td>ITDF Analyst Queue</td></tr>
+        </table>
+        <table class="config-table">
+          <tr><th>Escalation Level</th><th>Final Score</th><th>XSIAM Severity</th><th>SLA</th></tr>
+          <tr><td>INVESTIGATE</td><td>5 – 9.9</td><td>Medium</td><td>72 hours</td></tr>
+          <tr><td>ESCALATE</td><td>10 – 14.9</td><td>High</td><td>24 hours</td></tr>
+          <tr><td>CRITICAL</td><td>15+</td><td>Critical</td><td>4 hours</td></tr>
+        </table>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">XQL</span>
+          <span class="substep-title">The Full T6 Engine</span>
+        </div>
+        <div class="substep-body">Paste this as the XQL body of the correlation rule. Read the stage comments — they map directly to your ITM T6 techniques.</div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-label">T6 Multi-Signal Correlation Engine — Full Query</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ─────────────────────────────────────────────────────
+// ITM T6 — Multi-Signal Correlation Engine
+// Runs every hour | Lookback: 24 hours
+// Creates XSIAM incidents when ITM threshold crossed
+// Maps to: T6.1, T6.2, T6.3, T6.6 techniques
+// ─────────────────────────────────────────────────────</span>
+
+<span class="c">// ── STAGE 1: Collect all ITM-tagged alerts ────────────</span>
+<span class="c">// Only reads alerts tagged itm_detection
+// Ignores its own output to prevent feedback loops</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(24h))
+    <span class="k">and</span> alert_source != <span class="s">"ITM_CORRELATION"</span>
+
+<span class="c">// ── STAGE 2: Aggregate by user ────────────────────────</span>
+<span class="c">// Sum scores, collect unique techniques and tactics</span>
+
+| <span class="k">comp</span>
+    raw_score            = sum(itm_score),
+    techniques_fired     = array_distinct(itm_technique),
+    tactics_fired        = array_distinct(itm_tactic),
+    alert_count          = count(),
+    sum(
+      <span class="k">if</span>(high_confidence = <span class="k">true</span>, 1, 0) as high_confidence_count
+    ),
+    first_signal         = min(_time),
+    last_signal          = max(_time),
+    alert_descriptions   = array_agg(itm_description)
+  <span class="k">by</span> actor_effective_username
+
+<span class="c">// ── STAGE 3: Multi-signal gate ────────────────────────</span>
+<span class="c">// T6.1 core rule: min 2 independent techniques required
+// Prevents single noisy rule from dominating the score</span>
+
+| <span class="k">filter</span> array_length(techniques_fired) >= 2
+
+<span class="c">// ── STAGE 4: T0 precursor multiplier ─────────────────</span>
+<span class="c">// Leaver flag boosts the score significantly
+// Source: hr_risk_context lookup table</span>
+
+| <span class="k">join</span> type = left (
+    <span class="k">dataset</span> = hr_risk_context
+    | <span class="k">fields</span> username, is_leaver,
+             days_to_departure, on_pip,
+             role_changed
+  ) <span class="k">as</span> hr
+  <span class="k">on</span> actor_effective_username = hr.username
+
+| <span class="k">alter</span> precursor_multiplier = <span class="k">if</span>(
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 14,  2.0,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 30,  1.5,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 60,  1.25,
+    hr.on_pip    = <span class="k">true</span>,               1.2,
+    hr.role_changed = <span class="k">true</span>,           1.1,
+    1.0
+  )
+
+| <span class="k">alter</span> adjusted_score = round(
+    multiply(raw_score, precursor_multiplier), 1
+  )
+
+<span class="c">// ── STAGE 5: Business context validation (T6.3) ──────</span>
+<span class="c">// Legitimate explanations dampen the score
+// Source: business_context lookup table</span>
+
+| <span class="k">join</span> type = left (
+    <span class="k">dataset</span> = business_context
+    | <span class="k">fields</span> username, active_deal,
+             approved_data_transfer,
+             open_helpdesk_ticket,
+             deal_name, ticket_number
+  ) <span class="k">as</span> ctx
+  <span class="k">on</span> actor_effective_username = ctx.username
+
+| <span class="k">alter</span> context_dampener = <span class="k">if</span>(
+    ctx.approved_data_transfer = <span class="k">true</span>, 0.4,
+    ctx.active_deal            = <span class="k">true</span>, 0.6,
+    ctx.open_helpdesk_ticket   = <span class="k">true</span>, 0.8,
+    1.0
+  )
+
+| <span class="k">alter</span> final_score = round(
+    multiply(adjusted_score, context_dampener), 1
+  )
+
+<span class="c">// ── STAGE 6: Escalation decision ─────────────────────</span>
+
+| <span class="k">alter</span> escalation_level = <span class="k">if</span>(
+    final_score >= 15, <span class="s">"CRITICAL"</span>,
+    final_score >= 10, <span class="s">"ESCALATE"</span>,
+    final_score >= 5,  <span class="s">"INVESTIGATE"</span>,
+    <span class="s">"WATCH"</span>
+  )
+
+| <span class="k">filter</span> escalation_level != <span class="s">"WATCH"</span>
+
+<span class="c">// ── STAGE 7: Build incident fields ───────────────────</span>
+
+| <span class="k">alter</span>
+    kill_chain_position = concat(
+      <span class="s">"Tactics: "</span>,
+      array_to_string(tactics_fired, <span class="s">" → "</span>)
+    ),
+    score_breakdown = concat(
+      <span class="s">"Raw:"</span>,        to_string(raw_score),
+      <span class="s">" × Precursor:"</span>, to_string(precursor_multiplier),
+      <span class="s">" × Context:"</span>,   to_string(context_dampener),
+      <span class="s">" = Final:"</span>,     to_string(final_score)
+    ),
+    leaver_note = <span class="k">if</span>(
+      hr.is_leaver = <span class="k">true</span>,
+      concat(<span class="s">"⚠ LEAVER — "</span>, to_string(hr.days_to_departure), <span class="s">" days remaining"</span>),
+      <span class="s">"Not a leaver"</span>
+    ),
+    context_note = <span class="k">if</span>(
+      ctx.active_deal = <span class="k">true</span>,
+      concat(<span class="s">"Active deal: "</span>, ctx.deal_name),
+      <span class="k">if</span>(
+        ctx.open_helpdesk_ticket = <span class="k">true</span>,
+        concat(<span class="s">"Open ticket: "</span>, ctx.ticket_number),
+        <span class="s">"No business context found"</span>
+      )
+    ),
+    alert_source    = <span class="s">"ITM_CORRELATION"</span>,
+    itm_correlation = <span class="k">true</span>
+
+<span class="c">// ── STAGE 8: Final output ────────────────────────────</span>
+
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> subject,
+    final_score, escalation_level,
+    techniques_fired, tactics_fired,
+    alert_count, high_confidence_count,
+    kill_chain_position, score_breakdown,
+    leaver_note, context_note,
+    first_signal, last_signal,
+    precursor_multiplier, context_dampener,
+    raw_score,
+    hr.is_leaver, hr.days_to_departure,
+    ctx.active_deal, ctx.open_helpdesk_ticket
+
+| <span class="k">sort</span> desc final_score</pre>
+        </div>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">INCIDENT</span>
+          <span class="substep-title">Incident Name Template</span>
+        </div>
+        <div class="substep-body">Set this as the incident name formula in the correlation rule settings:</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">Formula</span>
+            <span class="code-label">Incident name field</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>concat("ITM — ", subject, " — Score: ",
+       to_string(final_score), " — ", escalation_level)</pre>
+        </div>
+      </div>
+
+      <ul class="checklist">
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Correlation rule created and named correctly</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Schedule set to every 1 hour</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Deduplication by subject, 24h rolling window</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Severity mapping: INVESTIGATE→Medium, ESCALATE→High, CRITICAL→Critical</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Rule saved and active — no syntax errors</span></li>
+      </ul>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step3')">← Step 3</button>
+        <button class="btn btn-primary" onclick="showStepById('step5')">Step 5: Playbook →</button>
+      </div>
+    </section>
+
+    <!-- STEP 5 -->
+    <section class="step-section" id="s-step5">
+      <div class="step-header">
+        <div class="step-number-big">05</div>
+        <div class="step-header-text">
+          <div class="step-tag">Automation</div>
+          <div class="step-title">Build the Response Playbook</div>
+          <div class="step-desc">7-step automated workflow that runs the moment T6 creates an incident. Enriches the case, builds the evidence note, sets SLA, and notifies the analyst before they open the incident.</div>
+          <div class="step-time">⏱ ~3 hours &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Response → Playbooks → New Playbook</div>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>Trigger:</strong> Set the playbook trigger to <em>Incident created where tags contains "itm_correlation"</em>. This ensures only ITM incidents trigger this playbook.
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">STEP 1</span><span class="substep-title">Extract Variables from Incident</span></div>
+        <div class="substep-body">Action type: Set Variable. Pull these fields from the incident into playbook variables.</div>
+        <table class="config-table">
+          <tr><th>Variable</th><th>Source</th></tr>
+          <tr><td>subject_username</td><td>incident.subject</td></tr>
+          <tr><td>final_score</td><td>incident.final_score</td></tr>
+          <tr><td>escalation_level</td><td>incident.escalation_level</td></tr>
+          <tr><td>techniques_fired</td><td>incident.techniques_fired</td></tr>
+          <tr><td>is_leaver</td><td>incident.hr.is_leaver</td></tr>
+          <tr><td>days_to_departure</td><td>incident.hr.days_to_departure</td></tr>
+        </table>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">STEP 2</span><span class="substep-title">30-Day Evidence Summary</span></div>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">XQL</span><span class="code-label">Output variable: evidence_summary</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> actor_effective_username = <span class="s">"${subject_username}"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+| <span class="k">comp</span>
+    total_alerts    = count(),
+    techniques_30d  = array_distinct(itm_technique),
+    sum(itm_score) as total_score_30d,
+    first_alert     = min(_time),
+    last_alert      = max(_time)
+  <span class="k">by</span> actor_effective_username</pre>
+        </div>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">STEP 3</span><span class="substep-title">HR Enrichment</span></div>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">XQL</span><span class="code-label">Output variable: hr_context</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><span class="k">dataset</span> = hr_risk_context
+| <span class="k">filter</span> username = <span class="s">"${subject_username}"</span>
+| <span class="k">fields</span> username, is_leaver, days_to_departure,
+         departure_date, role_changed, on_pip</pre>
+        </div>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">STEP 4</span><span class="substep-title">Asset Register Lookup</span></div>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">XQL</span><span class="code-label">Output variable: assigned_assets</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><span class="k">dataset</span> = asset_register
+| <span class="k">filter</span> assigned_user = <span class="s">"${subject_username}"</span>
+| <span class="k">fields</span> device_name, device_type,
+         serial_number, last_seen, enrollment_status</pre>
+        </div>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">STEP 5</span><span class="substep-title">Build Evidence Note</span></div>
+        <div class="substep-body">Action type: Add Incident Note. This is what the analyst sees when they open the case.</div>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">Note Template</span><span class="code-label">Paste into Add Incident Note body</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>═══════════════════════════════════
+ITDF INSIDER RISK — AUTO-GENERATED
+═══════════════════════════════════
+SUBJECT:  ${subject_username}
+SCORE:    ${final_score} → ${escalation_level}
+TIME:     ${now}
+
+── KILL CHAIN ──────────────────────
+Techniques: ${techniques_fired}
+
+── HR CONTEXT ──────────────────────
+Leaver:      ${is_leaver}
+Days left:   ${days_to_departure}
+Departure:   ${hr_context.departure_date}
+Role chg:    ${hr_context.role_changed}
+On PIP:      ${hr_context.on_pip}
+
+── 30-DAY HISTORY ──────────────────
+Total alerts:  ${evidence_summary.total_alerts}
+Techniques:    ${evidence_summary.techniques_30d}
+Score (30d):   ${evidence_summary.total_score_30d}
+First signal:  ${evidence_summary.first_alert}
+Last signal:   ${evidence_summary.last_alert}
+
+── ASSETS ──────────────────────────
+${assigned_assets}
+
+── ACTIONS REQUIRED ────────────────
+□ Review timeline in XSIAM
+□ Validate business context
+□ Check physical access (DT137)
+□ Assess endpoint isolation need
+□ Consult legal before HR notification
+═══════════════════════════════════</pre>
+        </div>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">STEP 6</span><span class="substep-title">Set SLA and Assign Queue</span></div>
+        <table class="config-table">
+          <tr><th>Level</th><th>SLA</th><th>Queue</th></tr>
+          <tr><td>CRITICAL</td><td>4 hours</td><td>ITM Queue — immediate page</td></tr>
+          <tr><td>ESCALATE</td><td>24 hours</td><td>ITDF Analyst Queue</td></tr>
+          <tr><td>INVESTIGATE</td><td>72 hours</td><td>ITDF Analyst Queue</td></tr>
+        </table>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">STEP 7</span><span class="substep-title">Send Analyst Notification</span></div>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-lang">Message</span><span class="code-label">Teams / Email / Slack</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>🚨 ITDF INSIDER RISK ALERT
+Subject:    ${subject_username}
+Score:      ${final_score} → ${escalation_level}
+Techniques: ${techniques_fired}
+Leaver:     ${is_leaver} (${days_to_departure} days)
+SLA:        ${sla_hours} hours
+Link:       [XSIAM incident URL]</pre>
+        </div>
+      </div>
+
+      <ul class="checklist">
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Playbook created with trigger: tags contains "itm_correlation"</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All 7 steps added in sequence</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Evidence note template pasted into Step 5</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">SLA mapping and notification channel configured</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Playbook saved and enabled</span></li>
+      </ul>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step4')">← Step 4</button>
+        <button class="btn btn-primary" onclick="showStepById('step6')">Step 6: Testing →</button>
+      </div>
+    </section>
+
+    <!-- STEP 6 -->
+    <section class="step-section" id="s-step6">
+      <div class="step-header">
+        <div class="step-number-big">06</div>
+        <div class="step-header-text">
+          <div class="step-tag">Validation</div>
+          <div class="step-title">End-to-End Testing</div>
+          <div class="step-desc">Five test scenarios validating every layer. Run in order. All five must pass before production.</div>
+          <div class="step-time">⏱ ~4 hours &nbsp;|&nbsp; <span class="badge badge-test">Dev environment only</span></div>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <strong>Do not skip tests.</strong> Each validates a different layer. Document results with screenshots. All five must pass before production promotion.
+      </div>
+
+      <div class="test-scenario">
+        <div class="test-header" onclick="toggleTest(this)">
+          <span class="test-title">Test 1 — Single Signal (Must NOT escalate)</span>
+          <span class="badge badge-test">Validates: Multi-signal gate</span>
+        </div>
+        <div class="test-body open">
+          <div class="test-row"><span class="test-row-label">Action</span><span class="test-row-val">Run: <code>wevtutil cl Security</code> on a test machine → triggers T4.1 (score 4)</span></div>
+          <div class="test-row"><span class="test-row-label">Wait</span><span class="test-row-val">15 min for T4.1, up to 1 hour for T6</span></div>
+          <div class="test-row"><span class="test-row-label">Expected</span><span class="test-row-val expect">T4.1 fires ✅ | T6 filtered out (only 1 technique) | No incident created ✅</span></div>
+          <div class="test-row"><span class="test-row-label">Fail fix</span><span class="test-row-val">Check T6 filter: array_length(techniques_fired) >= 2</span></div>
+        </div>
+      </div>
+
+      <div class="test-scenario">
+        <div class="test-header" onclick="toggleTest(this)">
+          <span class="test-title">Test 2 — Two Signals (Should create INVESTIGATE)</span>
+          <span class="badge badge-test">Validates: Core scoring</span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-row-label">Action 1</span><span class="test-row-val">T4.1 — run wevtutil cl Security (score 4)</span></div>
+          <div class="test-row"><span class="test-row-label">Action 2</span><span class="test-row-val">T3.7 — create inbox rule forwarding to gmail.com (score 5)</span></div>
+          <div class="test-row"><span class="test-row-label">Math</span><span class="test-row-val">9 × 1.0 × 1.0 = 9 → INVESTIGATE</span></div>
+          <div class="test-row"><span class="test-row-label">Expected</span><span class="test-row-val expect">Incident created ✅ | Severity: Medium ✅ | Score: 9 ✅ | Evidence note populated ✅</span></div>
+        </div>
+      </div>
+
+      <div class="test-scenario">
+        <div class="test-header" onclick="toggleTest(this)">
+          <span class="test-title">Test 3 — Leaver Multiplier (Should upgrade to ESCALATE)</span>
+          <span class="badge badge-test">Validates: T0 precursor multiplier</span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-row-label">Setup</span><span class="test-row-val">Set hr_risk_context: is_leaver=true, days_to_departure=20</span></div>
+          <div class="test-row"><span class="test-row-label">Action</span><span class="test-row-val">Same as Test 2 (T4.1 + T3.7)</span></div>
+          <div class="test-row"><span class="test-row-label">Math</span><span class="test-row-val">9 × 1.5 (leaver ≤30d) × 1.0 = 13.5 → ESCALATE</span></div>
+          <div class="test-row"><span class="test-row-label">Expected</span><span class="test-row-val expect">Severity: High ✅ | Score: 13.5 ✅ | Leaver note in evidence ✅ | SLA: 24h ✅</span></div>
+        </div>
+      </div>
+
+      <div class="test-scenario">
+        <div class="test-header" onclick="toggleTest(this)">
+          <span class="test-title">Test 4 — Business Context Dampener (Should reduce severity)</span>
+          <span class="badge badge-test">Validates: T6.3 context validation</span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-row-label">Setup</span><span class="test-row-val">Keep is_leaver=true. Add business_context: active_deal=true, deal_name="Test Deal"</span></div>
+          <div class="test-row"><span class="test-row-label">Math</span><span class="test-row-val">9 × 1.5 × 0.6 (active deal) = 8.1 → INVESTIGATE (dropped from ESCALATE)</span></div>
+          <div class="test-row"><span class="test-row-label">Expected</span><span class="test-row-val expect">Severity: Medium ✅ | Score: 8.1 ✅ | Context note: "Active deal: Test Deal" ✅</span></div>
+          <div class="test-row"><span class="test-row-label">Cleanup</span><span class="test-row-val">Remove active_deal from business_context after test</span></div>
+        </div>
+      </div>
+
+      <div class="test-scenario">
+        <div class="test-header" onclick="toggleTest(this)">
+          <span class="test-title">Test 5 — Three Signals + Leaver (Should hit CRITICAL)</span>
+          <span class="badge badge-test">Validates: Full CRITICAL path — use this as your demo</span>
+        </div>
+        <div class="test-body">
+          <div class="test-row"><span class="test-row-label">Setup</span><span class="test-row-val">is_leaver=true, days_to_departure=10. No business context.</span></div>
+          <div class="test-row"><span class="test-row-label">Actions</span><span class="test-row-val">T4.1 (score 4) + T3.7 (score 5) + T5.1 role assignment (score 3)</span></div>
+          <div class="test-row"><span class="test-row-label">Math</span><span class="test-row-val">12 × 2.0 (leaver ≤14d) × 1.0 = 24.0 → CRITICAL</span></div>
+          <div class="test-row"><span class="test-row-label">Expected</span><span class="test-row-val expect">Incident: CRITICAL ✅ | Score: 24.0 ✅ | SLA: 4 hours ✅ | All 7 playbook steps ran ✅ | Notification sent ✅</span></div>
+        </div>
+      </div>
+
+      <div class="callout callout-success">
+        <strong>All 5 passed?</strong> Document results with screenshots, get sign-off, then promote to production.
+      </div>
+
+      <ul class="checklist">
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Test 1 — single signal did NOT create an incident</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Test 2 — score 9, INVESTIGATE, evidence note populated</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Test 3 — leaver multiplier raised score to 13.5, severity High</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Test 4 — dampener reduced score to 8.1, severity Medium</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Test 5 — CRITICAL, score 24, all 7 playbook steps completed</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Results documented with screenshots</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Sign-off obtained for production promotion</span></li>
+      </ul>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step5')">← Step 5</button>
+        <button class="btn btn-primary" onclick="showStepById('reference')">Quick Reference →</button>
+      </div>
+    </section>
+
+
+    <!-- STEP 7 -->
+    <section class="step-section" id="s-step7">
+      <div class="step-header">
+        <div class="step-number-big">07</div>
+        <div class="step-header-text">
+          <div class="step-tag">Operationalise</div>
+          <div class="step-title">Native XSIAM Dashboard</div>
+          <div class="step-desc">Three XQL queries that power the live ITDF dashboard inside XSIAM. No external datasets. No GitHub dependency. Everything reads directly from <code>xdr_alerts</code> using the itm tags from your deployed rules.</div>
+          <div class="step-time">⏱ ~2 hours &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Dashboards → New Dashboard → Add Widget</div>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <strong>Dependency:</strong> These panels return data only after your alert rules are deployed and generating tagged alerts. Complete Steps 1–6 first. Fire at least one test alert from T4.1 or T3.7 before building the dashboard — otherwise all panels show empty.
+      </div>
+
+      <div class="callout callout-success">
+        <strong>Robert's architecture.</strong> This is the native platform approach — no static website, no external sync, no drift. Your framework lives in XSIAM as rule metadata. The dashboard reads it live. Minimal maintenance by design.
+      </div>
+
+      <!-- Panel 1 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">PANEL 1</span>
+          <span class="substep-title">Attack Chain Per User</span>
+          <span class="badge badge-xsiam">Table widget</span>
+        </div>
+        <div class="substep-body">Every ITDF technique fired for any user in chronological order. This is the insider threat kill chain — the technique, tactic, score, and timestamp for each signal. When a case escalates this is the first panel an analyst opens. Shows how the subject moved through the kill chain over 30 days.</div>
+
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Widget type</td><td>Table</td></tr>
+          <tr><td>Refresh</td><td>Every 15 minutes</td></tr>
+          <tr><td>Lookback</td><td>30 days (built into query)</td></tr>
+          <tr><td>Filter</td><td>Uncomment the username filter line to scope to one user</td></tr>
+        </table>
+
+        <div class="nav-path">
+          <span class="path-icon">▸</span>
+          Dashboards <span class="arrow">→</span>
+          New Dashboard <span class="arrow">→</span>
+          + Add Widget <span class="arrow">→</span>
+          XQL <span class="arrow">→</span>
+          <span class="current-path">Paste query → Type: Table → Save</span>
+        </div>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-info">Panel 1 — Attack Chain Per User</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Panel 1 — Attack Chain Per User
+// Widget: Table | Refresh: 15 min | Lookback: 30d
+// Shows kill chain progression per user chronologically</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+
+<span class="c">// Uncomment to filter to a specific user:
+// | filter actor_effective_username = "john.smith@company.com"</span>
+
+| <span class="k">comp</span>
+    count() <span class="k">as</span> alert_count,
+    max(to_integer(itm_score)) <span class="k">as</span> max_score,
+    min(_time) <span class="k">as</span> first_seen,
+    max(_time) <span class="k">as</span> last_seen
+  <span class="k">by</span> actor_effective_username,
+     itm_technique,
+     itm_tactic
+
+| <span class="k">alter</span> tactic_name = <span class="k">if</span>(
+    itm_tactic = <span class="s">"T0"</span>, <span class="s">"Precursor"</span>,
+    itm_tactic = <span class="s">"T1"</span>, <span class="s">"Collection"</span>,
+    itm_tactic = <span class="s">"T2"</span>, <span class="s">"Exfil Prep"</span>,
+    itm_tactic = <span class="s">"T3"</span>, <span class="s">"Exfiltration"</span>,
+    itm_tactic = <span class="s">"T4"</span>, <span class="s">"Obfuscation"</span>,
+    itm_tactic = <span class="s">"T5"</span>, <span class="s">"Privilege Abuse"</span>,
+    itm_tactic = <span class="s">"T6"</span>, <span class="s">"Behavioral"</span>,
+    itm_tactic = <span class="s">"T8"</span>, <span class="s">"Sabotage"</span>,
+    itm_tactic
+  )
+
+| <span class="k">sort</span> asc last_seen
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> User,
+    itm_technique <span class="k">as</span> Technique,
+    tactic_name <span class="k">as</span> Tactic,
+    alert_count <span class="k">as</span> Alerts,
+    max_score <span class="k">as</span> Score,
+    first_seen <span class="k">as</span> First,
+    last_seen <span class="k">as</span> Last</pre>
+        </div>
+      </div>
+
+      <!-- Panel 2 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">PANEL 2</span>
+          <span class="substep-title">Detection Coverage Map</span>
+          <span class="badge badge-xsiam">Bar chart widget</span>
+        </div>
+        <div class="substep-body">Which techniques have fired alerts in the last 30 days and which are silent. Active means the rule is deployed and firing. Silent means either the rule is not deployed yet, or deployed but no matching activity in your environment. This is your live coverage view — the equivalent of the ATT&CK Navigator heatmap but driven by real alert data.</div>
+
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Widget type</td><td>Bar chart (horizontal)</td></tr>
+          <tr><td>X axis</td><td>Technique</td></tr>
+          <tr><td>Y axis</td><td>Alerts</td></tr>
+          <tr><td>Group by</td><td>Tactic</td></tr>
+          <tr><td>Refresh</td><td>Every 6 hours</td></tr>
+        </table>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-info">Panel 2 — Detection Coverage Map</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Panel 2 — Detection Coverage Map
+// Widget: Bar chart | Refresh: 6 hours | Lookback: 30d
+// Active = rule firing | Silent = no alerts (gap or no activity)</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+
+| <span class="k">comp</span>
+    count() <span class="k">as</span> alert_count,
+    count_distinct(actor_effective_username)
+      <span class="k">as</span> unique_users
+  <span class="k">by</span> itm_tactic, itm_technique
+
+| <span class="k">alter</span> tactic_name = <span class="k">if</span>(
+    itm_tactic = <span class="s">"T0"</span>, <span class="s">"T0 Precursor"</span>,
+    itm_tactic = <span class="s">"T1"</span>, <span class="s">"T1 Collection"</span>,
+    itm_tactic = <span class="s">"T2"</span>, <span class="s">"T2 Exfil Prep"</span>,
+    itm_tactic = <span class="s">"T3"</span>, <span class="s">"T3 Exfiltration"</span>,
+    itm_tactic = <span class="s">"T4"</span>, <span class="s">"T4 Obfuscation"</span>,
+    itm_tactic = <span class="s">"T5"</span>, <span class="s">"T5 Privilege Abuse"</span>,
+    itm_tactic = <span class="s">"T6"</span>, <span class="s">"T6 Behavioral"</span>,
+    itm_tactic = <span class="s">"T8"</span>, <span class="s">"T8 Sabotage"</span>,
+    itm_tactic
+  )
+
+| <span class="k">alter</span> status = <span class="k">if</span>(
+    alert_count > 0, <span class="s">"Active"</span>, <span class="s">"Silent"</span>
+  )
+
+| <span class="k">sort</span> asc itm_tactic, asc itm_technique
+| <span class="k">fields</span>
+    tactic_name <span class="k">as</span> Tactic,
+    itm_technique <span class="k">as</span> Technique,
+    alert_count <span class="k">as</span> Alerts,
+    unique_users <span class="k">as</span> Users,
+    status <span class="k">as</span> Status</pre>
+        </div>
+      </div>
+
+      <!-- Panel 3 -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">PANEL 3</span>
+          <span class="substep-title">Risk Score Leaderboard</span>
+          <span class="badge badge-xsiam">Table widget</span>
+        </div>
+        <div class="substep-body">Top 10 users by aggregated ITM score in the last 24 hours. Applies the leaver multiplier live from <code>hr_risk_context</code>. This is the primary SOC triage view — the analyst opens the dashboard and immediately sees who needs attention, what techniques fired, and whether they are a leaver. No manual investigation needed to get to this point.</div>
+
+        <table class="config-table">
+          <tr><th>Setting</th><th>Value</th></tr>
+          <tr><td>Widget type</td><td>Table</td></tr>
+          <tr><td>Refresh</td><td>Every 15 minutes</td></tr>
+          <tr><td>Lookback</td><td>24 hours (built into query)</td></tr>
+          <tr><td>Conditional colour</td><td>CRITICAL = red | ESCALATE = orange | INVESTIGATE = yellow</td></tr>
+        </table>
+
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang">XQL</span>
+            <span class="code-info">Panel 3 — Risk Score Leaderboard</span>
+            <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Panel 3 — Risk Score Leaderboard
+// Widget: Table | Refresh: 15 min | Lookback: 24h
+// Applies leaver multiplier from hr_risk_context</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(24h))
+
+| <span class="k">comp</span>
+    sum(to_integer(itm_score)) <span class="k">as</span> raw_score,
+    values(itm_technique) <span class="k">as</span> techniques_fired,
+    count_distinct(itm_tactic) <span class="k">as</span> tactic_count,
+    count() <span class="k">as</span> total_alerts,
+    min(_time) <span class="k">as</span> first_signal,
+    max(_time) <span class="k">as</span> last_signal
+  <span class="k">by</span> actor_effective_username
+
+| <span class="k">join</span> type = <span class="k">left</span> (
+    <span class="k">dataset</span> = hr_risk_context
+    | <span class="k">fields</span> username, is_leaver,
+             days_to_departure
+  ) <span class="k">as</span> hr
+  hr.username = actor_effective_username
+
+| <span class="k">alter</span> multiplier = <span class="k">if</span>(
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 14, 2.0,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 30, 1.5,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 60, 1.25,
+    1.0
+  )
+
+| <span class="k">alter</span> final_score = round(
+    multiply(to_float(raw_score), multiplier), 1
+  )
+
+| <span class="k">alter</span> escalation = <span class="k">if</span>(
+    final_score >= 15, <span class="s">"CRITICAL"</span>,
+    final_score >= 10, <span class="s">"ESCALATE"</span>,
+    final_score >= 5,  <span class="s">"INVESTIGATE"</span>,
+    <span class="s">"WATCH"</span>
+  )
+
+| <span class="k">filter</span> escalation != <span class="s">"WATCH"</span>
+| <span class="k">sort</span> desc final_score
+| <span class="k">limit</span> 10
+
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> User,
+    final_score <span class="k">as</span> Score,
+    escalation <span class="k">as</span> Level,
+    tactic_count <span class="k">as</span> Tactics,
+    total_alerts <span class="k">as</span> Alerts,
+    hr.is_leaver <span class="k">as</span> Leaver,
+    hr.days_to_departure <span class="k">as</span> DaysLeft,
+    techniques_fired <span class="k">as</span> Techniques,
+    first_signal <span class="k">as</span> First,
+    last_signal <span class="k">as</span> Last</pre>
+        </div>
+      </div>
+
+      <!-- Build guide -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">BUILD</span>
+          <span class="substep-title">How to Build in XSIAM — Step by Step</span>
+        </div>
+        <div class="substep-body">All three panels are built inside XSIAM natively. No code deployment. No external dependencies.</div>
+        <table class="config-table">
+          <tr><th>Step</th><th>Action</th><th>Detail</th></tr>
+          <tr><td>1</td><td>Create dashboard</td><td>XSIAM → Dashboards → + New Dashboard → Name: "Insider Threat Detection Framework"</td></tr>
+          <tr><td>2</td><td>Set permissions</td><td>Dashboard Settings → Permissions → Assign to ITM Analyst role only. Remove from general SOC view.</td></tr>
+          <tr><td>3</td><td>Add Panel 1</td><td>+ Add Widget → XQL → paste Attack Chain query → Type: Table → Refresh: 15 min → Save</td></tr>
+          <tr><td>4</td><td>Add Panel 2</td><td>+ Add Widget → XQL → paste Coverage Map query → Type: Bar chart → Refresh: 6 hours → Save</td></tr>
+          <tr><td>5</td><td>Add Panel 3</td><td>+ Add Widget → XQL → paste Leaderboard query → Type: Table → Refresh: 15 min → Save</td></tr>
+          <tr><td>6</td><td>Arrange layout</td><td>Coverage Map top full width. Leaderboard bottom-left. Attack Chain bottom-right.</td></tr>
+          <tr><td>7</td><td>Auto-refresh</td><td>Dashboard Settings → Auto Refresh → Every 15 minutes</td></tr>
+          <tr><td>8</td><td>Validate</td><td>Fire a T4.1 test alert → confirm it appears in all three panels within 15 minutes</td></tr>
+        </table>
+      </div>
+
+      <div class="callout callout-success">
+        <strong>✓ Step 7 complete when:</strong> All three panels are live in XSIAM, a test alert appears in the attack chain, the coverage map shows at least one Active technique, and the leaderboard populates after a multi-signal test scenario from Step 6.
+      </div>
+
+      <ul class="checklist">
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Dashboard created and permissions set to ITM Analyst role</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 1 (Attack Chain) — table widget, data visible after test alert</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 2 (Coverage Map) — bar chart, Active techniques showing</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 3 (Leaderboard) — table, scores visible after multi-signal test</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Auto-refresh set to 15 minutes</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Dashboard shared with Robert for review</span></li>
+      </ul>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step6')">← Step 6</button>
+        <button class="btn btn-primary" onclick="showStepById('reference')">Reference →</button>
+      </div>
+    </section>
+
+
+    <!-- REFERENCE -->
+    <section class="step-section" id="s-reference">
+      <div class="step-header">
+        <div class="step-number-big">REF</div>
+        <div class="step-header-text">
+          <div class="step-tag">Reference</div>
+          <div class="step-title">Tagging Standard &amp; Dashboard</div>
+          <div class="step-desc">Rule tagging convention, native XSIAM dashboard queries, score weights, multipliers, dampeners, thresholds, and troubleshooting.</div>
+        </div>
+      </div>
+
+      
+      <!-- TAGGING STANDARD -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">TAGGING</span>
+          <span class="substep-title">Rule Tagging Standard</span>
+        </div>
+        <div class="substep-body">
+          Every ITDF alert rule must carry these tags in its XSIAM configuration. Inconsistent tagging breaks T6, the dashboard, and the attack chain. This is the single most important convention to protect — one wrong tag format means the entire downstream system misses that signal.
+        </div>
+        <div class="callout callout-danger">
+          <strong>Non-negotiable.</strong> All 77 rules must use exactly this format. No abbreviations, no variations, no exceptions. If a rule fires without these tags T6 cannot see it and the attack chain will have gaps.
+        </div>
+
+        <table class="config-table">
+          <tr><th>Tag</th><th>Format</th><th>Example</th><th>Purpose</th></tr>
+          <tr>
+            <td>itm_detection</td>
+            <td>Fixed string — no value</td>
+            <td>itm_detection</td>
+            <td>Primary selector — T6 reads <em>only</em> alerts with this tag. Every ITDF rule must have it.</td>
+          </tr>
+          <tr>
+            <td>itm_technique</td>
+            <td>itm_technique:{T}{tactic}.{sub}</td>
+            <td>itm_technique:T1.1</td>
+            <td>Maps the alert to its ITDF technique. Used by attack chain queries and dashboard heatmap.</td>
+          </tr>
+          <tr>
+            <td>itm_tactic</td>
+            <td>itm_tactic:{T}{tactic}</td>
+            <td>itm_tactic:T1</td>
+            <td>Maps the alert to its tactic. Used by kill chain coverage and trend panels.</td>
+          </tr>
+          <tr>
+            <td>itm_score</td>
+            <td>itm_score:{integer}</td>
+            <td>itm_score:2</td>
+            <td>Score weight. T6 reads this to calculate the user risk score. Must match the score defined in the framework.</td>
+          </tr>
+        </table>
+
+        <div class="substep-header" style="margin-top:18px">
+          <span class="substep-num">XSIAM</span>
+          <span class="substep-title">Where to Set Tags in XSIAM</span>
+        </div>
+        <div class="substep-body">In XSIAM, tags are set in the alert rule configuration — not in the XQL itself. Go to: <strong>Alert Rule → Settings → Tags</strong>. Enter each tag as a separate line.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XSIAM Alert Rule Tags Field</span>
+            <span class="code-info">Enter one tag per line — example for T1.1</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre>itm_detection
+itm_technique:T1.1
+itm_tactic:T1
+itm_score:2</pre>
+        </div>
+
+        <div class="substep-header" style="margin-top:18px">
+          <span class="substep-num">XQL</span>
+          <span class="substep-title">XQL Output Fields — Must Also Match</span>
+        </div>
+        <div class="substep-body">Each rule must also output these as alert fields in its XQL — this is what T6 reads when it aggregates scores. Both the XSIAM config tags AND the XQL output fields must be consistent.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Required alter block at end of every rule</span>
+            <span class="code-info">Replace values for each technique</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// Required at the end of every ITDF alert rule XQL
+// Replace T1.1 / T1 / 2 with the correct values for each technique</span>
+
+| <span class="k">alter</span>
+    itm_technique   = <span class="s">"T1.1"</span>,
+    itm_tactic      = <span class="s">"T1"</span>,
+    itm_score       = 2,
+    high_confidence = <span class="k">false</span>,
+    itm_description = <span class="k">concat</span>(
+      <span class="s">"Bulk data access — file_count: "</span>,
+      <span class="k">to_string</span>(file_count)
+    )</pre>
+        </div>
+
+        <div class="substep-header" style="margin-top:18px">
+          <span class="substep-num">TABLE</span>
+          <span class="substep-title">Complete Tag Reference — All 77 Techniques</span>
+        </div>
+        <div class="substep-body">Quick reference for the correct tag values for every technique in the framework.</div>
+        <table class="config-table">
+          <tr><th>Technique ID</th><th>itm_technique tag</th><th>itm_tactic tag</th><th>itm_score tag</th></tr>
+          <tr><td>T0.1–T0.9</td><td>itm_technique:T0.x</td><td>itm_tactic:T0</td><td>Multiplier — no score</td></tr>
+          <tr><td>T1.1</td><td>itm_technique:T1.1</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
+          <tr><td>T1.2</td><td>itm_technique:T1.2</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
+          <tr><td>T1.3</td><td>itm_technique:T1.3</td><td>itm_tactic:T1</td><td>itm_score:3</td></tr>
+          <tr><td>T1.4</td><td>itm_technique:T1.4</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
+          <tr><td>T2.1–T2.11</td><td>itm_technique:T2.x</td><td>itm_tactic:T2</td><td>itm_score:2</td></tr>
+          <tr><td>T3.1–T3.12</td><td>itm_technique:T3.x</td><td>itm_tactic:T3</td><td>itm_score:3–5</td></tr>
+          <tr><td>T4.1–T4.12</td><td>itm_technique:T4.x</td><td>itm_tactic:T4</td><td>itm_score:3–4</td></tr>
+          <tr><td>T5.1–T5.9</td><td>itm_technique:T5.x</td><td>itm_tactic:T5</td><td>itm_score:2–5</td></tr>
+          <tr><td>T6.1–T6.7</td><td>itm_technique:T6.x</td><td>itm_tactic:T6</td><td>T6 engine — no tag</td></tr>
+          <tr><td>T7.1–T7.5</td><td>itm_technique:T7.x</td><td>itm_tactic:T7</td><td>Governance — no score</td></tr>
+          <tr><td>T8.1–T8.6</td><td>itm_technique:T8.x</td><td>itm_tactic:T8</td><td>itm_score:4–5</td></tr>
+        </table>
+
+        <div class="callout callout-success">
+          <strong>Validation query.</strong> Run this in XSIAM after deploying any rule to confirm the tags are correctly persisting into alerts:
+        </div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Tag Validation Query</span>
+            <span class="code-info">Run after deploying each rule to confirm tags persist</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// Tag validation — run after deploying any ITDF rule
+// Confirms itm_detection, itm_technique, itm_score
+// are visible in xdr_alerts</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(24h))
+| <span class="k">fields</span>
+    actor_effective_username,
+    itm_technique,
+    itm_tactic,
+    itm_score,
+    high_confidence,
+    tags,
+    _time
+| <span class="k">sort</span> desc _time
+| <span class="k">limit</span> 20
+
+<span class="c">// Expected: itm_technique shows "T1.1" (not null)
+//           itm_score shows 2 (not null)
+//           tags contains "itm_detection"
+// If any field is null — check the alter block
+// in your XQL and the tags in the rule config</span></pre>
+        </div>
+      </div>
+
+      <!-- NATIVE DASHBOARD QUERIES -->
+      <div class="substep">
+        <div class="substep-header">
+          <span class="substep-num">DASHBOARD</span>
+          <span class="substep-title">Native XSIAM Dashboard Queries</span>
+        </div>
+        <div class="substep-body">
+          Three XQL queries that power the live ITDF dashboard inside XSIAM. Build these as widgets in <strong>XSIAM → Dashboards → New Dashboard → Add Widget → XQL</strong>. All three read directly from <code>xdr_alerts</code> using the itm tags — no external datasets required.
+        </div>
+
+        <div class="callout callout-info">
+          <strong>Dependency:</strong> These queries return data only after your alert rules are deployed and generating alerts. Deploy your three initial rules (T4.1, T3.7, T5.1) first, trigger test alerts, then build the dashboard panels to confirm data flows through.
+        </div>
+
+        <!-- Query 1 -->
+        <div class="substep-header" style="margin-top:16px">
+          <span class="substep-num">PANEL 1</span>
+          <span class="substep-title">Attack Chain Per User</span>
+        </div>
+        <div class="substep-body">Shows every ITDF technique fired for a specific user in chronological order. This is the insider threat kill chain — exactly what Robert described. Build as a <strong>Table widget</strong> with a username filter input.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Attack Chain Per User</span>
+            <span class="code-info">Widget type: Table | Refresh: 15 min</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Attack Chain — per user kill chain view
+// Widget: Table | Refresh: every 15 minutes
+// Add a username input parameter to filter by user</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+
+<span class="c">// Uncomment to filter by specific user:
+// | filter actor_effective_username = "john.smith@company.com"</span>
+
+| <span class="k">comp</span>
+    count() <span class="k">as</span> alert_count,
+    max(itm_score) <span class="k">as</span> max_score,
+    min(_time) <span class="k">as</span> first_seen,
+    max(_time) <span class="k">as</span> last_seen
+  <span class="k">by</span> actor_effective_username,
+     itm_technique,
+     itm_tactic
+
+| <span class="k">alter</span> tactic_name = <span class="k">if</span>(
+    itm_tactic = <span class="s">"T0"</span>, <span class="s">"Precursor"</span>,
+    itm_tactic = <span class="s">"T1"</span>, <span class="s">"Collection"</span>,
+    itm_tactic = <span class="s">"T2"</span>, <span class="s">"Exfil Prep"</span>,
+    itm_tactic = <span class="s">"T3"</span>, <span class="s">"Exfiltration"</span>,
+    itm_tactic = <span class="s">"T4"</span>, <span class="s">"Obfuscation"</span>,
+    itm_tactic = <span class="s">"T5"</span>, <span class="s">"Privilege Abuse"</span>,
+    itm_tactic = <span class="s">"T6"</span>, <span class="s">"Behavioral"</span>,
+    itm_tactic = <span class="s">"T8"</span>, <span class="s">"Sabotage"</span>,
+    itm_tactic
+  )
+
+| <span class="k">sort</span> asc last_seen
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> User,
+    itm_technique <span class="k">as</span> Technique,
+    tactic_name <span class="k">as</span> Tactic,
+    alert_count <span class="k">as</span> Alerts,
+    max_score <span class="k">as</span> Score,
+    first_seen <span class="k">as</span> First,
+    last_seen <span class="k">as</span> Last</pre>
+        </div>
+
+        <!-- Query 2 -->
+        <div class="substep-header" style="margin-top:20px">
+          <span class="substep-num">PANEL 2</span>
+          <span class="substep-title">Coverage Map — Covered vs Gap</span>
+        </div>
+        <div class="substep-body">Shows which ITDF techniques have fired alerts in the last 30 days versus which have never fired. This is your live detection coverage map — techniques with zero alerts are either gaps in your rule deployment or areas with no activity. Build as a <strong>Bar chart widget</strong>.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Detection Coverage Map</span>
+            <span class="code-info">Widget type: Bar chart | Refresh: every 6 hours</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Coverage Map — which techniques are firing?
+// Widget: Bar chart (horizontal) | Refresh: every 6 hours
+// Shows covered techniques vs silent ones</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(30d))
+
+| <span class="k">comp</span>
+    count() <span class="k">as</span> alert_count,
+    count_distinct(actor_effective_username)
+      <span class="k">as</span> unique_users
+  <span class="k">by</span> itm_tactic, itm_technique
+
+| <span class="k">alter</span> tactic_name = <span class="k">if</span>(
+    itm_tactic = <span class="s">"T0"</span>, <span class="s">"T0 Precursor"</span>,
+    itm_tactic = <span class="s">"T1"</span>, <span class="s">"T1 Collection"</span>,
+    itm_tactic = <span class="s">"T2"</span>, <span class="s">"T2 Exfil Prep"</span>,
+    itm_tactic = <span class="s">"T3"</span>, <span class="s">"T3 Exfiltration"</span>,
+    itm_tactic = <span class="s">"T4"</span>, <span class="s">"T4 Obfuscation"</span>,
+    itm_tactic = <span class="s">"T5"</span>, <span class="s">"T5 Privilege Abuse"</span>,
+    itm_tactic = <span class="s">"T6"</span>, <span class="s">"T6 Behavioral"</span>,
+    itm_tactic = <span class="s">"T8"</span>, <span class="s">"T8 Sabotage"</span>,
+    itm_tactic
+  )
+
+| <span class="k">alter</span> coverage_status = <span class="k">if</span>(
+    alert_count > 0, <span class="s">"Active"</span>, <span class="s">"Silent"</span>
+  )
+
+| <span class="k">sort</span> asc itm_tactic, asc itm_technique
+| <span class="k">fields</span>
+    tactic_name <span class="k">as</span> Tactic,
+    itm_technique <span class="k">as</span> Technique,
+    alert_count <span class="k">as</span> Alerts,
+    unique_users <span class="k">as</span> Users,
+    coverage_status <span class="k">as</span> Status</pre>
+        </div>
+
+        <!-- Query 3 -->
+        <div class="substep-header" style="margin-top:20px">
+          <span class="substep-num">PANEL 3</span>
+          <span class="substep-title">Risk Score Leaderboard</span>
+        </div>
+        <div class="substep-body">Top 10 users by aggregated ITM score in the last 24 hours. Applies the leaver multiplier from <code>hr_risk_context</code>. Shows escalation level. This is the primary SOC triage view — the analyst opens the dashboard and immediately knows who needs attention. Build as a <strong>Table widget</strong> with conditional row colouring by escalation level.</div>
+        <div class="code-wrap">
+          <div class="code-header">
+            <span class="code-lang p95">XQL — Risk Score Leaderboard</span>
+            <span class="code-info">Widget type: Table | Refresh: every 15 minutes</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><span class="c">// ITDF Risk Score Leaderboard — top users by score
+// Widget: Table | Refresh: every 15 minutes
+// Applies leaver multiplier from hr_risk_context</span>
+
+<span class="k">dataset</span> = xdr_alerts
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+    <span class="k">and</span> _time > to_epoch(now() - duration(24h))
+
+| <span class="k">comp</span>
+    sum(to_integer(itm_score)) <span class="k">as</span> raw_score,
+    values(itm_technique) <span class="k">as</span> techniques_fired,
+    count_distinct(itm_tactic) <span class="k">as</span> tactic_count,
+    count() <span class="k">as</span> total_alerts,
+    min(_time) <span class="k">as</span> first_signal,
+    max(_time) <span class="k">as</span> last_signal
+  <span class="k">by</span> actor_effective_username
+
+<span class="c">// Join HR context for leaver multiplier</span>
+| <span class="k">join</span> type = <span class="k">left</span> (
+    <span class="k">dataset</span> = hr_risk_context
+    | <span class="k">fields</span> username, is_leaver, days_to_departure
+  ) <span class="k">as</span> hr
+  hr.username = actor_effective_username
+
+| <span class="k">alter</span> multiplier = <span class="k">if</span>(
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 14, 2.0,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 30, 1.5,
+    hr.is_leaver = <span class="k">true</span>
+      <span class="k">and</span> hr.days_to_departure <= 60, 1.25,
+    1.0
+  )
+
+| <span class="k">alter</span> final_score = <span class="k">round</span>(
+    multiply(to_float(raw_score), multiplier), 1
+  )
+
+| <span class="k">alter</span> escalation = <span class="k">if</span>(
+    final_score >= 15, <span class="s">"CRITICAL"</span>,
+    final_score >= 10, <span class="s">"ESCALATE"</span>,
+    final_score >= 5,  <span class="s">"INVESTIGATE"</span>,
+    <span class="s">"WATCH"</span>
+  )
+
+| <span class="k">filter</span> escalation != <span class="s">"WATCH"</span>
+
+| <span class="k">sort</span> desc final_score
+| <span class="k">limit</span> 10
+
+| <span class="k">fields</span>
+    actor_effective_username <span class="k">as</span> User,
+    final_score <span class="k">as</span> Score,
+    escalation <span class="k">as</span> Level,
+    tactic_count <span class="k">as</span> Tactics,
+    total_alerts <span class="k">as</span> Alerts,
+    hr.is_leaver <span class="k">as</span> Leaver,
+    hr.days_to_departure <span class="k">as</span> DaysLeft,
+    techniques_fired <span class="k">as</span> Techniques,
+    first_signal <span class="k">as</span> First,
+    last_signal <span class="k">as</span> Last</pre>
+        </div>
+
+        <!-- Dashboard build guide -->
+        <div class="substep-header" style="margin-top:20px">
+          <span class="substep-num">BUILD</span>
+          <span class="substep-title">How to Build the Dashboard in XSIAM</span>
+        </div>
+        <div class="substep-body">Step by step — building all three panels inside XSIAM.</div>
+        <table class="config-table">
+          <tr><th>Step</th><th>Action</th><th>Detail</th></tr>
+          <tr><td>1</td><td>Create dashboard</td><td>XSIAM → Dashboards → + New Dashboard → Name: "Insider Threat Detection Framework"</td></tr>
+          <tr><td>2</td><td>Set permissions</td><td>Dashboard Settings → Permissions → Assign to ITM Analyst role. Remove from general SOC view.</td></tr>
+          <tr><td>3</td><td>Add Panel 1</td><td>+ Add Widget → XQL → paste Attack Chain query → Type: Table → Refresh: 15 min</td></tr>
+          <tr><td>4</td><td>Add Panel 2</td><td>+ Add Widget → XQL → paste Coverage Map query → Type: Bar chart → Refresh: 6 hours</td></tr>
+          <tr><td>5</td><td>Add Panel 3</td><td>+ Add Widget → XQL → paste Leaderboard query → Type: Table → Refresh: 15 min</td></tr>
+          <tr><td>6</td><td>Arrange layout</td><td>Leaderboard top-right, Coverage Map top-left full width, Attack Chain bottom full width</td></tr>
+          <tr><td>7</td><td>Set auto-refresh</td><td>Dashboard Settings → Auto Refresh → Every 15 minutes</td></tr>
+          <tr><td>8</td><td>Validate data</td><td>Fire a test alert from T4.1 or T3.7 — confirm it appears in all three panels within 15 minutes</td></tr>
+        </table>
+      </div>
+
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">SCORING</span><span class="substep-title">Score Weights</span></div>
+        <table class="config-table">
+          <tr><th>Score</th><th>Techniques</th><th>Rationale</th></tr>
+          <tr><td>5</td><td>T3.3, T3.7, T4.5, T4.10, T8.1, T6.5</td><td>Confirmed exfil or evidence destruction</td></tr>
+          <tr><td>4</td><td>T4.1, T4.2, T4.3, T5.3, T5.4, T8.5</td><td>Evasion intent or privileged abuse</td></tr>
+          <tr><td>3</td><td>T1.3, T2.3, T2.4, T3.1, T3.2, T5.1</td><td>Preparatory signals</td></tr>
+          <tr><td>2</td><td>T1.1, T1.2, T2.1, T2.7, T2.8</td><td>Behavioral deviation — needs corroboration</td></tr>
+          <tr><td>1</td><td>T2.9</td><td>Supporting only — never standalone</td></tr>
+        </table>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">MULTIPLIERS</span><span class="substep-title">T0 Precursor Multipliers</span></div>
+        <table class="config-table">
+          <tr><th>Condition</th><th>Multiplier</th><th>Effect on score 9</th></tr>
+          <tr><td>Leaver ≤ 14 days</td><td>2.0×</td><td>9 → 18.0 (CRITICAL)</td></tr>
+          <tr><td>Leaver ≤ 30 days</td><td>1.5×</td><td>9 → 13.5 (ESCALATE)</td></tr>
+          <tr><td>Leaver ≤ 60 days</td><td>1.25×</td><td>9 → 11.25 (ESCALATE)</td></tr>
+          <tr><td>On PIP</td><td>1.2×</td><td>9 → 10.8 (ESCALATE)</td></tr>
+          <tr><td>Role changed</td><td>1.1×</td><td>9 → 9.9 (INVESTIGATE)</td></tr>
+          <tr><td>No context</td><td>1.0×</td><td>9 → 9.0 (unchanged)</td></tr>
+        </table>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">DAMPENERS</span><span class="substep-title">T6.3 Context Dampeners</span></div>
+        <table class="config-table">
+          <tr><th>Context</th><th>Dampener</th><th>Effect on 13.5</th></tr>
+          <tr><td>Approved data transfer</td><td>0.4×</td><td>13.5 → 5.4 (INVESTIGATE)</td></tr>
+          <tr><td>Active deal</td><td>0.6×</td><td>13.5 → 8.1 (INVESTIGATE)</td></tr>
+          <tr><td>Open helpdesk ticket</td><td>0.8×</td><td>13.5 → 10.8 (ESCALATE)</td></tr>
+          <tr><td>No context found</td><td>1.0×</td><td>Unchanged</td></tr>
+        </table>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">THRESHOLDS</span><span class="substep-title">Escalation Thresholds</span></div>
+        <table class="config-table">
+          <tr><th>Level</th><th>Score</th><th>Severity</th><th>SLA</th><th>Action</th></tr>
+          <tr><td>WATCH</td><td>0–4.9</td><td>—</td><td>—</td><td>Log only — no incident</td></tr>
+          <tr><td>INVESTIGATE</td><td>5–9.9</td><td>Medium</td><td>72h</td><td>Analyst review</td></tr>
+          <tr><td>ESCALATE</td><td>10–14.9</td><td>High</td><td>24h</td><td>Senior analyst + evidence</td></tr>
+          <tr><td>CRITICAL</td><td>15+</td><td>Critical</td><td>4h</td><td>IR + legal + immediate</td></tr>
+        </table>
+      </div>
+
+      <div class="substep">
+        <div class="substep-header"><span class="substep-num">TROUBLESHOOT</span><span class="substep-title">Common Issues</span></div>
+        <table class="config-table">
+          <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+          <tr><td>T6 returns zero results</td><td>No itm_detection tag</td><td>Check alert rule tags — must include exact string "itm_detection"</td></tr>
+          <tr><td>Score not multiplying</td><td>HR lookup join failing</td><td>Verify username format matches exactly in hr_risk_context (include domain)</td></tr>
+          <tr><td>Dampener not applying</td><td>Username mismatch</td><td>Check format consistency across all three lookup tables</td></tr>
+          <tr><td>No incident created</td><td>Deduplication active</td><td>Wait 24h or delete previous incident for same user before re-testing</td></tr>
+          <tr><td>Playbook not running</td><td>Trigger mismatch</td><td>Check tag is exactly "itm_correlation" — no spaces or capitals</td></tr>
+          <tr><td>Baseline table empty</td><td>Dataset name mismatch</td><td>Verify xdr_data and msft_o365_audit names in your XSIAM environment</td></tr>
+        </table>
+      </div>
+
+      <div class="step-nav">
+        <button class="btn btn-secondary" onclick="showStepById('step6')">← Step 6</button>
+        <button class="btn btn-primary" onclick="showStepById('overview')">Back to Overview</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <span>ITM × XSIAM Integration SOP — Insider Threat Detection Framework</span>
+  <span>jcube3ai.github.io/Project-Insider_Threat</span>
+</footer>
+
+<script>
+const STEPS = ['overview','step1','step2','step3','step4','step5','step6','reference'];
+
+function showStep(id, btn) {
+  document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showStepById(id) {
+  document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('active');
+  document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('active'));
+  const links = document.querySelectorAll('.sidebar-link');
+  links.forEach(l => { if(l.getAttribute('onclick') && l.getAttribute('onclick').includes("'" + id + "'")) l.classList.add('active'); });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleCheck(box) {
+  box.classList.toggle('checked');
+  const textEl = box.nextElementSibling;
+  if (textEl) textEl.classList.toggle('done');
+  box.textContent = box.classList.contains('checked') ? '✓' : '';
+  updateProgress();
+}
+
+function updateProgress() {
+  const all = document.querySelectorAll('.check-box');
+  const done = document.querySelectorAll('.check-box.checked');
+  const pct = all.length > 0 ? Math.round((done.length / all.length) * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+}
+
+function toggleTest(header) {
+  header.nextElementSibling.classList.toggle('open');
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  if (!pre) return;
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.color = '#00d4aa';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', updateProgress);
+</script>
+</body>
+</html>
