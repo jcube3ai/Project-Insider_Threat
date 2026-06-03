@@ -1117,7 +1117,7 @@ dataset = xdr_data
         <div class="substep-body">Detects inbox rules that forward email to external addresses. Score 5. High confidence — no legitimate reason for silent external forwarding.</div>
 
         <div class="callout callout-warn">
-          <strong>Replace aoshearman.com</strong> in two places in this query with your actual email domain.
+          <strong>Add aoshearman.com</strong> in two places in this query with our actual email domain.
         </div>
 
         <table class="config-table">
@@ -1139,7 +1139,7 @@ dataset = xdr_data
 
 <span class="c">// ITM T3.7 — Mailbox Forwarding Rules
 // Score: 5 | High confidence | No baseline needed
-// *** Replace aoshearman.com with your actual domain ***</span>
+// *** Add aoshearman.com with our actual domain ***</span>
 
 <span class="k">dataset</span> = msft_o365_audit
 | <span class="k">filter</span> operation <span class="k">in</span> (
@@ -1259,13 +1259,13 @@ dataset = xdr_data
       </div>
 
       <div class="callout callout-info">
-        <strong>After each rule:</strong> Click <strong>Run Now</strong> and verify it runs without errors. It won't return results unless the activity actually happened — that's fine. Fix any field name mismatches against your actual XSIAM dataset schema before proceeding.
+        <strong>After each rule:</strong> Click <strong>Run Now</strong> and verify it runs without errors. It won't return results unless the activity actually happened — that's fine. Fix any field name mismatches against our actual XSIAM dataset schema before proceeding.
       </div>
 
       <ul class="checklist">
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T4.1 created, saved, and Run Now — no syntax errors</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T4.1 alert tags verified: itm_detection, itm_score:4 visible in test alert</span></li>
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T3.7 created with your domain substituted — Run Now clean</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T3.7 created with our domain substituted — Run Now clean</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T3.7 alert tags verified: itm_score:5</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITM-T5.1 created — Run Now clean</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All three rules show scheduled status — Active</span></li>
@@ -1389,13 +1389,13 @@ dataset = xdr_data
           <span class="substep-title">baseline_email</span>
           <span class="badge badge-required">Required for T3.1</span>
         </div>
-        <div class="substep-body">Normal external email volume and known recipient domains per user. Replace <strong>aoshearman.com</strong> with your actual domain.</div>
+        <div class="substep-body">Normal external email volume and known recipient domains per user. Add <strong>aoshearman.com</strong> our domain.</div>
         <table class="config-table">
           <tr><th>Setting</th><th>Value</th></tr>
           <tr><td>Name</td><td>ITDF Baseline — Email</td></tr>
           <tr><td>Schedule</td><td>Daily at 02:00 AM</td></tr>
           <tr><td>Output table</td><td>baseline_email_mad</td></tr>
-          <tr><td>Model</td><td>MAD cohort — replace aoshearman.com</td></tr>
+          <tr><td>Model</td><td>MAD cohort — add aoshearman.com</td></tr>
         </table>
         <div class="callout callout-info">
           <strong>Full baseline queries</strong> for all 9 tables — including MAD cohort baselines for iManage, SharePoint, network, and email — are on the <a href="baseline-builders.html" style="color:var(--accent)">Baseline Builders page</a>.
@@ -1405,7 +1405,7 @@ dataset = xdr_data
       <ul class="checklist" id="checklist-step2">
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_file_access created and Run Now clicked — table has rows</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_logon created and Run Now clicked — table has rows</span></li>
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_email_mad created (aoshearman.com replaced) — Run Now clicked</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">baseline_email_mad created (aoshearman.com) — Run Now clicked</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All schedules confirmed Active in XSIAM</span></li>
       </ul>
 
@@ -1550,12 +1550,12 @@ dataset = xdr_data
           <tr><td>MITRE ATT&amp;CK</td><td>T1114.003</td></tr>
         </table>
         <div class="callout callout-warn">
-          <strong>Replace aoshearman.com</strong> with your actual email domain in this rule before deploying.
+          <strong>Add aoshearman.com</strong> our email domain in this rule before deploying.
         </div>
         <div class="code-wrap">
           <div class="code-header">
             <span class="code-lang">XQL</span>
-            <span class="code-label">ITDF-T3.7 — replace aoshearman.com</span>
+            <span class="code-label">ITDF-T3.7 — add aoshearman.com</span>
             <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
           </div>
           <pre>config timeframe = 30m
@@ -1563,7 +1563,7 @@ dataset = xdr_data
 <span class="c">// ITM T3.7 — External Mailbox Forwarding Rule
 // Score: 5 | High confidence | No baseline needed
 // Tags: itm_detection, itm_technique:T3.7, itm_tactic:T3, itm_score:5
-// *** Replace aoshearman.com with your actual domain ***</span>
+// *** add aoshearman.com our actual domain ***</span>
 
 <span class="k">dataset</span> = msft_azure_ad_audit_raw
 | <span class="k">filter</span> activityDisplayName <span class="k">in</span> (
@@ -2225,7 +2225,7 @@ Link:       [XSIAM incident URL]</pre>
       </div>
 
       <div class="callout callout-success">
-        <strong>Robert's architecture.</strong> This is the native platform approach — no static website, no external sync, no drift. Your framework lives in XSIAM as rule metadata. The dashboard reads it live. Minimal maintenance by design.
+        <strong>enhanced architecture.</strong> our framework lives in XSIAM as rule metadata. The dashboard reads it live. Minimal maintenance by design.
       </div>
 
       <!-- Panel 1 -->
@@ -2460,7 +2460,7 @@ Link:       [XSIAM incident URL]</pre>
           <span class="substep-num">BUILD</span>
           <span class="substep-title">How to Build in XSIAM — Step by Step</span>
         </div>
-        <div class="substep-body">All three panels are built inside XSIAM natively. No code deployment. No external dependencies.</div>
+        <div class="substep-body">All three panels are built inside XSIAM natively.</div>
         <table class="config-table">
           <tr><th>Step</th><th>Action</th><th>Detail</th></tr>
           <tr><td>1</td><td>Create dashboard</td><td>XSIAM → Dashboards → + New Dashboard → Name: "Insider Threat Detection Framework"</td></tr>
@@ -2479,7 +2479,7 @@ Link:       [XSIAM incident URL]</pre>
       </div>
 
       <ul class="checklist">
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Dashboard created and permissions set to ITM Analyst role</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Dashboard created and permissions set to Analyst role</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 1 (Attack Chain) — table widget, data visible after test alert</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 2 (Coverage Map) — bar chart, Active techniques showing</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Panel 3 (Leaderboard) — table, scores visible after multi-signal test</span></li>
