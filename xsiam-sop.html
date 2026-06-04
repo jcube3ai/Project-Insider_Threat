@@ -892,7 +892,7 @@ pre .n { color: #6ee7d4; }
           <div class="flow-content">
             <div class="flow-label">Step 1</div>
             <div class="flow-title">Lookup Tables</div>
-            <div class="flow-note">hr_risk_context, business_context, itm_correlation_output — the data T6 reads to make decisions</div>
+            <div class="flow-note">hr_risk_context, business_context, itdf_correlation_output — the data T6 reads to make decisions</div>
           </div>
         </div>
         <div class="flow-node">
@@ -908,7 +908,7 @@ pre .n { color: #6ee7d4; }
           <div class="flow-content">
             <div class="flow-label">Step 3</div>
             <div class="flow-title">Alert Rules (3 to start)</div>
-            <div class="flow-note">Our individual XQL detections — each tags its alerts with itm_technique, itm_tactic, itm_score</div>
+            <div class="flow-note">Our individual XQL detections — each tags its alerts with itdf_technique, itdf_tactic, itdf_score</div>
           </div>
         </div>
         <div class="flow-node">
@@ -916,7 +916,7 @@ pre .n { color: #6ee7d4; }
           <div class="flow-content">
             <div class="flow-label">Step 4</div>
             <div class="flow-title">T6 Correlation Rule</div>
-            <div class="flow-note">The T6 correlation engine — reads every xdr_alerts tagged itm_detection, scores per user, applies risk multipliers, and creates incidents when thresholds are crossed. This is how the system filters false positives without baselines for Tier 1 rules.</div>
+            <div class="flow-note">The T6 correlation engine — reads every xdr_alerts tagged itdf_detection, scores per user, applies risk multipliers, and creates incidents when thresholds are crossed. This is how the system filters false positives without baselines for Tier 1 rules.</div>
           </div>
         </div>
         <div class="flow-node">
@@ -959,7 +959,7 @@ pre .n { color: #6ee7d4; }
         <div class="overview-card" onclick="showStepById('step4')">
           <div class="oc-step">Step 4 — Core</div>
           <div class="oc-title">T6 Correlation Rule</div>
-          <div class="oc-desc">The T6 correlation engine. One XQL rule that reads all itm_detection tagged alerts, scores users, applies multipliers, and creates incidents. This is how the system works without needing baselines for every rule.</div>
+          <div class="oc-desc">The T6 correlation engine. One XQL rule that reads all itdf_detection tagged alerts, scores users, applies multipliers, and creates incidents. This is how the system works without needing baselines for every rule.</div>
           <div class="oc-time">⏱ ~2 hours</div>
         </div>
         <div class="overview-card" onclick="showStepById('step5')">
@@ -1030,7 +1030,7 @@ pre .n { color: #6ee7d4; }
 
 // ITDF T4.1 — Log Deletion and Clearing
 // Score: 4 | High confidence | No baseline needed
-// Tags: itm_detection, itm_technique:T4.1, itm_tactic:T4, itm_score:4
+// Tags: itdf_detection, itdf_technique:T4.1, itdf_tactic:T4, itdf_score:4
 
 dataset = xdr_data
 | filter (
@@ -1086,11 +1086,11 @@ dataset = xdr_data
     max(_time) as last_seen
   by actor_effective_username, agent_hostname
 | alter
-    itm_technique   = "T4.1",
-    itm_tactic      = "T4",
-    itm_score       = 4,
+    itdf_technique   = "T4.1",
+    itdf_tactic      = "T4",
+    itdf_score       = 4,
     high_confidence = true,
-    itm_description = "Log deletion or clearing detected"
+    itdf_description = "Log deletion or clearing detected"
 | fields
     actor_effective_username,
     agent_hostname,
@@ -1099,11 +1099,11 @@ dataset = xdr_data
     commands,
     first_seen,
     last_seen,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description</pre>
+    itdf_description</pre>
         </div>
       </div>
 
@@ -1125,7 +1125,7 @@ dataset = xdr_data
           <tr><td>Name</td><td>ITDF-T3.7 — External Mailbox Forwarding Rule</td></tr>
           <tr><td>Severity</td><td>High</td></tr>
           <tr><td>Schedule</td><td>Every 30 minutes</td></tr>
-          <tr><td>Tags</td><td>itm_detection, itm_technique:T3.7, itm_tactic:T3, itm_score:5</td></tr>
+          <tr><td>Tags</td><td>itdf_detection, itdf_technique:T3.7, itdf_tactic:T3, itdf_score:5</td></tr>
           <tr><td>MITRE ATT&CK</td><td>T1114.003</td></tr>
         </table>
 
@@ -1165,19 +1165,19 @@ dataset = xdr_data
     <span class="k">or</span>  redirect_to <span class="k">not</span> <span class="k">contains</span> <span class="s">"aoshearman.com"</span>
 
 | <span class="k">alter</span>
-    itm_technique   = <span class="s">"T3.7"</span>,
-    itm_tactic      = <span class="s">"T3"</span>,
-    itm_score       = 5,
+    itdf_technique   = <span class="s">"T3.7"</span>,
+    itdf_tactic      = <span class="s">"T3"</span>,
+    itdf_score       = 5,
     high_confidence = <span class="k">true</span>,
-    itm_description = concat(
+    itdf_description = concat(
       <span class="s">"External forwarding rule to: "</span>,
       coalesce(forward_to, redirect_to)
     )
 
 | <span class="k">fields</span> actor_effective_username,
          src_ip_address, forward_to, redirect_to,
-         itm_technique, itm_tactic,
-         itm_score, high_confidence, itm_description</pre>
+         itdf_technique, itdf_tactic,
+         itdf_score, high_confidence, itdf_description</pre>
         </div>
       </div>
 
@@ -1195,7 +1195,7 @@ dataset = xdr_data
           <tr><td>Name</td><td>ITDF-T5.1 — Privileged Role Assignment</td></tr>
           <tr><td>Severity</td><td>Medium</td></tr>
           <tr><td>Schedule</td><td>Every 30 minutes</td></tr>
-          <tr><td>Tags</td><td>itm_detection, itm_technique:T5.1, itm_tactic:T5, itm_score:3</td></tr>
+          <tr><td>Tags</td><td>itdf_detection, itdf_technique:T5.1, itdf_tactic:T5, itdf_score:3</td></tr>
           <tr><td>MITRE ATT&CK</td><td>T1548, T1078</td></tr>
         </table>
 
@@ -1241,11 +1241,11 @@ dataset = xdr_data
     self_assigned = <span class="k">if</span>(
       assigned_by = assigned_to, <span class="k">true</span>, <span class="k">false</span>
     ),
-    itm_technique   = <span class="s">"T5.1"</span>,
-    itm_tactic      = <span class="s">"T5"</span>,
-    itm_score       = <span class="k">if</span>(self_assigned = <span class="k">true</span>, 5, 3),
+    itdf_technique   = <span class="s">"T5.1"</span>,
+    itdf_tactic      = <span class="s">"T5"</span>,
+    itdf_score       = <span class="k">if</span>(self_assigned = <span class="k">true</span>, 5, 3),
     high_confidence = <span class="k">if</span>(self_assigned = <span class="k">true</span>, <span class="k">true</span>, <span class="k">false</span>),
-    itm_description = concat(
+    itdf_description = concat(
       <span class="s">"Role assigned: "</span>, role_assigned,
       <span class="s">" | Self-assigned: "</span>,
       to_string(self_assigned)
@@ -1253,8 +1253,8 @@ dataset = xdr_data
 
 | <span class="k">fields</span> assigned_by <span class="k">as</span> actor_effective_username,
          assigned_to, role_assigned, self_assigned,
-         itm_technique, itm_tactic,
-         itm_score, high_confidence, itm_description</pre>
+         itdf_technique, itdf_tactic,
+         itdf_score, high_confidence, itdf_description</pre>
         </div>
       </div>
 
@@ -1264,9 +1264,9 @@ dataset = xdr_data
 
       <ul class="checklist">
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T4.1 created, saved, and Run Now — no syntax errors</span></li>
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T4.1 alert tags verified: itm_detection, itm_score:4 visible in test alert</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T4.1 alert tags verified: itdf_detection, itdf_score:4 visible in test alert</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T3.7 created with our domain substituted — Run Now clean</span></li>
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T3.7 alert tags verified: itm_score:5</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T3.7 alert tags verified: itdf_score:5</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T5.1 created — Run Now clean</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All three rules show scheduled status — Active</span></li>
       </ul>
@@ -1444,7 +1444,7 @@ dataset = xdr_data
           <tr><td>Name</td><td>ITDF-T4.1 — Log Deletion and Clearing</td></tr>
           <tr><td>Severity</td><td>High</td></tr>
           <tr><td>Schedule</td><td>Every 15 minutes</td></tr>
-          <tr><td>XSIAM Tags</td><td>itm_detection &nbsp;|&nbsp; itm_technique:T4.1 &nbsp;|&nbsp; itm_tactic:T4 &nbsp;|&nbsp; itm_score:4</td></tr>
+          <tr><td>XSIAM Tags</td><td>itdf_detection &nbsp;|&nbsp; itdf_technique:T4.1 &nbsp;|&nbsp; itdf_tactic:T4 &nbsp;|&nbsp; itdf_score:4</td></tr>
           <tr><td>MITRE ATT&amp;CK</td><td>T1070, T1070.001, T1070.003</td></tr>
         </table>
         <div class="code-wrap">
@@ -1457,7 +1457,7 @@ dataset = xdr_data
 
 <span class="c">// ITDF T4.1 — Log Deletion and Clearing
 // Score: 4 | High confidence | No baseline needed
-// Tags: itm_detection, itm_technique:T4.1, itm_tactic:T4, itm_score:4</span>
+// Tags: itdf_detection, itdf_technique:T4.1, itdf_tactic:T4, itdf_score:4</span>
 
 <span class="k">dataset</span> = xdr_data
 | <span class="k">filter</span> (
@@ -1512,11 +1512,11 @@ dataset = xdr_data
     max(_time) <span class="k">as</span> last_seen
   <span class="k">by</span> actor_effective_username, agent_hostname
 | <span class="k">alter</span>
-    itm_technique   = <span class="s">"T4.1"</span>,
-    itm_tactic      = <span class="s">"T4"</span>,
-    itm_score       = 4,
+    itdf_technique   = <span class="s">"T4.1"</span>,
+    itdf_tactic      = <span class="s">"T4"</span>,
+    itdf_score       = 4,
     high_confidence = <span class="k">true</span>,
-    itm_description = <span class="s">"Log deletion or clearing detected"</span>
+    itdf_description = <span class="s">"Log deletion or clearing detected"</span>
 | <span class="k">fields</span>
     actor_effective_username,
     agent_hostname,
@@ -1525,11 +1525,11 @@ dataset = xdr_data
     commands,
     first_seen,
     last_seen,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description</pre>
+    itdf_description</pre>
         </div>
       </div>
 
@@ -1546,7 +1546,7 @@ dataset = xdr_data
           <tr><td>Name</td><td>ITDF-T3.7 — External Mailbox Forwarding</td></tr>
           <tr><td>Severity</td><td>High</td></tr>
           <tr><td>Schedule</td><td>Every 30 minutes</td></tr>
-          <tr><td>XSIAM Tags</td><td>itm_detection &nbsp;|&nbsp; itm_technique:T3.7 &nbsp;|&nbsp; itm_tactic:T3 &nbsp;|&nbsp; itm_score:5</td></tr>
+          <tr><td>XSIAM Tags</td><td>itdf_detection &nbsp;|&nbsp; itdf_technique:T3.7 &nbsp;|&nbsp; itdf_tactic:T3 &nbsp;|&nbsp; itdf_score:5</td></tr>
           <tr><td>MITRE ATT&amp;CK</td><td>T1114.003</td></tr>
         </table>
         <div class="callout callout-warn">
@@ -1562,7 +1562,7 @@ dataset = xdr_data
 
 <span class="c">// ITDF T3.7 — External Mailbox Forwarding Rule
 // Score: 5 | High confidence | No baseline needed
-// Tags: itm_detection, itm_technique:T3.7, itm_tactic:T3, itm_score:5
+// Tags: itdf_detection, itdf_technique:T3.7, itdf_tactic:T3, itdf_score:5
 // *** add aoshearman.com our actual domain ***</span>
 
 <span class="k">dataset</span> = msft_azure_ad_audit_raw
@@ -1591,11 +1591,11 @@ dataset = xdr_data
     <span class="k">or</span> redirect_to <span class="k">not</span> <span class="k">contains</span> <span class="s"><span class="w">"aoshearman.com"</span></span>
   )
 | <span class="k">alter</span>
-    itm_technique   = <span class="s">"T3.7"</span>,
-    itm_tactic      = <span class="s">"T3"</span>,
-    itm_score       = 5,
+    itdf_technique   = <span class="s">"T3.7"</span>,
+    itdf_tactic      = <span class="s">"T3"</span>,
+    itdf_score       = 5,
     high_confidence = <span class="k">true</span>,
-    itm_description = concat(
+    itdf_description = concat(
         <span class="s">"External forwarding rule — to: "</span>,
         coalesce(forward_to, redirect_to)
     )
@@ -1603,11 +1603,11 @@ dataset = xdr_data
     actor_upn <span class="k">as</span> actor_effective_username,
     forward_to,
     redirect_to,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description</pre>
+    itdf_description</pre>
         </div>
       </div>
 
@@ -1624,7 +1624,7 @@ dataset = xdr_data
           <tr><td>Name</td><td>ITDF-T5.1 — Privileged Role Assignment</td></tr>
           <tr><td>Severity</td><td>Medium</td></tr>
           <tr><td>Schedule</td><td>Every 30 minutes</td></tr>
-          <tr><td>XSIAM Tags</td><td>itm_detection &nbsp;|&nbsp; itm_technique:T5.1 &nbsp;|&nbsp; itm_tactic:T5 &nbsp;|&nbsp; itm_score:3</td></tr>
+          <tr><td>XSIAM Tags</td><td>itdf_detection &nbsp;|&nbsp; itdf_technique:T5.1 &nbsp;|&nbsp; itdf_tactic:T5 &nbsp;|&nbsp; itdf_score:3</td></tr>
           <tr><td>MITRE ATT&amp;CK</td><td>T1548, T1078.004</td></tr>
         </table>
         <div class="code-wrap">
@@ -1637,7 +1637,7 @@ dataset = xdr_data
 
 <span class="c">// ITDF T5.1 — Privileged Role Assignment
 // Score: 3 (5 if self-assigned) | Low noise | No baseline needed
-// Tags: itm_detection, itm_technique:T5.1, itm_tactic:T5, itm_score:3</span>
+// Tags: itdf_detection, itdf_technique:T5.1, itdf_tactic:T5, itdf_score:3</span>
 
 <span class="k">dataset</span> = msft_azure_ad_audit_raw
 | <span class="k">filter</span> (
@@ -1681,11 +1681,11 @@ dataset = xdr_data
     actor_upn = lowercase(assigned_to), <span class="k">true</span>, <span class="k">false</span>
   )
 | <span class="k">alter</span>
-    itm_technique   = <span class="s">"T5.1"</span>,
-    itm_tactic      = <span class="s">"T5"</span>,
-    itm_score       = <span class="k">if</span>(self_assigned = <span class="k">true</span>, 5, 3),
+    itdf_technique   = <span class="s">"T5.1"</span>,
+    itdf_tactic      = <span class="s">"T5"</span>,
+    itdf_score       = <span class="k">if</span>(self_assigned = <span class="k">true</span>, 5, 3),
     high_confidence = <span class="k">if</span>(self_assigned = <span class="k">true</span>, <span class="k">true</span>, <span class="k">false</span>),
-    itm_description = concat(
+    itdf_description = concat(
         <span class="s">"Privileged role assigned: "</span>, role_name,
         <span class="s">" | Self-assigned: "</span>, to_string(self_assigned)
     )
@@ -1695,23 +1695,23 @@ dataset = xdr_data
     role_name,
     assigned_to,
     self_assigned,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description</pre>
+    itdf_description</pre>
         </div>
       </div>
 
       <div class="callout callout-info">
-        <strong>After each rule:</strong> Click <strong>Run Now</strong> and verify no syntax errors. Then check xdr_alerts — our test alert should appear with <code>itm_technique</code>, <code>itm_score</code>, and <code>itm_description</code> fields populated. If any field is null, fix the alter block before proceeding.
+        <strong>After each rule:</strong> Click <strong>Run Now</strong> and verify no syntax errors. Then check xdr_alerts — our test alert should appear with <code>itdf_technique</code>, <code>itdf_score</code>, and <code>itdf_description</code> fields populated. If any field is null, fix the alter block before proceeding.
       </div>
 
       <ul class="checklist">
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T4.1 created — Run Now clean, no syntax errors</span></li>
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">T4.1 alert tags verified in xdr_alerts: itm_technique:T4.1, itm_score:4</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">T4.1 alert tags verified in xdr_alerts: itdf_technique:T4.1, itdf_score:4</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T3.7 created with our domain substituted — Run Now clean</span></li>
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">T3.7 alert tags verified: itm_score:5</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">T3.7 alert tags verified: itdf_score:5</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">ITDF-T5.1 created — Run Now clean</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All three rules show status: Active in XSIAM</span></li>
       </ul>
@@ -1751,9 +1751,9 @@ dataset = xdr_data
 
         <table class="config-table">
           <tr><th>Step</th><th>What happens</th><th>How</th></tr>
-          <tr><td>1</td><td>Alert rule fires</td><td>T4.1 detects log deletion — tags alert with itm_technique:T4.1, itm_score:4, itm_detection</td></tr>
-          <tr><td>2</td><td>T6 reads it</td><td>T6 queries xdr_alerts hourly — filters on tags contains "itm_detection"</td></tr>
-          <tr><td>3</td><td>T6 scores the user</td><td>Sums itm_score across all techniques fired for that user in the time window</td></tr>
+          <tr><td>1</td><td>Alert rule fires</td><td>T4.1 detects log deletion — tags alert with itdf_technique:T4.1, itdf_score:4, itdf_detection</td></tr>
+          <tr><td>2</td><td>T6 reads it</td><td>T6 queries xdr_alerts hourly — filters on tags contains "itdf_detection"</td></tr>
+          <tr><td>3</td><td>T6 scores the user</td><td>Sums itdf_score across all techniques fired for that user in the time window</td></tr>
           <tr><td>4</td><td>Multipliers applied</td><td>If user is in hr_risk_context as leaver — score × 1.5 or × 2.0</td></tr>
           <tr><td>5</td><td>Threshold check</td><td>final_score ≥ 10 → ESCALATE &nbsp;|&nbsp; ≥ 15 → CRITICAL incident created</td></tr>
           <tr><td>6</td><td>Incident created</td><td>Playbook triggers automatically — enriches, notifies, sets SLA</td></tr>
@@ -1802,7 +1802,7 @@ dataset = xdr_data
           <tr><td>Schedule</td><td>Every 1 hour</td></tr>
           <tr><td>Lookback</td><td>24 hours (built into XQL)</td></tr>
           <tr><td>Deduplication</td><td>By subject (actor_effective_username), rolling 24h window</td></tr>
-          <tr><td>Incident tag</td><td>itm_correlation, restricted_visibility</td></tr>
+          <tr><td>Incident tag</td><td>itdf_correlation, restricted_visibility</td></tr>
           <tr><td>Assign queue</td><td>ITDF Analyst Queue</td></tr>
         </table>
         <table class="config-table">
@@ -1834,28 +1834,28 @@ dataset = xdr_data
 // ─────────────────────────────────────────────────────</span>
 
 <span class="c">// ── STAGE 1: Collect all ITDF-tagged alerts ────────────</span>
-<span class="c">// Only reads alerts tagged itm_detection
+<span class="c">// Only reads alerts tagged itdf_detection
 // Ignores its own output to prevent feedback loops</span>
 
 <span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(24h))
-    <span class="k">and</span> alert_source != <span class="s">"ITM_CORRELATION"</span>
+    <span class="k">and</span> alert_source != <span class="s">"itdf_CORRELATION"</span>
 
 <span class="c">// ── STAGE 2: Aggregate by user ────────────────────────</span>
 <span class="c">// Sum scores, collect unique techniques and tactics</span>
 
 | <span class="k">comp</span>
-    raw_score            = sum(itm_score),
-    techniques_fired     = array_distinct(itm_technique),
-    tactics_fired        = array_distinct(itm_tactic),
+    raw_score            = sum(itdf_score),
+    techniques_fired     = array_distinct(itdf_technique),
+    tactics_fired        = array_distinct(itdf_tactic),
     alert_count          = count(),
     sum(
       <span class="k">if</span>(high_confidence = <span class="k">true</span>, 1, 0) as high_confidence_count
     ),
     first_signal         = min(_time),
     last_signal          = max(_time),
-    alert_descriptions   = array_agg(itm_description)
+    alert_descriptions   = array_agg(itdf_description)
   <span class="k">by</span> actor_effective_username
 
 <span class="c">// ── STAGE 3: Multi-signal gate ────────────────────────</span>
@@ -1954,8 +1954,8 @@ dataset = xdr_data
         <span class="s">"No business context found"</span>
       )
     ),
-    alert_source    = <span class="s">"ITM_CORRELATION"</span>,
-    itm_correlation = <span class="k">true</span>
+    alert_source    = <span class="s">"itdf_CORRELATION"</span>,
+    itdf_correlation = <span class="k">true</span>
 
 <span class="c">// ── STAGE 8: Final output ────────────────────────────</span>
 
@@ -2020,7 +2020,7 @@ dataset = xdr_data
       </div>
 
       <div class="callout callout-info">
-        <strong>Trigger:</strong> Set the playbook trigger to <em>Incident created where tags contains "itm_correlation"</em>. This ensures only ITDF incidents trigger this playbook.
+        <strong>Trigger:</strong> Set the playbook trigger to <em>Incident created where tags contains "itdf_correlation"</em>. This ensures only ITDF incidents trigger this playbook.
       </div>
 
       <div class="substep">
@@ -2042,13 +2042,13 @@ dataset = xdr_data
         <div class="code-wrap">
           <div class="code-header"><span class="code-lang">XQL</span><span class="code-label">Output variable: evidence_summary</span><button class="copy-code-btn" onclick="copyCode(this)">Copy</button></div>
           <pre><span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> actor_effective_username = <span class="s">"${subject_username}"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(30d))
 | <span class="k">comp</span>
     total_alerts    = count(),
-    techniques_30d  = array_distinct(itm_technique),
-    sum(itm_score) as total_score_30d,
+    techniques_30d  = array_distinct(itdf_technique),
+    sum(itdf_score) as total_score_30d,
     first_alert     = min(_time),
     last_alert      = max(_time)
   <span class="k">by</span> actor_effective_username</pre>
@@ -2144,7 +2144,7 @@ Link:       [XSIAM incident URL]</pre>
       </div>
 
       <ul class="checklist">
-        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Playbook created with trigger: tags contains "itm_correlation"</span></li>
+        <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Playbook created with trigger: tags contains "itdf_correlation"</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">All 7 steps added in sequence</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">Evidence note template pasted into Step 5</span></li>
         <li><div class="check-box" onclick="toggleCheck(this)"></div><span class="check-text">SLA mapping and notification channel configured</span></li>
@@ -2266,7 +2266,7 @@ Link:       [XSIAM incident URL]</pre>
         <div class="step-header-text">
           <div class="step-tag">Operationalise</div>
           <div class="step-title">Native XSIAM Dashboard</div>
-          <div class="step-desc">Three XQL queries that power the live ITDF dashboard inside XSIAM. No external datasets. No GitHub dependency. Everything reads directly from <code>xdr_alerts</code> using the itm tags from our deployed rules.</div>
+          <div class="step-desc">Three XQL queries that power the live ITDF dashboard inside XSIAM. No external datasets. No GitHub dependency. Everything reads directly from <code>xdr_alerts</code> using the itdf tags from our deployed rules.</div>
           <div class="step-time">⏱ ~2 hours &nbsp;|&nbsp; <span class="badge badge-xsiam">XSIAM</span> Dashboards → New Dashboard → Add Widget</div>
         </div>
       </div>
@@ -2316,7 +2316,7 @@ Link:       [XSIAM incident URL]</pre>
 // Shows kill chain progression per user chronologically</span>
 
 <span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(30d))
 
 <span class="c">// Uncomment to filter to a specific user:
@@ -2324,29 +2324,29 @@ Link:       [XSIAM incident URL]</pre>
 
 | <span class="k">comp</span>
     count() <span class="k">as</span> alert_count,
-    max(to_integer(itm_score)) <span class="k">as</span> max_score,
+    max(to_integer(itdf_score)) <span class="k">as</span> max_score,
     min(_time) <span class="k">as</span> first_seen,
     max(_time) <span class="k">as</span> last_seen
   <span class="k">by</span> actor_effective_username,
-     itm_technique,
-     itm_tactic
+     itdf_technique,
+     itdf_tactic
 
 | <span class="k">alter</span> tactic_name = <span class="k">if</span>(
-    itm_tactic = <span class="s">"T0"</span>, <span class="s">"Precursor"</span>,
-    itm_tactic = <span class="s">"T1"</span>, <span class="s">"Collection"</span>,
-    itm_tactic = <span class="s">"T2"</span>, <span class="s">"Exfil Prep"</span>,
-    itm_tactic = <span class="s">"T3"</span>, <span class="s">"Exfiltration"</span>,
-    itm_tactic = <span class="s">"T4"</span>, <span class="s">"Obfuscation"</span>,
-    itm_tactic = <span class="s">"T5"</span>, <span class="s">"Privilege Abuse"</span>,
-    itm_tactic = <span class="s">"T6"</span>, <span class="s">"Behavioral"</span>,
-    itm_tactic = <span class="s">"T8"</span>, <span class="s">"Sabotage"</span>,
-    itm_tactic
+    itdf_tactic = <span class="s">"T0"</span>, <span class="s">"Precursor"</span>,
+    itdf_tactic = <span class="s">"T1"</span>, <span class="s">"Collection"</span>,
+    itdf_tactic = <span class="s">"T2"</span>, <span class="s">"Exfil Prep"</span>,
+    itdf_tactic = <span class="s">"T3"</span>, <span class="s">"Exfiltration"</span>,
+    itdf_tactic = <span class="s">"T4"</span>, <span class="s">"Obfuscation"</span>,
+    itdf_tactic = <span class="s">"T5"</span>, <span class="s">"Privilege Abuse"</span>,
+    itdf_tactic = <span class="s">"T6"</span>, <span class="s">"Behavioral"</span>,
+    itdf_tactic = <span class="s">"T8"</span>, <span class="s">"Sabotage"</span>,
+    itdf_tactic
   )
 
 | <span class="k">sort</span> asc last_seen
 | <span class="k">fields</span>
     actor_effective_username <span class="k">as</span> User,
-    itm_technique <span class="k">as</span> Technique,
+    itdf_technique <span class="k">as</span> Technique,
     tactic_name <span class="k">as</span> Tactic,
     alert_count <span class="k">as</span> Alerts,
     max_score <span class="k">as</span> Score,
@@ -2384,35 +2384,35 @@ Link:       [XSIAM incident URL]</pre>
 // Active = rule firing | Silent = no alerts (gap or no activity)</span>
 
 <span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(30d))
 
 | <span class="k">comp</span>
     count() <span class="k">as</span> alert_count,
     count_distinct(actor_effective_username)
       <span class="k">as</span> unique_users
-  <span class="k">by</span> itm_tactic, itm_technique
+  <span class="k">by</span> itdf_tactic, itdf_technique
 
 | <span class="k">alter</span> tactic_name = <span class="k">if</span>(
-    itm_tactic = <span class="s">"T0"</span>, <span class="s">"T0 Precursor"</span>,
-    itm_tactic = <span class="s">"T1"</span>, <span class="s">"T1 Collection"</span>,
-    itm_tactic = <span class="s">"T2"</span>, <span class="s">"T2 Exfil Prep"</span>,
-    itm_tactic = <span class="s">"T3"</span>, <span class="s">"T3 Exfiltration"</span>,
-    itm_tactic = <span class="s">"T4"</span>, <span class="s">"T4 Obfuscation"</span>,
-    itm_tactic = <span class="s">"T5"</span>, <span class="s">"T5 Privilege Abuse"</span>,
-    itm_tactic = <span class="s">"T6"</span>, <span class="s">"T6 Behavioral"</span>,
-    itm_tactic = <span class="s">"T8"</span>, <span class="s">"T8 Sabotage"</span>,
-    itm_tactic
+    itdf_tactic = <span class="s">"T0"</span>, <span class="s">"T0 Precursor"</span>,
+    itdf_tactic = <span class="s">"T1"</span>, <span class="s">"T1 Collection"</span>,
+    itdf_tactic = <span class="s">"T2"</span>, <span class="s">"T2 Exfil Prep"</span>,
+    itdf_tactic = <span class="s">"T3"</span>, <span class="s">"T3 Exfiltration"</span>,
+    itdf_tactic = <span class="s">"T4"</span>, <span class="s">"T4 Obfuscation"</span>,
+    itdf_tactic = <span class="s">"T5"</span>, <span class="s">"T5 Privilege Abuse"</span>,
+    itdf_tactic = <span class="s">"T6"</span>, <span class="s">"T6 Behavioral"</span>,
+    itdf_tactic = <span class="s">"T8"</span>, <span class="s">"T8 Sabotage"</span>,
+    itdf_tactic
   )
 
 | <span class="k">alter</span> status = <span class="k">if</span>(
     alert_count > 0, <span class="s">"Active"</span>, <span class="s">"Silent"</span>
   )
 
-| <span class="k">sort</span> asc itm_tactic, asc itm_technique
+| <span class="k">sort</span> asc itdf_tactic, asc itdf_technique
 | <span class="k">fields</span>
     tactic_name <span class="k">as</span> Tactic,
-    itm_technique <span class="k">as</span> Technique,
+    itdf_technique <span class="k">as</span> Technique,
     alert_count <span class="k">as</span> Alerts,
     unique_users <span class="k">as</span> Users,
     status <span class="k">as</span> Status</pre>
@@ -2447,13 +2447,13 @@ Link:       [XSIAM incident URL]</pre>
 // Applies leaver multiplier from hr_risk_context</span>
 
 <span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(24h))
 
 | <span class="k">comp</span>
-    sum(to_integer(itm_score)) <span class="k">as</span> raw_score,
-    values(itm_technique) <span class="k">as</span> techniques_fired,
-    count_distinct(itm_tactic) <span class="k">as</span> tactic_count,
+    sum(to_integer(itdf_score)) <span class="k">as</span> raw_score,
+    values(itdf_technique) <span class="k">as</span> techniques_fired,
+    count_distinct(itdf_tactic) <span class="k">as</span> tactic_count,
     count() <span class="k">as</span> total_alerts,
     min(_time) <span class="k">as</span> first_signal,
     max(_time) <span class="k">as</span> last_signal
@@ -2573,27 +2573,27 @@ Link:       [XSIAM incident URL]</pre>
         <table class="config-table">
           <tr><th>Tag</th><th>Format</th><th>Example</th><th>Purpose</th></tr>
           <tr>
-            <td>itm_detection</td>
+            <td>itdf_detection</td>
             <td>Fixed string — no value</td>
-            <td>itm_detection</td>
+            <td>itdf_detection</td>
             <td>Primary selector — T6 reads <em>only</em> alerts with this tag. Every ITDF rule must have it.</td>
           </tr>
           <tr>
-            <td>itm_technique</td>
-            <td>itm_technique:{T}{tactic}.{sub}</td>
-            <td>itm_technique:T1.1</td>
+            <td>itdf_technique</td>
+            <td>itdf_technique:{T}{tactic}.{sub}</td>
+            <td>itdf_technique:T1.1</td>
             <td>Maps the alert to its ITDF technique. Used by attack chain queries and dashboard heatmap.</td>
           </tr>
           <tr>
-            <td>itm_tactic</td>
-            <td>itm_tactic:{T}{tactic}</td>
-            <td>itm_tactic:T1</td>
+            <td>itdf_tactic</td>
+            <td>itdf_tactic:{T}{tactic}</td>
+            <td>itdf_tactic:T1</td>
             <td>Maps the alert to its tactic. Used by kill chain coverage and trend panels.</td>
           </tr>
           <tr>
-            <td>itm_score</td>
-            <td>itm_score:{integer}</td>
-            <td>itm_score:2</td>
+            <td>itdf_score</td>
+            <td>itdf_score:{integer}</td>
+            <td>itdf_score:2</td>
             <td>Score weight. T6 reads this to calculate the user risk score. Must match the score defined in the framework.</td>
           </tr>
         </table>
@@ -2609,10 +2609,10 @@ Link:       [XSIAM incident URL]</pre>
             <span class="code-info">Enter one tag per line — example for T1.1</span>
             <button class="copy-btn" onclick="copyCode(this)">Copy</button>
           </div>
-          <pre>itm_detection
-itm_technique:T1.1
-itm_tactic:T1
-itm_score:2</pre>
+          <pre>itdf_detection
+itdf_technique:T1.1
+itdf_tactic:T1
+itdf_score:2</pre>
         </div>
 
         <div class="substep-header" style="margin-top:18px">
@@ -2630,11 +2630,11 @@ itm_score:2</pre>
 // Replace T1.1 / T1 / 2 with the correct values for each technique</span>
 
 | <span class="k">alter</span>
-    itm_technique   = <span class="s">"T1.1"</span>,
-    itm_tactic      = <span class="s">"T1"</span>,
-    itm_score       = 2,
+    itdf_technique   = <span class="s">"T1.1"</span>,
+    itdf_tactic      = <span class="s">"T1"</span>,
+    itdf_score       = 2,
     high_confidence = <span class="k">false</span>,
-    itm_description = <span class="k">concat</span>(
+    itdf_description = <span class="k">concat</span>(
       <span class="s">"Bulk data access — file_count: "</span>,
       <span class="k">to_string</span>(file_count)
     )</pre>
@@ -2646,19 +2646,19 @@ itm_score:2</pre>
         </div>
         <div class="substep-body">Quick reference for the correct tag values for every technique in the framework.</div>
         <table class="config-table">
-          <tr><th>Technique ID</th><th>itm_technique tag</th><th>itm_tactic tag</th><th>itm_score tag</th></tr>
-          <tr><td>T0.1–T0.9</td><td>itm_technique:T0.x</td><td>itm_tactic:T0</td><td>Multiplier — no score</td></tr>
-          <tr><td>T1.1</td><td>itm_technique:T1.1</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
-          <tr><td>T1.2</td><td>itm_technique:T1.2</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
-          <tr><td>T1.3</td><td>itm_technique:T1.3</td><td>itm_tactic:T1</td><td>itm_score:3</td></tr>
-          <tr><td>T1.4</td><td>itm_technique:T1.4</td><td>itm_tactic:T1</td><td>itm_score:2</td></tr>
-          <tr><td>T2.1–T2.11</td><td>itm_technique:T2.x</td><td>itm_tactic:T2</td><td>itm_score:2</td></tr>
-          <tr><td>T3.1–T3.12</td><td>itm_technique:T3.x</td><td>itm_tactic:T3</td><td>itm_score:3–5</td></tr>
-          <tr><td>T4.1–T4.12</td><td>itm_technique:T4.x</td><td>itm_tactic:T4</td><td>itm_score:3–4</td></tr>
-          <tr><td>T5.1–T5.9</td><td>itm_technique:T5.x</td><td>itm_tactic:T5</td><td>itm_score:2–5</td></tr>
-          <tr><td>T6.1–T6.7</td><td>itm_technique:T6.x</td><td>itm_tactic:T6</td><td>T6 engine — no tag</td></tr>
-          <tr><td>T7.1–T7.5</td><td>itm_technique:T7.x</td><td>itm_tactic:T7</td><td>Governance — no score</td></tr>
-          <tr><td>T8.1–T8.6</td><td>itm_technique:T8.x</td><td>itm_tactic:T8</td><td>itm_score:4–5</td></tr>
+          <tr><th>Technique ID</th><th>itdf_technique tag</th><th>itdf_tactic tag</th><th>itdf_score tag</th></tr>
+          <tr><td>T0.1–T0.9</td><td>itdf_technique:T0.x</td><td>itdf_tactic:T0</td><td>Multiplier — no score</td></tr>
+          <tr><td>T1.1</td><td>itdf_technique:T1.1</td><td>itdf_tactic:T1</td><td>itdf_score:2</td></tr>
+          <tr><td>T1.2</td><td>itdf_technique:T1.2</td><td>itdf_tactic:T1</td><td>itdf_score:2</td></tr>
+          <tr><td>T1.3</td><td>itdf_technique:T1.3</td><td>itdf_tactic:T1</td><td>itdf_score:3</td></tr>
+          <tr><td>T1.4</td><td>itdf_technique:T1.4</td><td>itdf_tactic:T1</td><td>itdf_score:2</td></tr>
+          <tr><td>T2.1–T2.11</td><td>itdf_technique:T2.x</td><td>itdf_tactic:T2</td><td>itdf_score:2</td></tr>
+          <tr><td>T3.1–T3.12</td><td>itdf_technique:T3.x</td><td>itdf_tactic:T3</td><td>itdf_score:3–5</td></tr>
+          <tr><td>T4.1–T4.12</td><td>itdf_technique:T4.x</td><td>itdf_tactic:T4</td><td>itdf_score:3–4</td></tr>
+          <tr><td>T5.1–T5.9</td><td>itdf_technique:T5.x</td><td>itdf_tactic:T5</td><td>itdf_score:2–5</td></tr>
+          <tr><td>T6.1–T6.7</td><td>itdf_technique:T6.x</td><td>itdf_tactic:T6</td><td>T6 engine — no tag</td></tr>
+          <tr><td>T7.1–T7.5</td><td>itdf_technique:T7.x</td><td>itdf_tactic:T7</td><td>Governance — no score</td></tr>
+          <tr><td>T8.1–T8.6</td><td>itdf_technique:T8.x</td><td>itdf_tactic:T8</td><td>itdf_score:4–5</td></tr>
         </table>
 
         <div class="callout callout-success">
@@ -2671,26 +2671,26 @@ itm_score:2</pre>
             <button class="copy-btn" onclick="copyCode(this)">Copy</button>
           </div>
           <pre><span class="c">// Tag validation — run after deploying any ITDF rule
-// Confirms itm_detection, itm_technique, itm_score
+// Confirms itdf_detection, itdf_technique, itdf_score
 // are visible in xdr_alerts</span>
 
 <span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(24h))
 | <span class="k">fields</span>
     actor_effective_username,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
     tags,
     _time
 | <span class="k">sort</span> desc _time
 | <span class="k">limit</span> 20
 
-<span class="c">// Expected: itm_technique shows "T1.1" (not null)
-//           itm_score shows 2 (not null)
-//           tags contains "itm_detection"
+<span class="c">// Expected: itdf_technique shows "T1.1" (not null)
+//           itdf_score shows 2 (not null)
+//           tags contains "itdf_detection"
 // If any field is null — check the alter block
 // in your XQL and the tags in the rule config</span></pre>
         </div>
@@ -2703,7 +2703,7 @@ itm_score:2</pre>
           <span class="substep-title">Native XSIAM Dashboard Queries</span>
         </div>
         <div class="substep-body">
-          Three XQL queries that power the live ITDF dashboard inside XSIAM. Build these as widgets in <strong>XSIAM → Dashboards → New Dashboard → Add Widget → XQL</strong>. All three read directly from <code>xdr_alerts</code> using the itm tags — no external datasets required.
+          Three XQL queries that power the live ITDF dashboard inside XSIAM. Build these as widgets in <strong>XSIAM → Dashboards → New Dashboard → Add Widget → XQL</strong>. All three read directly from <code>xdr_alerts</code> using the itdf tags — no external datasets required.
         </div>
 
         <div class="callout callout-info">
@@ -2727,7 +2727,7 @@ itm_score:2</pre>
 // Add a username input parameter to filter by user</span>
 
 <span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(30d))
 
 <span class="c">// Uncomment to filter by specific user:
@@ -2735,29 +2735,29 @@ itm_score:2</pre>
 
 | <span class="k">comp</span>
     count() <span class="k">as</span> alert_count,
-    max(itm_score) <span class="k">as</span> max_score,
+    max(itdf_score) <span class="k">as</span> max_score,
     min(_time) <span class="k">as</span> first_seen,
     max(_time) <span class="k">as</span> last_seen
   <span class="k">by</span> actor_effective_username,
-     itm_technique,
-     itm_tactic
+     itdf_technique,
+     itdf_tactic
 
 | <span class="k">alter</span> tactic_name = <span class="k">if</span>(
-    itm_tactic = <span class="s">"T0"</span>, <span class="s">"Precursor"</span>,
-    itm_tactic = <span class="s">"T1"</span>, <span class="s">"Collection"</span>,
-    itm_tactic = <span class="s">"T2"</span>, <span class="s">"Exfil Prep"</span>,
-    itm_tactic = <span class="s">"T3"</span>, <span class="s">"Exfiltration"</span>,
-    itm_tactic = <span class="s">"T4"</span>, <span class="s">"Obfuscation"</span>,
-    itm_tactic = <span class="s">"T5"</span>, <span class="s">"Privilege Abuse"</span>,
-    itm_tactic = <span class="s">"T6"</span>, <span class="s">"Behavioral"</span>,
-    itm_tactic = <span class="s">"T8"</span>, <span class="s">"Sabotage"</span>,
-    itm_tactic
+    itdf_tactic = <span class="s">"T0"</span>, <span class="s">"Precursor"</span>,
+    itdf_tactic = <span class="s">"T1"</span>, <span class="s">"Collection"</span>,
+    itdf_tactic = <span class="s">"T2"</span>, <span class="s">"Exfil Prep"</span>,
+    itdf_tactic = <span class="s">"T3"</span>, <span class="s">"Exfiltration"</span>,
+    itdf_tactic = <span class="s">"T4"</span>, <span class="s">"Obfuscation"</span>,
+    itdf_tactic = <span class="s">"T5"</span>, <span class="s">"Privilege Abuse"</span>,
+    itdf_tactic = <span class="s">"T6"</span>, <span class="s">"Behavioral"</span>,
+    itdf_tactic = <span class="s">"T8"</span>, <span class="s">"Sabotage"</span>,
+    itdf_tactic
   )
 
 | <span class="k">sort</span> asc last_seen
 | <span class="k">fields</span>
     actor_effective_username <span class="k">as</span> User,
-    itm_technique <span class="k">as</span> Technique,
+    itdf_technique <span class="k">as</span> Technique,
     tactic_name <span class="k">as</span> Tactic,
     alert_count <span class="k">as</span> Alerts,
     max_score <span class="k">as</span> Score,
@@ -2782,35 +2782,35 @@ itm_score:2</pre>
 // Shows covered techniques vs silent ones</span>
 
 <span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(30d))
 
 | <span class="k">comp</span>
     count() <span class="k">as</span> alert_count,
     count_distinct(actor_effective_username)
       <span class="k">as</span> unique_users
-  <span class="k">by</span> itm_tactic, itm_technique
+  <span class="k">by</span> itdf_tactic, itdf_technique
 
 | <span class="k">alter</span> tactic_name = <span class="k">if</span>(
-    itm_tactic = <span class="s">"T0"</span>, <span class="s">"T0 Precursor"</span>,
-    itm_tactic = <span class="s">"T1"</span>, <span class="s">"T1 Collection"</span>,
-    itm_tactic = <span class="s">"T2"</span>, <span class="s">"T2 Exfil Prep"</span>,
-    itm_tactic = <span class="s">"T3"</span>, <span class="s">"T3 Exfiltration"</span>,
-    itm_tactic = <span class="s">"T4"</span>, <span class="s">"T4 Obfuscation"</span>,
-    itm_tactic = <span class="s">"T5"</span>, <span class="s">"T5 Privilege Abuse"</span>,
-    itm_tactic = <span class="s">"T6"</span>, <span class="s">"T6 Behavioral"</span>,
-    itm_tactic = <span class="s">"T8"</span>, <span class="s">"T8 Sabotage"</span>,
-    itm_tactic
+    itdf_tactic = <span class="s">"T0"</span>, <span class="s">"T0 Precursor"</span>,
+    itdf_tactic = <span class="s">"T1"</span>, <span class="s">"T1 Collection"</span>,
+    itdf_tactic = <span class="s">"T2"</span>, <span class="s">"T2 Exfil Prep"</span>,
+    itdf_tactic = <span class="s">"T3"</span>, <span class="s">"T3 Exfiltration"</span>,
+    itdf_tactic = <span class="s">"T4"</span>, <span class="s">"T4 Obfuscation"</span>,
+    itdf_tactic = <span class="s">"T5"</span>, <span class="s">"T5 Privilege Abuse"</span>,
+    itdf_tactic = <span class="s">"T6"</span>, <span class="s">"T6 Behavioral"</span>,
+    itdf_tactic = <span class="s">"T8"</span>, <span class="s">"T8 Sabotage"</span>,
+    itdf_tactic
   )
 
 | <span class="k">alter</span> coverage_status = <span class="k">if</span>(
     alert_count > 0, <span class="s">"Active"</span>, <span class="s">"Silent"</span>
   )
 
-| <span class="k">sort</span> asc itm_tactic, asc itm_technique
+| <span class="k">sort</span> asc itdf_tactic, asc itdf_technique
 | <span class="k">fields</span>
     tactic_name <span class="k">as</span> Tactic,
-    itm_technique <span class="k">as</span> Technique,
+    itdf_technique <span class="k">as</span> Technique,
     alert_count <span class="k">as</span> Alerts,
     unique_users <span class="k">as</span> Users,
     coverage_status <span class="k">as</span> Status</pre>
@@ -2833,13 +2833,13 @@ itm_score:2</pre>
 // Applies leaver multiplier from hr_risk_context</span>
 
 <span class="k">dataset</span> = xdr_alerts
-| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itm_detection"</span>
+| <span class="k">filter</span> tags <span class="k">contains</span> <span class="s">"itdf_detection"</span>
     <span class="k">and</span> _time > to_epoch(now() - duration(24h))
 
 | <span class="k">comp</span>
-    sum(to_integer(itm_score)) <span class="k">as</span> raw_score,
-    values(itm_technique) <span class="k">as</span> techniques_fired,
-    count_distinct(itm_tactic) <span class="k">as</span> tactic_count,
+    sum(to_integer(itdf_score)) <span class="k">as</span> raw_score,
+    values(itdf_technique) <span class="k">as</span> techniques_fired,
+    count_distinct(itdf_tactic) <span class="k">as</span> tactic_count,
     count() <span class="k">as</span> total_alerts,
     min(_time) <span class="k">as</span> first_signal,
     max(_time) <span class="k">as</span> last_signal
@@ -2962,11 +2962,11 @@ itm_score:2</pre>
         <div class="substep-header"><span class="substep-num">TROUBLESHOOT</span><span class="substep-title">Common Issues</span></div>
         <table class="config-table">
           <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
-          <tr><td>T6 returns zero results</td><td>No itm_detection tag</td><td>Check alert rule tags — must include exact string "itm_detection"</td></tr>
+          <tr><td>T6 returns zero results</td><td>No itdf_detection tag</td><td>Check alert rule tags — must include exact string "itdf_detection"</td></tr>
           <tr><td>Score not multiplying</td><td>HR lookup join failing</td><td>Verify username format matches exactly in hr_risk_context (include domain)</td></tr>
           <tr><td>Dampener not applying</td><td>Username mismatch</td><td>Check format consistency across all three lookup tables</td></tr>
           <tr><td>No incident created</td><td>Deduplication active</td><td>Wait 24h or delete previous incident for same user before re-testing</td></tr>
-          <tr><td>Playbook not running</td><td>Trigger mismatch</td><td>Check tag is exactly "itm_correlation" — no spaces or capitals</td></tr>
+          <tr><td>Playbook not running</td><td>Trigger mismatch</td><td>Check tag is exactly "itdf_correlation" — no spaces or capitals</td></tr>
           <tr><td>Baseline table empty</td><td>Dataset name mismatch</td><td>Verify xdr_data and msft_o365_sharepoint_online_raw names in our XSIAM environment</td></tr>
         </table>
       </div>
