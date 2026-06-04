@@ -1117,7 +1117,7 @@ dataset = xdr_data
         <div class="substep-body">Detects inbox rules that forward email to external addresses. Score 5. High confidence — no legitimate reason for silent external forwarding.</div>
 
         <div class="callout callout-warn">
-          <strong>Replace aoshearman.com</strong> in two places in this query with our actual email domain.
+          <strong>Add aoshearman.com</strong> in two places in this query with our actual email domain.
         </div>
 
         <table class="config-table">
@@ -1132,14 +1132,14 @@ dataset = xdr_data
         <div class="code-wrap">
           <div class="code-header">
             <span class="code-lang">XQL</span>
-            <span class="code-label">ITDF-T3.7 — replace aoshearman.com twice</span>
+            <span class="code-label">ITDF-T3.7 — add aoshearman.com twice</span>
             <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
           </div>
           <pre>config timeframe = 30m
 
 <span class="c">// ITDF T3.7 — Mailbox Forwarding Rules
 // Score: 5 | High confidence | No baseline needed
-// *** Replace aoshearman.com with your actual domain ***</span>
+// *** add aoshearman.com  ***</span>
 
 <span class="k">dataset</span> = msft_o365_sharepoint_online_raw
 | <span class="k">filter</span> operation <span class="k">in</span> (
@@ -1389,13 +1389,13 @@ dataset = xdr_data
           <span class="substep-title">baseline_email</span>
           <span class="badge badge-required">Required for T3.1</span>
         </div>
-        <div class="substep-body">Normal external email volume and known recipient domains per user. Replace <strong>aoshearman.com</strong> with our actual domain.</div>
+        <div class="substep-body">Normal external email volume and known recipient domains per user. Replace <strong>aoshearman.com</strong> our domain.</div>
         <table class="config-table">
           <tr><th>Setting</th><th>Value</th></tr>
           <tr><td>Name</td><td>ITDF Baseline — Email</td></tr>
           <tr><td>Schedule</td><td>Daily at 02:00 AM</td></tr>
           <tr><td>Output table</td><td>baseline_email_mad</td></tr>
-          <tr><td>Model</td><td>MAD cohort — replace aoshearman.com</td></tr>
+          <tr><td>Model</td><td>MAD cohort — add aoshearman.com</td></tr>
         </table>
         <div class="callout callout-info">
           <strong>Full baseline queries</strong> for all 9 tables — including MAD cohort baselines for iManage, SharePoint, network, and email — are on the <a href="baseline-builders.html" style="color:var(--accent)">Baseline Builders page</a>.
@@ -1550,12 +1550,12 @@ dataset = xdr_data
           <tr><td>MITRE ATT&amp;CK</td><td>T1114.003</td></tr>
         </table>
         <div class="callout callout-warn">
-          <strong>Replace aoshearman.com</strong> with our actual email domain in this rule before deploying.
+          <strong>add aoshearman.com</strong> our actual email domain in this rule before deploying.
         </div>
         <div class="code-wrap">
           <div class="code-header">
             <span class="code-lang">XQL</span>
-            <span class="code-label">ITDF-T3.7 — replace aoshearman.com</span>
+            <span class="code-label">ITDF-T3.7 — add aoshearman.com</span>
             <button class="copy-code-btn" onclick="copyCode(this)">Copy</button>
           </div>
           <pre>config timeframe = 30m
@@ -1563,7 +1563,7 @@ dataset = xdr_data
 <span class="c">// ITDF T3.7 — External Mailbox Forwarding Rule
 // Score: 5 | High confidence | No baseline needed
 // Tags: itm_detection, itm_technique:T3.7, itm_tactic:T3, itm_score:5
-// *** Replace aoshearman.com with your actual domain ***</span>
+// *** add aoshearman.com our actual domain ***</span>
 
 <span class="k">dataset</span> = msft_azure_ad_audit_raw
 | <span class="k">filter</span> activityDisplayName <span class="k">in</span> (
