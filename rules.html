@@ -191,7 +191,7 @@ dataset = hr_risk_context
 | fields username, days_to_departure,
          departure_date, departure_reason
 | alter
-    itm_precursor = "T0.1",
+    itdf_precursor = "T0.1",
     score_multiplier = if(
       days_to_departure <= 30, 1.5,
       days_to_departure <= 60, 1.35,
@@ -225,11 +225,11 @@ dataset = xdr_data
 | filter file_count > b.p95_files * 2
     and file_count > 200
 | alter
-    itm_technique = "T1.1",
-    itm_tactic = "T1",
-    itm_score = 2,
+    itdf_technique = "T1.1",
+    itdf_tactic = "T1",
+    itdf_score = 2,
     high_confidence = false,
-    itm_description = concat("T1.1 — Bulk Data Access — File System detected for user: ", actor_effective_username),
+    itdf_description = concat("T1.1 — Bulk Data Access — File System detected for user: ", actor_effective_username),
     deviation_ratio = round(
       divide(file_count, b.p95_files), 1
     )`},
@@ -261,9 +261,9 @@ dataset = email_data
     or unique_sites > 10
 // TODO: add MIP sensitivity label filter
 | alter
-    itm_technique = "T1.2",
-    itm_tactic = "T1",
-    itm_score = 2`},
+    itdf_technique = "T1.2",
+    itdf_tactic = "T1",
+    itdf_score = 2`},
 
 {id:'T1.3',name:'Staging Activity — Archive Creation',tac:'T1',status:'active',score:'3',
  src:'xdr_data (FILE_CREATE, FILE_COPY)',atk:'T1074, T1074.001',baseline:false,
@@ -302,11 +302,11 @@ dataset = xdr_data
 | filter archive_count > 3
     or total_size_mb > 500
 | alter
-    itm_technique = "T1.3",
-    itm_tactic = "T1",
-    itm_score = 3,
+    itdf_technique = "T1.3",
+    itdf_tactic = "T1",
+    itdf_score = 3,
     high_confidence = false,
-    itm_description = concat("T1.3 — Staging Activity — Archive Creation detected for user: ", actor_effective_username)
+    itdf_description = concat("T1.3 — Staging Activity — Archive Creation detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
@@ -316,11 +316,11 @@ dataset = xdr_data
     staged_dirs,
     first_seen,
     last_seen,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`},
+    itdf_description`},
 
 {id:'T1.5',name:'Screen Capture Collection',tac:'T1',status:'stub',score:'3',
  src:'xdr_data (PROCESS_START)',atk:'T1113',baseline:false,
@@ -352,9 +352,9 @@ dataset = xdr_data
 // TODO: join FILE_CREATE events in Screenshots dir
 // TODO: add Snipping Tool TempState monitoring
 | alter
-    itm_technique = "T1.5",
-    itm_tactic = "T1",
-    itm_score = 3`},
+    itdf_technique = "T1.5",
+    itdf_tactic = "T1",
+    itdf_score = 3`},
 
 {id:'T2.1',name:'Abnormal Working Patterns',tac:'T2',status:'active',score:'2',
  src:'xdr_data (LOGON, FILE_ACCESS)',atk:'None — behavior baseline, no ATT&CK equivalent',baseline:true,
@@ -391,11 +391,11 @@ dataset = xdr_data
   ) = 0
   and off_hours_events > 10
 | alter
-    itm_technique = "T2.1",
-    itm_tactic = "T2",
-    itm_score = 2,
+    itdf_technique = "T2.1",
+    itdf_tactic = "T2",
+    itdf_score = 2,
     high_confidence = false,
-    itm_description = concat("T2.1 — Abnormal Working Patterns detected for user: ", actor_effective_username)`},
+    itdf_description = concat("T2.1 — Abnormal Working Patterns detected for user: ", actor_effective_username)`},
 
 {id:'T2.4',name:'Unauthorized Remote Access Setup',tac:'T2',status:'active',score:'3',
  src:'xdr_data, registry events, evtlog',atk:'T1021.001, T1219',baseline:false,
@@ -423,22 +423,22 @@ dataset = xdr_data
       "Remote Desktop Users"
   )
 | alter
-    itm_technique = "T2.4",
-    itm_tactic = "T2",
-    itm_score = 3,
+    itdf_technique = "T2.4",
+    itdf_tactic = "T2",
+    itdf_score = 3,
     high_confidence = false,
-    itm_description = concat("T2.4 — Unauthorized Remote Access Setup detected for user: ", actor_effective_username)
+    itdf_description = concat("T2.4 — Unauthorized Remote Access Setup detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
     agent_hostname,
     event_count,
     commands,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`},
+    itdf_description`},
 
 {id:'T2.8',name:'Security Software Enumeration',tac:'T2',status:'active',score:'2',
  src:'xdr_data (PROCESS_START)',atk:'T1518.001',baseline:false,
@@ -483,22 +483,22 @@ dataset = xdr_data
   by actor_effective_username, agent_hostname
 | filter evasion_events > 0
 | alter
-    itm_technique = "T2.8",
-    itm_tactic = "T2",
-    itm_score = 2,
+    itdf_technique = "T2.8",
+    itdf_tactic = "T2",
+    itdf_score = 2,
     high_confidence = false,
-    itm_description = concat("T2.8 — Security Software Enumeration detected for user: ", actor_effective_username)
+    itdf_description = concat("T2.8 — Security Software Enumeration detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
     agent_hostname,
     enum_count,
     commands,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`},
+    itdf_description`},
 
 {id:'T3.3',name:'Removable Media Transfer',tac:'T3',status:'active',score:'5',
  src:'xdr_data (USB_DEVICE_CONNECT, FILE_COPY)',atk:'T1052, T1052.001',baseline:true,
@@ -533,11 +533,11 @@ dataset = xdr_data
     or files_transferred > 50
     or total_size_mb > 100
 | alter
-    itm_technique = "T3.3",
-    itm_tactic = "T3",
-    itm_score = 5,
+    itdf_technique = "T3.3",
+    itdf_tactic = "T3",
+    itdf_score = 5,
     high_confidence = true,
-    itm_description = concat("T3.3 — Removable Media Transfer detected for user: ", actor_effective_username),
+    itdf_description = concat("T3.3 — Removable Media Transfer detected for user: ", actor_effective_username),
     new_usb_user = if(
       b.avg_monthly_usb_events = null,
       true, false
@@ -551,7 +551,7 @@ dataset = xdr_data
 
 // ITDF T3.7 — External Mailbox Forwarding Rule
 // Score: 5 | High confidence | No baseline needed
-// Tags: itm_detection, itm_technique:T3.7, itm_tactic:T3, itm_score:5
+// Tags: itdf_detection, itdf_technique:T3.7, itdf_tactic:T3, itdf_score:5
 // *** Replace aoshearman.com with our actual domain ***
 
 dataset = msft_azure_raw
@@ -587,11 +587,11 @@ dataset = msft_azure_raw
     or redirect_to not contains "aoshearman.com"
   )
 | alter
-    itm_technique   = "T3.7",
-    itm_tactic      = "T3",
-    itm_score       = 5,
+    itdf_technique   = "T3.7",
+    itdf_tactic      = "T3",
+    itdf_score       = 5,
     high_confidence = true,
-    itm_description = concat(
+    itdf_description = concat(
         "External forwarding rule detected — to: ",
         coalesce(forward_to, redirect_to)
     )
@@ -599,11 +599,11 @@ dataset = msft_azure_raw
     actor_upn as actor_effective_username,
     forward_to,
     redirect_to,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`},
+    itdf_description`},
 
 {id:'T4.1',name:'Log Deletion and Clearing',tac:'T4',status:'active',score:'4',
  src:'xdr_data, evtlog (1102, 104)',atk:'T1070, T1070.001, T1070.003',baseline:false,
@@ -613,7 +613,7 @@ dataset = msft_azure_raw
 
 // ITDF T4.1 — Log Deletion and Clearing
 // Score: 4 | High confidence | No baseline needed
-// Tags: itm_detection, itm_technique:T4.1, itm_tactic:T4, itm_score:4
+// Tags: itdf_detection, itdf_technique:T4.1, itdf_tactic:T4, itdf_score:4
 
 dataset = xdr_data
 | filter (
@@ -669,11 +669,11 @@ dataset = xdr_data
     max(_time) as last_seen
   by actor_effective_username, agent_hostname
 | alter
-    itm_technique   = "T4.1",
-    itm_tactic      = "T4",
-    itm_score       = 4,
+    itdf_technique   = "T4.1",
+    itdf_tactic      = "T4",
+    itdf_score       = 4,
     high_confidence = true,
-    itm_description = "Log deletion or clearing detected"
+    itdf_description = "Log deletion or clearing detected"
 | fields
     actor_effective_username,
     agent_hostname,
@@ -682,11 +682,11 @@ dataset = xdr_data
     commands,
     first_seen,
     last_seen,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`},
+    itdf_description`},
 
 {id:'T4.2',name:'Timestomping',tac:'T4',status:'active',score:'4',
  src:'xdr_data (FILE_MODIFY, FILE_CREATE)',atk:'T1070.006',baseline:false,
@@ -720,11 +720,11 @@ dataset = xdr_data
   by actor_effective_username, agent_hostname
 | filter stomped_files > 0
 | alter
-    itm_technique = "T4.2",
-    itm_tactic = "T4",
-    itm_score = 4,
+    itdf_technique = "T4.2",
+    itdf_tactic = "T4",
+    itdf_score = 4,
     high_confidence = true,
-    itm_description = concat("T4.2 — Timestomping detected for user: ", actor_effective_username)
+    itdf_description = concat("T4.2 — Timestomping detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
@@ -732,11 +732,11 @@ dataset = xdr_data
     stomped_files,
     files,
     first_seen,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`},
+    itdf_description`},
 
 {id:'T5.1',name:'Role Escalation — Azure AD / PIM',tac:'T5',status:'active',score:'3',
  src:'msft_azure_ad_audit_raw',atk:'T1548, T1078',baseline:false,
@@ -746,7 +746,7 @@ dataset = xdr_data
 
 // ITDF T5.1 — Privileged Role Assignment
 // Score: 3 (5 if self-assigned) | Low noise | No baseline needed
-// Tags: itm_detection, itm_technique:T5.1, itm_tactic:T5, itm_score:3
+// Tags: itdf_detection, itdf_technique:T5.1, itdf_tactic:T5, itdf_score:3
 
 dataset = msft_azure_ad_audit_raw
 | filter (
@@ -793,11 +793,11 @@ dataset = msft_azure_ad_audit_raw
     actor_upn = lowercase(assigned_to), true, false
   )
 | alter
-    itm_technique   = "T5.1",
-    itm_tactic      = "T5",
-    itm_score       = if(self_assigned = true, 5, 3),
+    itdf_technique   = "T5.1",
+    itdf_tactic      = "T5",
+    itdf_score       = if(self_assigned = true, 5, 3),
     high_confidence = if(self_assigned = true, true, false),
-    itm_description = concat(
+    itdf_description = concat(
         "Privileged role assigned: ", role_name,
         " | Self-assigned: ", to_string(self_assigned)
     )
@@ -808,11 +808,11 @@ dataset = msft_azure_ad_audit_raw
     assigned_to,
     self_assigned,
     activityDisplayName,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`},
+    itdf_description`},
 
 {id:'T5.4',name:'Kerberoasting',tac:'T5',status:'stub',score:'4',
  src:'windows_security_events (EventID 4769)',atk:'T1558.003',baseline:false,
@@ -844,9 +844,9 @@ dataset = xdr_data
   by actor_effective_username, agent_hostname
 | filter tgs_requests > 5
 | alter
-    itm_technique = "T5.4",
-    itm_tactic = "T5",
-    itm_score = 4`},
+    itdf_technique = "T5.4",
+    itdf_tactic = "T5",
+    itdf_score = 4`},
 
 {id:'T8.5',name:'AI Platform Data Exposure',tac:'T8',status:'stub',score:'4',
  src:'pan_ngfw / web_proxy (DNS, HTTP)',atk:'None — emerging vector, no ATT&CK equivalent yet',baseline:false,
@@ -881,9 +881,9 @@ dataset = panw_ngfw_url_raw
 // TODO: join approved_ai_tools to exclude sanctioned services
 // TODO: integrate DLP events for same session/user
 | alter
-    itm_technique = "T8.5",
-    itm_tactic = "T8",
-    itm_score = 4`}
+    itdf_technique = "T8.5",
+    itdf_tactic = "T8",
+    itdf_score = 4`}
 
 ,{id:'T0.2',name:'Sensitive Role Exposure',tac:'T0',status:'stub',score:'Multiplier: 1.1x',
  src:'msft_azure_ad_audit_raw, hr_risk_context',atk:'None',baseline:false,
@@ -907,7 +907,7 @@ dataset = msft_azure_ad_audit_raw
   )
 | fields actor_effective_username as user,
          role_name, _time as assigned_at
-| alter itm_precursor = "T0.2",
+| alter itdf_precursor = "T0.2",
         score_multiplier = 1.1`}
 
 ,{id:'T0.3',name:'Privileged Access Context',tac:'T0',status:'stub',score:'Multiplier: 1.2x',
@@ -932,7 +932,7 @@ dataset = msft_azure_ad_audit_raw
     max(_time) as last_activation
   by actor_effective_username
 | filter role_count > 0
-| alter itm_precursor = "T0.3",
+| alter itdf_precursor = "T0.3",
         score_multiplier = if(role_count > 2, 1.3, 1.2)`}
 
 ,{id:'T0.4',name:'Policy Violation History',tac:'T0',status:'stub',score:'Multiplier: 1.15x',
@@ -953,7 +953,7 @@ dataset = violations_log
   by subject_username
 | filter violation_count >= 2
 | alter
-    itm_precursor = "T0.4",
+    itdf_precursor = "T0.4",
     score_multiplier = if(
       violation_count >= 5, 1.3,
       violation_count >= 3, 1.2,
@@ -975,7 +975,7 @@ dataset = hr_risk_context
     or expense_anomaly_flagged = true
 | fields username, financial_hardship_flag,
          eap_referral_active, expense_anomaly_flagged
-| alter itm_precursor = "T0.5",
+| alter itdf_precursor = "T0.5",
         score_multiplier = 1.2
 // NOTE: Never escalate on this signal alone
 // Must combine with T1/T2/T3 behavioral signals`}
@@ -983,7 +983,7 @@ dataset = hr_risk_context
 ,{id:'T0.6',name:'Coercion / Third Party Collusion',tac:'T0',status:'planned',score:'Multiplier: 1.5x',
  src:'hr_risk_context, social_media_monitoring, DT049',atk:'None',baseline:false,
  fp:'Legitimate external communications. Requires human validation before any action.',
- notes:['Highest sensitivity precursor — requires human analyst review before any multiplier applied','Sources: social media monitoring, HR reports, whistleblower intake (DT151)','Nation-state recruitment attempts often use LinkedIn messaging — monitor for unusual contact patterns','Treat as a case-opening trigger not an automated multiplier'],
+ notes:['Highest sensitivity precursor — requires human analyst review before any multiplier applied','Sources: social media monitoring, HR reports, whistleblower intake (DT151)','Nation-state recruitdfent attempts often use LinkedIn messaging — monitor for unusual contact patterns','Treat as a case-opening trigger not an automated multiplier'],
  xql:`// ITDF T0.6 — Coercion / Third Party Collusion
 // PLANNED — primarily a human intelligence signal
 
@@ -991,27 +991,27 @@ dataset = hr_risk_context
 dataset = social_media_monitoring_log
 | filter _time > to_epoch(now() - duration(30d))
 | filter contact_type in (
-    "unsolicited_recruitment",
+    "unsolicited_recruitdfent",
     "known_threat_actor",
     "competitor_contact",
     "foreign_national_contact"
   )
 | fields subject_username, contact_source,
          contact_type, contact_date
-| alter itm_precursor = "T0.6",
+| alter itdf_precursor = "T0.6",
         score_multiplier = 1.5
 // Requires human analyst validation before action`}
 
 ,{id:'T0.7',name:'Ideology / Espionage Motivation',tac:'T0',status:'planned',score:'Multiplier: 1.5x',
  src:'hr_risk_context, osint, DT125',atk:'None',baseline:false,
  fp:'Legitimate political or ideological expression that does not indicate threat.',
- notes:['Extremely sensitive — legal and HR review mandatory before any action','Sources: threat intelligence feeds (DT125), OSINT, security clearance review outcomes','Nation-state actor TI feeds may identify known recruitment targets in our org','Must be handled at highest classification level within the insider threat program'],
+ notes:['Extremely sensitive — legal and HR review mandatory before any action','Sources: threat intelligence feeds (DT125), OSINT, security clearance review outcomes','Nation-state actor TI feeds may identify known recruitdfent targets in our org','Must be handled at highest classification level within the insider threat program'],
  xql:`// ITDF T0.7 — Ideology / Espionage Motivation
 // PLANNED — requires threat intelligence integration
 
 // Cross-reference internal users against TI feeds
 dataset = threat_intel_feed
-| filter indicator_type = "insider_recruitment_target"
+| filter indicator_type = "insider_recruitdfent_target"
     or indicator_type = "ideological_risk_flag"
 | join type = inner (
     dataset = hr_active_employees
@@ -1021,7 +1021,7 @@ dataset = threat_intel_feed
 | fields emp.username, indicator_type,
          indicator_source, confidence_score
 | filter confidence_score > 70
-| alter itm_precursor = "T0.7",
+| alter itdf_precursor = "T0.7",
         score_multiplier = 1.5`}
 
 ,{id:'T0.8',name:'Joiner / Mover Risk Window',tac:'T0',status:'stub',score:'Multiplier: 1.15x',
@@ -1043,7 +1043,7 @@ dataset = hr_risk_context
          role_changed_recently, days_since_role_change,
          new_role, previous_role
 | alter
-    itm_precursor = "T0.8",
+    itdf_precursor = "T0.8",
     score_multiplier = if(
       is_new_joiner = true, 1.2, 1.15
     ),
@@ -1082,11 +1082,11 @@ dataset = xdr_data
   )
 | filter array_length(new_systems) > 0
 | alter
-    itm_technique = "T5.2",
-    itm_tactic = "T5",
-    itm_score = 3,
+    itdf_technique = "T5.2",
+    itdf_tactic = "T5",
+    itdf_score = 3,
     high_confidence = false,
-    itm_description = concat("T5.2 — Unauthorized System Access detected for user: ", actor_effective_username)`}
+    itdf_description = concat("T5.2 — Unauthorized System Access detected for user: ", actor_effective_username)`}
 
 ,{id:'T5.3',name:'Mailbox Permission Abuse',tac:'T5',status:'active',score:'4',
  src:'msft_o365_audit, msft_azure_ad_audit_raw',atk:'T1114, T1114.002',baseline:false,
@@ -1119,11 +1119,11 @@ dataset = email_data
     true, false
   )
 | alter
-    itm_technique = "T5.3",
-    itm_tactic = "T5",
-    itm_score = if(self_grant = true, 5, 4),
+    itdf_technique = "T5.3",
+    itdf_tactic = "T5",
+    itdf_score = if(self_grant = true, 5, 4),
     high_confidence = if(self_grant = true, true, false),
-    itm_description = concat("T5.3 — Mailbox Permission Abuse: ", to_string(actor_effective_username))
+    itdf_description = concat("T5.3 — Mailbox Permission Abuse: ", to_string(actor_effective_username))
 
 | fields
     actor_effective_username,
@@ -1132,11 +1132,11 @@ dataset = email_data
     target_mailbox,
     access_rights,
     self_grant,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T5.5',name:'Remote Access Abuse',tac:'T5',status:'active',score:'3',
  src:'xdr_data, vpn_logs, evtlog',atk:'T1021.001, T1078',baseline:true,
@@ -1169,11 +1169,11 @@ dataset = xdr_data
 | filter array_length(new_geos) > 0
     or rdp_sessions > 10
 | alter
-    itm_technique = "T5.5",
-    itm_tactic = "T5",
-    itm_score = 3,
+    itdf_technique = "T5.5",
+    itdf_tactic = "T5",
+    itdf_score = 3,
     high_confidence = false,
-    itm_description = concat("T5.5 — Remote Access Abuse detected for user: ", actor_effective_username)`}
+    itdf_description = concat("T5.5 — Remote Access Abuse detected for user: ", actor_effective_username)`}
 
 ,{id:'T5.6',name:'Cloud Resource Abuse',tac:'T5',status:'stub',score:'4',
  src:'AWS CloudTrail, Azure Activity Log, GCP Audit',atk:'T1578',baseline:false,
@@ -1200,9 +1200,9 @@ dataset = aws_cloudtrail
 | filter has_required_tags = null
     or has_required_tags = "[]"
 | alter
-    itm_technique = "T5.6",
-    itm_tactic = "T5",
-    itm_score = 4`}
+    itdf_technique = "T5.6",
+    itdf_tactic = "T5",
+    itdf_score = 4`}
 ,{id:'T5.7',name:'Multi-Stage Privilege Abuse',tac:'T5',status:'active',score:'5',
  src:'msft_azure_ad_audit_raw',atk:'T1078.004,T1098.001,T1484.001',baseline:false,
  fp:'IT admin planned identity maintenance. PIM activation for legitimate emergency access. Secret rotation for automation. Validate all three signals against change tickets.',
@@ -1292,16 +1292,16 @@ config timeframe = 30d
     "MULTI_SIGNAL_ADMIN_ACTIVITY"
   )
 
-| alter itm_technique = "T5.7", itm_tactic = "T5",
-    itm_score = if(distinct_signals = 3, 5, 4),
+| alter itdf_technique = "T5.7", itdf_tactic = "T5",
+    itdf_score = if(distinct_signals = 3, 5, 4),
     high_confidence = true,
-    itm_description = concat(threat_class, " | Signals: ", to_string(signals_observed),
+    itdf_description = concat(threat_class, " | Signals: ", to_string(signals_observed),
       " | Weight: ", to_string(total_weight))
 
 | fields actor_upn as actor_effective_username, threat_class,
     distinct_signals, total_weight, signals_observed, actor_ips,
     roles_activated, apps_targeted, policies_changed, first_seen, last_seen,
-    itm_technique, itm_tactic, itm_score, high_confidence, itm_description`}
+    itdf_technique, itdf_tactic, itdf_score, high_confidence, itdf_description`}
 ,{id:'T5.8',name:'OAuth Application Abuse',tac:'T5',status:'active',score:'3',
  src:'msft_azure_ad_audit_raw',atk:'T1528,T1098.001',baseline:false,
  fp:'IT granting apps legitimate permissions. Developer adding scopes during testing. Vendor app onboarding. Validate against app registration records and change tickets.',
@@ -1341,15 +1341,15 @@ config timeframe = 30d
   by app_id, app_name
 | alter age_ms = subtract(to_epoch(last_consent, "millis"), to_epoch(first_consent, "millis"))
 | alter app_is_new = if(consent_events <= 2 and age_ms <= 86400000, true, false)
-| alter itm_technique = "T5.8", itm_tactic = "T5",
-    itm_score = if(app_is_new = true, 4, 3),
+| alter itdf_technique = "T5.8", itdf_tactic = "T5",
+    itdf_score = if(app_is_new = true, 4, 3),
     high_confidence = if(app_is_new = true, true, false),
-    itm_description = concat("Sensitive OAuth scope to: ", app_name,
+    itdf_description = concat("Sensitive OAuth scope to: ", app_name,
       " | New app: ", to_string(app_is_new))
 | alter actor_effective_username = to_string(consenting_users)
 | fields actor_effective_username, actor_ips, app_name, app_id,
     app_is_new, consent_events, first_consent, last_consent,
-    itm_technique, itm_tactic, itm_score, high_confidence, itm_description`}
+    itdf_technique, itdf_tactic, itdf_score, high_confidence, itdf_description`}
 ,{id:'T5.9',name:'Directory Enumeration Burst',tac:'T5',status:'active',score:'2',
  src:'msft_azure_raw',atk:'T1087.004',baseline:false,
  fp:'IT admin running directory audits. HR systems bulk lookups. Azure AD Connect sync. Filter by id_type=user to exclude service principals. Check source IP against known admin ranges.',
@@ -1375,11 +1375,11 @@ config timeframe = 14d
   )
 | comp count() as enum_calls by user_id, ip, bucket_10m
 | filter enum_calls >= 200
-| alter itm_technique = "T5.9", itm_tactic = "T5", itm_score = 2,
+| alter itdf_technique = "T5.9", itdf_tactic = "T5", itdf_score = 2,
     high_confidence = false,
-    itm_description = concat("Directory enum burst: ", to_string(enum_calls), " calls in 10 min from ", ip)
+    itdf_description = concat("Directory enum burst: ", to_string(enum_calls), " calls in 10 min from ", ip)
 | fields user_id as actor_effective_username, ip, bucket_10m, enum_calls,
-    itm_technique, itm_tactic, itm_score, high_confidence, itm_description`}
+    itdf_technique, itdf_tactic, itdf_score, high_confidence, itdf_description`}
 
 ,{id:'T1.4',name:'Print-Based Collection',tac:'T1',status:'stub',score:'3',
  src:'xdr_data (print events), evtlog (EventID 307)',atk:'None',baseline:true,
@@ -1410,9 +1410,9 @@ dataset = xdr_data
 | filter total_pages > b.p95_pages * 2
     or print_jobs > 20
 | alter
-    itm_technique = "T1.4",
-    itm_tactic = "T1",
-    itm_score = 3`}
+    itdf_technique = "T1.4",
+    itdf_tactic = "T1",
+    itdf_score = 3`}
 
 ,{id:'T1.6',name:'Clipboard Harvesting',tac:'T1',status:'stub',score:'2',
  src:'xdr_data, ActivitiesCache.db (DT090)',atk:'T1115',baseline:false,
@@ -1437,9 +1437,9 @@ dataset = xdr_data
 | filter total_payload_kb > 100
     or clipboard_ops > 50
 | alter
-    itm_technique = "T1.6",
-    itm_tactic = "T1",
-    itm_score = 2`}
+    itdf_technique = "T1.6",
+    itdf_tactic = "T1",
+    itdf_score = 2`}
 
 ,{id:'T1.7',name:'Browser Artifact Collection',tac:'T1',status:'active',score:'2',
  src:'xdr_data (PROCESS_START, FILE_ACCESS)',atk:'T1539, T1555.003',baseline:false,
@@ -1481,22 +1481,22 @@ dataset = xdr_data
     )
   )
 | alter
-    itm_technique = "T1.7",
-    itm_tactic = "T1",
-    itm_score = 2,
+    itdf_technique = "T1.7",
+    itdf_tactic = "T1",
+    itdf_score = 2,
     high_confidence = false,
-    itm_description = concat("T1.7 — Browser Artifact Collection detected for user: ", actor_effective_username)
+    itdf_description = concat("T1.7 — Browser Artifact Collection detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
     agent_hostname,
     artifact_count,
     commands,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T2.2',name:'Workflow Deviation',tac:'T2',status:'stub',score:'2',
  src:'xdr_data (PROCESS_START)',atk:'None',baseline:true,
@@ -1523,9 +1523,9 @@ dataset = xdr_data
 | filter not (actor_process_image_name in
     (b.known_processes))
 | alter
-    itm_technique = "T2.2",
-    itm_tactic = "T2",
-    itm_score = 2,
+    itdf_technique = "T2.2",
+    itdf_tactic = "T2",
+    itdf_score = 2,
     first_time_use = true`}
 
 ,{id:'T2.3',name:'Compression and Archiving',tac:'T2',status:'active',score:'3',
@@ -1570,13 +1570,13 @@ dataset = xdr_data
   by actor_effective_username, agent_hostname
 | filter evasion_events > 0
 | alter
-    itm_technique = "T2.3",
-    itm_tactic = "T2",
-    itm_score = if(
+    itdf_technique = "T2.3",
+    itdf_tactic = "T2",
+    itdf_score = if(
       password_protected_count > 0, 4, 3
     ),
     high_confidence = false,
-    itm_description = concat("T2.3 — Compression and Archiving: ", to_string(actor_effective_username))
+    itdf_description = concat("T2.3 — Compression and Archiving: ", to_string(actor_effective_username))
 
 | fields
     actor_effective_username,
@@ -1584,11 +1584,11 @@ dataset = xdr_data
     archive_ops,
     password_protected_count,
     commands,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T2.5',name:'WSL Abuse for Staging',tac:'T2',status:'stub',score:'3',
  src:'xdr_data (PROCESS_START), file system events',atk:'T1202',baseline:false,
@@ -1625,9 +1625,9 @@ dataset = xdr_data
     true, false
   )
 | alter
-    itm_technique = "T2.5",
-    itm_tactic = "T2",
-    itm_score = if(suspicious_distro=true, 5, 3)`}
+    itdf_technique = "T2.5",
+    itdf_tactic = "T2",
+    itdf_score = if(suspicious_distro=true, 5, 3)`}
 
 ,{id:'T2.6',name:'Hardware Implant Preparation',tac:'T2',status:'stub',score:'4',
  src:'xdr_data (USB_DEVICE_CONNECT), DHCP/network scan',atk:'T1200',baseline:false,
@@ -1647,9 +1647,9 @@ dataset = xdr_data
   )
 | filter is_known_device = false
 | alter
-    itm_technique = "T2.6",
-    itm_tactic = "T2",
-    itm_score = 4,
+    itdf_technique = "T2.6",
+    itdf_tactic = "T2",
+    itdf_score = 4,
     high_confidence = if(
       // Multiple new HID devices = stronger signal
       true, true, false
@@ -1685,11 +1685,11 @@ dataset = panw_ngfw_url_raw
 | filter bytes_out > b.avg_daily_cloud_bytes * 3
     or b.avg_daily_cloud_bytes = null
 | alter
-    itm_technique = "T2.7",
-    itm_tactic = "T2",
-    itm_score = 2,
+    itdf_technique = "T2.7",
+    itdf_tactic = "T2",
+    itdf_score = 2,
     high_confidence = false,
-    itm_description = concat("T2.7 — Cloud Storage Preparation detected for user: ", actor_effective_username)`}
+    itdf_description = concat("T2.7 — Cloud Storage Preparation detected for user: ", actor_effective_username)`}
 
 ,{id:'T2.9',name:'Private / Incognito Browsing',tac:'T2',status:'stub',score:'1',
  src:'xdr_data (PROCESS_START)',atk:'None',baseline:false,
@@ -1724,14 +1724,14 @@ dataset = xdr_data
   by actor_effective_username, agent_hostname
 | filter incognito_sessions > 3
 | alter
-    itm_technique = "T2.9",
-    itm_tactic = "T2",
-    itm_score = 1`}
+    itdf_technique = "T2.9",
+    itdf_tactic = "T2",
+    itdf_score = 1`}
 
 ,{id:'T2.10',name:'Social Engineering Outbound',tac:'T2',status:'planned',score:'4',
  src:'msft_o365_audit, social_media_monitoring',atk:'None',baseline:false,
- fp:'Legitimate external recruitment and business development communications.',
- notes:['Primarily a human intelligence signal — hard to detect via technical means alone','Unusual external communication volume + new contacts = initial signal','Combine with T0.6 coercion context if subject is a known recruitment target','Whistleblower reports (DT151) are often the primary detection path for this technique'],
+ fp:'Legitimate external recruitdfent and business development communications.',
+ notes:['Primarily a human intelligence signal — hard to detect via technical means alone','Unusual external communication volume + new contacts = initial signal','Combine with T0.6 coercion context if subject is a known recruitdfent target','Whistleblower reports (DT151) are often the primary detection path for this technique'],
  xql:`// ITDF T2.10 — Social Engineering Outbound
 // PLANNED — primarily a human intelligence signal
 
@@ -1758,9 +1758,9 @@ dataset = email_data
 | filter unique_recipients >
     array_length(b.known_external_contacts) * 2
 | alter
-    itm_technique = "T2.10",
-    itm_tactic = "T2",
-    itm_score = 4`}
+    itdf_technique = "T2.10",
+    itdf_tactic = "T2",
+    itdf_score = 4`}
 ,{id:'T2.11',name:'Identity Infrastructure Reconnaissance',tac:'T2',status:'stub',score:'2',
  src:'msft_azure_raw',atk:'T1087.004',baseline:false,
  fp:'Legitimate IT admin enumeration during audits. ServiceNow lookup workflows. Security team access reviews.',
@@ -1786,11 +1786,11 @@ config timeframe = 7d
   )
 | comp count() as enum_calls by user_id, ip, bucket_10m
 | filter enum_calls >= 20 and enum_calls < 200
-| alter itm_technique = "T2.11", itm_tactic = "T2", itm_score = 2,
+| alter itdf_technique = "T2.11", itdf_tactic = "T2", itdf_score = 2,
     high_confidence = false,
-    itm_description = concat("Low-volume directory enum: ", to_string(enum_calls), " calls in 10 min")
+    itdf_description = concat("Low-volume directory enum: ", to_string(enum_calls), " calls in 10 min")
 | fields user_id as actor_effective_username, ip, bucket_10m, enum_calls,
-    itm_technique, itm_tactic, itm_score, high_confidence, itm_description`}
+    itdf_technique, itdf_tactic, itdf_score, high_confidence, itdf_description`}
 
 ,{id:'T4.3',name:'Security Tool Tampering',tac:'T4',status:'active',score:'4',
  src:'xdr_data, evtlog (DT081)',atk:'T1562, T1562.001',baseline:false,
@@ -1825,21 +1825,21 @@ dataset = xdr_data
     )
   )
 | alter
-    itm_technique = "T4.3",
-    itm_tactic = "T4",
-    itm_score = 4,
+    itdf_technique = "T4.3",
+    itdf_tactic = "T4",
+    itdf_score = 4,
     high_confidence = true,
-    itm_description = concat("T4.3 — Security Tool Tampering detected for user: ", actor_effective_username)
+    itdf_description = concat("T4.3 — Security Tool Tampering detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
     agent_hostname,
     commands,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T4.4',name:'Activity Tracking Suppression',tac:'T4',status:'active',score:'3',
  src:'xdr_data (REGISTRY_SET)',atk:'T1112',baseline:false,
@@ -1873,21 +1873,21 @@ dataset = xdr_data
     and action_registry_value = "0"
   )
 | alter
-    itm_technique = "T4.4",
-    itm_tactic = "T4",
-    itm_score = 3,
+    itdf_technique = "T4.4",
+    itdf_tactic = "T4",
+    itdf_score = 3,
     high_confidence = false,
-    itm_description = concat("T4.4 — Activity Tracking Suppression detected for user: ", actor_effective_username)
+    itdf_description = concat("T4.4 — Activity Tracking Suppression detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
     agent_hostname,
     event_count,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T4.5',name:'Shadow Copy Deletion',tac:'T4',status:'active',score:'5',
  src:'xdr_data (PROCESS_START)',atk:'T1490',baseline:false,
@@ -1921,21 +1921,21 @@ dataset = xdr_data
       "Remove-WmiObject Win32_ShadowCopy"
   )
 | alter
-    itm_technique = "T4.5",
-    itm_tactic = "T4",
-    itm_score = 5,
+    itdf_technique = "T4.5",
+    itdf_tactic = "T4",
+    itdf_score = 5,
     high_confidence = true,
-    itm_description = concat("T4.5 — Shadow Copy Deletion detected for user: ", actor_effective_username)
+    itdf_description = concat("T4.5 — Shadow Copy Deletion detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
     agent_hostname,
     commands,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T4.6',name:'Alternate Runtime Evasion',tac:'T4',status:'stub',score:'3',
  src:'xdr_data (PROCESS_START)',atk:'T1564.006, T1202',baseline:false,
@@ -1969,9 +1969,9 @@ dataset = xdr_data
     )
   by actor_effective_username, agent_hostname
 | alter
-    itm_technique = "T4.6",
-    itm_tactic = "T4",
-    itm_score = 3`}
+    itdf_technique = "T4.6",
+    itdf_tactic = "T4",
+    itdf_score = 3`}
 
 ,{id:'T4.7',name:'Account and Artifact Cleanup',tac:'T4',status:'active',score:'3',
  src:'xdr_data, evtlog (EventID 4726)',atk:'T1070.004, T1531',baseline:false,
@@ -2014,11 +2014,11 @@ dataset = xdr_data
   by actor_effective_username, agent_hostname
 | filter cleanup_events > 5
 | alter
-    itm_technique = "T4.7",
-    itm_tactic = "T4",
-    itm_score = 3,
+    itdf_technique = "T4.7",
+    itdf_tactic = "T4",
+    itdf_score = 3,
     high_confidence = false,
-    itm_description = concat("T4.7 — Account and Artifact Cleanup detected for user: ", actor_effective_username)
+    itdf_description = concat("T4.7 — Account and Artifact Cleanup detected for user: ", actor_effective_username)
 
 | fields
     actor_effective_username,
@@ -2026,11 +2026,11 @@ dataset = xdr_data
     cleanup_events,
     deleted_files,
     event_types,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T4.8',name:'Steganography',tac:'T4',status:'stub',score:'4',
  src:'pan_ngfw, web_proxy, DLP (DT097)',atk:'T1027.003',baseline:false,
@@ -2058,9 +2058,9 @@ dataset = panw_ngfw_traffic_raw
 // TODO: integrate DPI tool output for entropy analysis
 // High entropy in image files = potential steganography
 | alter
-    itm_technique = "T4.8",
-    itm_tactic = "T4",
-    itm_score = 4`}
+    itdf_technique = "T4.8",
+    itdf_tactic = "T4",
+    itdf_score = 4`}
 
 ,{id:'T4.9',name:'File Encryption',tac:'T4',status:'stub',score:'3',
  src:'xdr_data (PROCESS_START)',atk:'T1027',baseline:false,
@@ -2101,9 +2101,9 @@ dataset = xdr_data
     )
   by actor_effective_username, agent_hostname
 | alter
-    itm_technique = "T4.9",
-    itm_tactic = "T4",
-    itm_score = 3`}
+    itdf_technique = "T4.9",
+    itdf_tactic = "T4",
+    itdf_score = 3`}
 
 ,{id:'T4.10',name:'Disk Wiping / Physical Destruction',tac:'T4',status:'stub',score:'5',
  src:'xdr_data (PROCESS_START), evtlog',atk:'T1561',baseline:false,
@@ -2131,9 +2131,9 @@ dataset = xdr_data
     actor_process_command_line contains "clean"
   )
 | alter
-    itm_technique = "T4.10",
-    itm_tactic = "T4",
-    itm_score = 5,
+    itdf_technique = "T4.10",
+    itdf_tactic = "T4",
+    itdf_score = 5,
     high_confidence = true,
     immediate_response = true`}
 
@@ -2171,9 +2171,9 @@ dataset = panw_ngfw_url_raw
     values(dst_hostname) as methods
   by source_user, src_ip
 | alter
-    itm_technique = "T4.11",
-    itm_tactic = "T4",
-    itm_score = 3`}
+    itdf_technique = "T4.11",
+    itdf_tactic = "T4",
+    itdf_score = 3`}
 ,{id:'T4.12',name:'Conditional Access Policy Tampering',tac:'T4',status:'active',score:'4',
  src:'msft_azure_ad_audit_raw',atk:'T1484.001',baseline:false,
  fp:'Planned CA policy changes by IT security. Scheduled maintenance. Emergency rollback during incidents. Always validate against change management records.',
@@ -2203,14 +2203,14 @@ config timeframe = 1d
     to_integer(format_timestamp("%H", _time)) < 7
     or to_integer(format_timestamp("%H", _time)) > 20, true, false)
 | alter base_score = if(is_delete = true, 4, 3)
-| alter itm_technique = "T4.12", itm_tactic = "T4",
-    itm_score = if(off_hours = true, add(base_score, 1), base_score),
+| alter itdf_technique = "T4.12", itdf_tactic = "T4",
+    itdf_score = if(off_hours = true, add(base_score, 1), base_score),
     high_confidence = if(is_delete = true, true, false),
-    itm_description = concat("CA policy tampered: ", policy_name,
+    itdf_description = concat("CA policy tampered: ", policy_name,
       " | Delete: ", to_string(is_delete), " | Off-hours: ", to_string(off_hours))
 | fields actor_upn as actor_effective_username, actor_ip,
     policy_name, policy_id, is_delete, is_disabled, off_hours,
-    itm_technique, itm_tactic, itm_score, high_confidence, itm_description`}
+    itdf_technique, itdf_tactic, itdf_score, high_confidence, itdf_description`}
 
 ,{id:'T3.1',name:'External Email Sharing',tac:'T3',status:'active',score:'4',
  src:'msft_o365_audit, email_gateway (DT041)',atk:'T1048.003, T1567',baseline:true,
@@ -2249,11 +2249,11 @@ dataset = email_data
     or total_attachment_mb > 25
     or unique_recipients > 10
 | alter
-    itm_technique = "T3.1",
-    itm_tactic = "T3",
-    itm_score = 4,
+    itdf_technique = "T3.1",
+    itdf_tactic = "T3",
+    itdf_score = 4,
     high_confidence = true,
-    itm_description = concat("T3.1 — External Email Sharing detected for user: ", actor_effective_username)`}
+    itdf_description = concat("T3.1 — External Email Sharing detected for user: ", actor_effective_username)`}
 
 ,{id:'T3.2',name:'External File Sharing',tac:'T3',status:'active',score:'4',
  src:'msft_o365_audit (SharePoint/OneDrive)',atk:'T1567.002',baseline:false,
@@ -2286,11 +2286,11 @@ dataset = email_data
   by actor_effective_username
 | filter evasion_events > 0
 | alter
-    itm_technique = "T3.2",
-    itm_tactic = "T3",
-    itm_score = if(anon_shares > 0, 5, 4),
+    itdf_technique = "T3.2",
+    itdf_tactic = "T3",
+    itdf_score = if(anon_shares > 0, 5, 4),
     high_confidence = false,
-    itm_description = concat("T3.2 — External File Sharing: ", to_string(actor_effective_username))
+    itdf_description = concat("T3.2 — External File Sharing: ", to_string(actor_effective_username))
 
 | fields
     actor_effective_username,
@@ -2299,11 +2299,11 @@ dataset = email_data
     files_shared,
     unique_recipients,
     anon_shares,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T3.4',name:'Network-Based Exfiltration',tac:'T3',status:'active',score:'5',
  src:'pan_ngfw, dns_logs, DPI (DT097, DT098)',atk:'T1048',baseline:true,
@@ -2331,11 +2331,11 @@ dataset = panw_ngfw_traffic_raw
 | filter bytes_out > b.p95_hourly_bytes_out * 3
     or bytes_out > 500000000  // 500MB absolute floor
 | alter
-    itm_technique = "T3.4",
-    itm_tactic = "T3",
-    itm_score = 5,
+    itdf_technique = "T3.4",
+    itdf_tactic = "T3",
+    itdf_score = 5,
     high_confidence = true,
-    itm_description = concat("T3.4 — Network-Based Exfiltration detected for user: ", actor_effective_username)`}
+    itdf_description = concat("T3.4 — Network-Based Exfiltration detected for user: ", actor_effective_username)`}
 
 ,{id:'T3.5',name:'Messaging Platform Exfiltration',tac:'T3',status:'stub',score:'3',
  src:'msft_o365_audit (Teams), Slack export (DT155)',atk:'T1567',baseline:false,
@@ -2370,9 +2370,9 @@ dataset = email_data
 | filter external_msgs > 10
     or files_sent > 3
 | alter
-    itm_technique = "T3.5",
-    itm_tactic = "T3",
-    itm_score = 3`}
+    itdf_technique = "T3.5",
+    itdf_tactic = "T3",
+    itdf_score = 3`}
 
 ,{id:'T3.6',name:'Physical Media Exfiltration',tac:'T3',status:'stub',score:'4',
  src:'CCTV (DT033), print logs, screen capture artifacts',atk:'T1052',baseline:false,
@@ -2402,9 +2402,9 @@ and action_file_path != null
 //     or action_file_path contains "Screenshots"
 
 | alter
-    itm_technique = "T3.6",
-    itm_tactic = "T3",
-    itm_score = 4`}
+    itdf_technique = "T3.6",
+    itdf_tactic = "T3",
+    itdf_score = 4`}
 
 ,{id:'T3.8',name:'SMS / MMS Exfiltration',tac:'T3',status:'planned',score:'3',
  src:'MDM logs, UEM platform',atk:'T1052',baseline:false,
@@ -2428,9 +2428,9 @@ dataset = mdm_device_activity
 | filter messages_sent > 50
     or unique_recipients > 20
 | alter
-    itm_technique = "T3.8",
-    itm_tactic = "T3",
-    itm_score = 3`}
+    itdf_technique = "T3.8",
+    itdf_tactic = "T3",
+    itdf_score = 3`}
 
 ,{id:'T3.9',name:'Screen Sharing Exfiltration',tac:'T3',status:'stub',score:'3',
  src:'msft_o365_audit (Teams), web_proxy',atk:'T1113',baseline:false,
@@ -2463,9 +2463,9 @@ dataset = email_data
 | filter abs(to_epoch(_time) -
     to_epoch(files._time)) < 3600
 | alter
-    itm_technique = "T3.9",
-    itm_tactic = "T3",
-    itm_score = 3`}
+    itdf_technique = "T3.9",
+    itdf_tactic = "T3",
+    itdf_score = 3`}
 
 ,{id:'T3.10',name:'Automated Transcription Exfiltration',tac:'T3',status:'stub',score:'3',
  src:'web_proxy, msft_o365_audit, dns_logs',atk:'None — no ATT&CK equivalent',baseline:false,
@@ -2489,9 +2489,9 @@ dataset = panw_ngfw_url_raw
     values(dst_hostname) as services
   by source_user, src_ip
 | alter
-    itm_technique = "T3.10",
-    itm_tactic = "T3",
-    itm_score = 3`}
+    itdf_technique = "T3.10",
+    itdf_tactic = "T3",
+    itdf_score = 3`}
 
 ,{id:'T3.11',name:'Bluetooth Transfer',tac:'T3',status:'planned',score:'3',
  src:'xdr_data (device events), MDM',atk:'T1052',baseline:false,
@@ -2516,9 +2516,9 @@ dataset = xdr_data
     )
   by actor_effective_username, agent_hostname
 | alter
-    itm_technique = "T3.11",
-    itm_tactic = "T3",
-    itm_score = 3`}
+    itdf_technique = "T3.11",
+    itdf_tactic = "T3",
+    itdf_score = 3`}
 ,{id:'T3.12',name:'Web Exfil and Email Corroboration',tac:'T3',status:'active',score:'5',
  src:'panw_ngfw_url_raw,msft_defender_raw',atk:'T1567,T1041',baseline:false,
  fp:'Users researching cloud services. Marketing using cloud tools. Confirm attachment recipients are genuinely personal. Check business context table before escalating.',
@@ -2573,13 +2573,13 @@ config timeframe = 1d
     if(WebRisk = "CLOUD" and AttachmentCount > 0, 1, 0))
 | alter risk_score = add(add(PtsWeb, PtsWebDiv), add(add(PtsEmail, PtsFreemail), PtsCorr))
 | filter risk_score >= 6
-| alter itm_technique = "T3.12", itm_tactic = "T3", itm_score = 5,
+| alter itdf_technique = "T3.12", itdf_tactic = "T3", itdf_score = 5,
     high_confidence = if(risk_score >= 8, true, false),
-    itm_description = concat("Web exfil + email corroboration | risk: ", to_string(risk_score),
+    itdf_description = concat("Web exfil + email corroboration | risk: ", to_string(risk_score),
       " | WebRisk: ", WebRisk, " | Attachments: ", to_string(AttachmentCount))
 | fields user_email as actor_effective_username, Day, WebRisk,
     WebHits, WebDomains, AttachmentCount, FreemailRecipientHits,
-    risk_score, itm_technique, itm_tactic, itm_score, high_confidence, itm_description`}
+    risk_score, itdf_technique, itdf_tactic, itdf_score, high_confidence, itdf_description`}
 
 ,{id:'T8.1',name:'Denial of Service',tac:'T8',status:'stub',score:'5',
  src:'pan_ngfw, xdr_data, network_monitoring (DT042)',atk:'T1498, T1499',baseline:true,
@@ -2606,9 +2606,9 @@ dataset = panw_ngfw_traffic_raw
     or (unique_destinations > 50
         and unique_ports > 20)
 | alter
-    itm_technique = "T8.1",
-    itm_tactic = "T8",
-    itm_score = 5,
+    itdf_technique = "T8.1",
+    itdf_tactic = "T8",
+    itdf_score = 5,
     high_confidence = true`}
 
 ,{id:'T8.2',name:'Codebase Integrity Compromise',tac:'T8',status:'stub',score:'5',
@@ -2640,9 +2640,9 @@ dataset = github_audit_log
       data, "$.commits_count"
     )
 | alter
-    itm_technique = "T8.2",
-    itm_tactic = "T8",
-    itm_score = 5`}
+    itdf_technique = "T8.2",
+    itdf_tactic = "T8",
+    itdf_score = 5`}
 
 ,{id:'T8.3',name:'Digital Defacement',tac:'T8',status:'stub',score:'4',
  src:'web_application_logs, CMS audit, msft_o365_audit',atk:'T1491.001, T1491.002',baseline:false,
@@ -2665,9 +2665,9 @@ dataset = email_data
 | filter modifications > 20
     or array_length(site_collections) > 5
 | alter
-    itm_technique = "T8.3",
-    itm_tactic = "T8",
-    itm_score = 4`}
+    itdf_technique = "T8.3",
+    itdf_tactic = "T8",
+    itdf_score = 4`}
 
 ,{id:'T8.4',name:'Physical Sabotage',tac:'T8',status:'planned',score:'5',
  src:'CCTV (DT033), physical_access_logs, DT143',atk:'None — no ATT&CK equivalent',baseline:false,
@@ -2690,27 +2690,27 @@ dataset = physical_access_log
          _time as access_time,
          outage.system_id, outage.outage_start
 | alter
-    itm_technique = "T8.4",
-    itm_tactic = "T8",
-    itm_score = 5`}
+    itdf_technique = "T8.4",
+    itdf_tactic = "T8",
+    itdf_score = 5`}
 
 ,{id:'T6.1',name:'Multi-Signal Correlation',tac:'T6',status:'active',score:'Engine',
  src:'xdr_alerts (all ITDF-tagged alerts)',atk:'None — detection layer, no ATT&CK equivalent',baseline:false,
  fp:'Business context validation (T6.3) must run before any escalation. Never escalate on score alone.',
- notes:['This is the master correlation rule — runs every hour across all ITDF-tagged alerts','Score aggregation: sum of all itm_score values for the same user in a 24h window','Minimum 2 independent signals from different tactics required before any escalation','Output feeds directly into the T7 escalation and case creation process'],
+ notes:['This is the master correlation rule — runs every hour across all ITDF-tagged alerts','Score aggregation: sum of all itdf_score values for the same user in a 24h window','Minimum 2 independent signals from different tactics required before any escalation','Output feeds directly into the T7 escalation and case creation process'],
  xql:`// ITDF T6.1 — Multi-Signal Correlation Engine
 // Master correlation rule — runs hourly
 
 dataset = xdr_alerts
-| filter tags contains "itm_detection"
+| filter tags contains "itdf_detection"
     and _time > to_epoch(now() - duration(24h))
 | comp
-    sum(itm_score) as total_score,
-    values(itm_technique) as techniques_fired,
-    values(itm_tactic) as tactics_fired,
+    sum(itdf_score) as total_score,
+    values(itdf_technique) as techniques_fired,
+    values(itdf_tactic) as tactics_fired,
     count() as alert_count,
     sum(if(high_confidence = true,
-    itm_description = concat("T6.1 — Multi-Signal Correlation detected for user: ", actor_effective_username), 1, 0)) as high_confidence_count,
+    itdf_description = concat("T6.1 — Multi-Signal Correlation detected for user: ", actor_effective_username), 1, 0)) as high_confidence_count,
     min(_time) as first_signal,
     max(_time) as last_signal
   by actor_effective_username
@@ -2733,11 +2733,11 @@ dataset = xdr_alerts
     escalation_level,
     first_signal,
     last_signal,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description`}
+    itdf_description`}
 
 ,{id:'T6.2',name:'Behavioral Deviation Scoring',tac:'T6',status:'active',score:'Engine',
  src:'baseline tables, xdr_data',atk:'None — detection layer, no ATT&CK equivalent',baseline:true,
@@ -2765,15 +2765,15 @@ dataset = xdr_data
          p95_files, p99_files
 // Write output to: baseline_file_access,
     high_confidence,
-    itm_description,
-    itm_technique,
-    itm_tactic,
-    itm_score,
+    itdf_description,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score,
     high_confidence,
-    itm_description,
-    itm_technique,
-    itm_tactic,
-    itm_score`}
+    itdf_description,
+    itdf_technique,
+    itdf_tactic,
+    itdf_score`}
 
 ,{id:'T6.3',name:'Business Context Validation',tac:'T6',status:'stub',score:'Dampener',
  src:'hr_risk_context, helpdesk_tickets, business_context',atk:'None — governance layer, no ATT&CK equivalent',baseline:false,
@@ -2860,9 +2860,9 @@ dataset = canary_token_platform
          triggered_by_user, trigger_source_ip,
          canary_name, canary_location
 | alter
-    itm_technique = "T6.5",
-    itm_tactic = "T6",
-    itm_score = 5,
+    itdf_technique = "T6.5",
+    itdf_tactic = "T6",
+    itdf_score = 5,
     high_confidence = true,
     bypass_threshold = true`}
 
@@ -2873,13 +2873,13 @@ dataset = canary_token_platform
  xql:`// ITDF T6.6 — Threat Intelligence Correlation
 
 dataset = xdr_alerts
-| filter tags contains "itm_detection"
+| filter tags contains "itdf_detection"
     and _time > to_epoch(now() - duration(24h))
 | join type = left (
     dataset = threat_intel_indicators
     | filter indicator_type in (
         "insider_ttp","exfil_infrastructure",
-        "known_insider_tool","recruitment_actor"
+        "known_insider_tool","recruitdfent_actor"
       )
     | fields indicator_value, indicator_type,
              confidence, source
@@ -2889,9 +2889,9 @@ dataset = xdr_alerts
 | filter ti.indicator_value != null
     and ti.confidence > 60
 | alter
-    itm_technique = "T6.6",
+    itdf_technique = "T6.6",
     ti_boost = 2,
-    itm_score = add(itm_score, ti_boost)`}
+    itdf_score = add(itdf_score, ti_boost)`}
 
 ,{id:'T6.7',name:'Physical-Digital Correlation',tac:'T6',status:'stub',score:'Engine',
  src:'physical_access_logs, badge_system, xdr_data',atk:'None — no ATT&CK equivalent',baseline:false,
@@ -2914,9 +2914,9 @@ dataset = xdr_data
 | filter badge.badge_entries = null
     or badge.badge_entries = 0
 | alter
-    itm_technique = "T6.7",
-    itm_tactic = "T6",
-    itm_score = 3,
+    itdf_technique = "T6.7",
+    itdf_tactic = "T6",
+    itdf_score = 3,
     login_without_badge = true`}
 
 ,{id:'T7.1',name:'Evidence-Based Case Creation',tac:'T7',status:'stub',score:'Governance',
@@ -2926,7 +2926,7 @@ dataset = xdr_data
  xql:`// ITDF T7.1 — Evidence-Based Case Creation
 // Triggered when correlation output meets threshold
 
-dataset = itm_correlation_output
+dataset = itdf_correlation_output
 | filter final_escalation in (
     "CRITICAL","ESCALATE"
   )
@@ -2964,7 +2964,7 @@ dataset = xsiam_audit_log
     "case_viewed","case_modified",
     "alert_accessed","investigation_opened"
   )
-  and resource_tags contains "itm_case"
+  and resource_tags contains "itdf_case"
 | comp
     count() as access_count,
     values(resource_id) as cases_accessed
