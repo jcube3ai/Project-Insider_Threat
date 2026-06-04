@@ -149,7 +149,7 @@ pre .m{color:#d4b0f7;}
 <div class="hero">
   <div class="hero-eyebrow">XSIAM Scheduled Queries</div>
   <h1>Baseline Table<br><strong>Builders</strong></h1>
-  <p class="hero-sub">Three detection models — each chosen based on the nature of the data. MAD for volatile, role-dependent behaviour. p95 for stable individual patterns. Presence detection where counting is irrelevant and the first occurrence is the signal. Using the wrong model for the wrong data is the primary cause of false positive floods in insider threat programmes.</p>
+  <p class="hero-sub">Three detection models — MAD for volatile, role-dependent behaviour. p95 for stable individual patterns. Presence detection where counting is irrelevant and the first occurrence is the signal. Using the wrong model will lead to false positives.</p>
 </div>
 
 <!-- Three model overview -->
@@ -163,7 +163,7 @@ pre .m{color:#d4b0f7;}
   <div class="model-cell">
     <div class="model-dot p95"></div>
     <div class="model-name p95">p95 — Individual History</div>
-    <div class="model-desc">95th percentile of each user's personal 30-day history. Right for stable, predictable behaviour that doesn't spike legitimately. Simpler to understand, easier to explain to stakeholders. Correct model when behaviour is consistent enough that a p95 threshold remains meaningful over time.</div>
+    <div class="model-desc">95th percentile of each user's personal 30-day history. Right for stable, predictable behaviour that doesn't spike legitimately. Correct model when behaviour is consistent enough that a p95 threshold remains meaningful over time.</div>
     <div class="model-baselines">→ File Access · Logon Patterns · Print Volume</div>
   </div>
   <div class="model-cell">
@@ -220,7 +220,7 @@ pre .m{color:#d4b0f7;}
         </div>
       </div>
       <div class="callout callout-mad">
-        <strong>Dataset note:</strong> iManage data lands in your XSIAM tenant as <code>imanage_raw</code> via the HTTP collector pipeline we built. Job title enrichment is joined from <code>msft_o365_users_raw</code>. If your iManage dataset is named differently confirm with your XSIAM admin.
+        <strong>Dataset note:</strong> iManage data lands in our tenant as <code>imanage_raw</code> via the a collector. Job title enrichment is joined from <code>msft_o365_users_raw</code>. If our iManage dataset is named differently confirm with XSIAM admin.
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
