@@ -149,7 +149,7 @@ pre .m{color:#d4b0f7;}
 <div class="hero">
   <div class="hero-eyebrow">XSIAM Scheduled Queries</div>
   <h1>Baseline Table<br><strong>Builders</strong></h1>
-  <p class="hero-sub">Three detection models — MAD for volatile, role-dependent behaviour. p95 for stable individual patterns. Presence detection where counting is irrelevant and the first occurrence is the signal. Using the wrong model will lead to false positives.</p>
+  <p class="hero-sub">Three detection models — each chosen based on the nature of the data. MAD for volatile, role-dependent behaviour. p95 for stable individual patterns. Presence detection where counting is irrelevant and the first occurrence is the signal. Using the wrong model for the wrong data is the primary cause of false positive floods in insider threat programmes.</p>
 </div>
 
 <!-- Three model overview -->
@@ -163,7 +163,7 @@ pre .m{color:#d4b0f7;}
   <div class="model-cell">
     <div class="model-dot p95"></div>
     <div class="model-name p95">p95 — Individual History</div>
-    <div class="model-desc">95th percentile of each user's personal 30-day history. Right for stable, predictable behaviour that doesn't spike legitimately. Correct model when behaviour is consistent enough that a p95 threshold remains meaningful over time.</div>
+    <div class="model-desc">95th percentile of each user's personal 30-day history. Right for stable, predictable behaviour that doesn't spike legitimately. Simpler to understand, easier to explain to stakeholders. Correct model when behaviour is consistent enough that a p95 threshold remains meaningful over time.</div>
     <div class="model-baselines">→ File Access · Logon Patterns · Print Volume</div>
   </div>
   <div class="model-cell">
@@ -220,11 +220,11 @@ pre .m{color:#d4b0f7;}
         </div>
       </div>
       <div class="callout callout-mad">
-        <strong>Dataset note:</strong> iManage data lands in our tenant as <code>imanage_raw</code> via the a collector. Job title enrichment is joined from <code>msft_o365_users_raw</code>. If our iManage dataset is named differently confirm with XSIAM admin.
+        <strong>Dataset note:</strong> iManage data lands in our XSIAM tenant as <code>imanage_raw</code> via the HTTP collector pipeline we built. Job title enrichment is joined from <code>msft_o365_users_raw</code>. If our iManage dataset is named differently confirm with our XSIAM admin.
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — iManage MAD (Cohort)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — iManage MAD (Cohort)</td></tr>
         <tr><td>Schedule</td><td>Daily at 01:00 AM</td></tr>
         <tr><td>Output table</td><td>baseline_imanage_mad</td></tr>
         <tr><td>Lookback</td><td>30 days (7-day window vs 30-day cohort)</td></tr>
@@ -239,7 +239,7 @@ pre .m{color:#d4b0f7;}
           <span class="code-info">baseline_imanage_mad — confirmed working syntax</span>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>// ITM Baseline — iManage Document Access MAD Cohort
+        <pre>// ITDF Baseline — iManage Document Access MAD Cohort
 // Output → baseline_imanage_mad
 // Model: MAD cohort by jobTitle peer group
 // Dataset: imanage_threat_manager_generic_alert_raw  (Threat Manager alerts NOT raw events)
@@ -398,7 +398,7 @@ config timeframe = 30d
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — SharePoint MAD (Cohort)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — SharePoint MAD (Cohort)</td></tr>
         <tr><td>Schedule</td><td>Daily at 01:30 AM</td></tr>
         <tr><td>Output table</td><td>baseline_sharepoint_mad</td></tr>
         <tr><td>Threshold</td><td>cohort_mean + (2.0 × cohort_MAD)</td></tr>
@@ -410,7 +410,7 @@ config timeframe = 30d
           <span class="code-info">baseline_sharepoint_mad</span>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>// ITM Baseline — SharePoint MAD Cohort
+        <pre>// ITDF Baseline — SharePoint MAD Cohort
 // Output → baseline_sharepoint_mad
 // Model: MAD cohort by jobTitle peer group
 // Used by: T1.2 Sensitive Repository Enumeration
@@ -512,11 +512,11 @@ config timeframe = 30d
         </div>
       </div>
       <div class="callout callout-warn">
-        <strong>Replace aoshearman.com</strong> with your actual domain in this query before saving.
+        <strong>Replace aoshearman.com</strong> with our actual domain in this query before saving.
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — Email MAD (Cohort)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — Email MAD (Cohort)</td></tr>
         <tr><td>Schedule</td><td>Daily at 02:00 AM</td></tr>
         <tr><td>Output table</td><td>baseline_email_mad</td></tr>
         <tr><td>Dataset</td><td>email_data</td></tr>
@@ -531,7 +531,7 @@ config timeframe = 30d
         </div>
         <pre>config timeframe = 30d
 
-<span class="c">// ITM Baseline — External Email MAD Cohort
+<span class="c">// ITDF Baseline — External Email MAD Cohort
 // Output → baseline_email_mad
 // Used by: T3.1 External Email Sharing
 // *** Replace aoshearman.com with your domain ***</span>
@@ -637,7 +637,7 @@ config timeframe = 30d
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — Network MAD (Cohort)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — Network MAD (Cohort)</td></tr>
         <tr><td>Schedule</td><td>Daily at 02:30 AM</td></tr>
         <tr><td>Output table</td><td>baseline_network_mad</td></tr>
         <tr><td>Dataset</td><td>panw_ngfw_traffic_raw</td></tr>
@@ -653,7 +653,7 @@ config timeframe = 30d
         </div>
         <pre>config timeframe = 30d
 
-<span class="c">// ITM Baseline — Network Egress MAD Cohort
+<span class="c">// ITDF Baseline — Network Egress MAD Cohort
 // Output → baseline_network_mad
 // Used by: T3.4 Network Exfiltration, T8.1 DoS</span>
 
@@ -762,7 +762,7 @@ config timeframe = 30d
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — File Access (p95)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — File Access (p95)</td></tr>
         <tr><td>Schedule</td><td>Daily at 03:00 AM</td></tr>
         <tr><td>Output table</td><td>baseline_file_access</td></tr>
         <tr><td>Threshold field</td><td>p95_files — T1.1 triggers at 2× this value</td></tr>
@@ -774,7 +774,7 @@ config timeframe = 30d
           <span class="code-info">baseline_file_access</span>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>// ITM Baseline — File Access p95
+        <pre>// ITDF Baseline — File Access p95
 // Output → baseline_file_access
 // Model: p95 individual — two-pass daily bucket then percentile
 // Used by: T1.1 Bulk Data Access
@@ -837,7 +837,7 @@ dataset = xdr_data
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — Logon Patterns (p95)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — Logon Patterns (p95)</td></tr>
         <tr><td>Schedule</td><td>Daily at 03:30 AM</td></tr>
         <tr><td>Output table</td><td>baseline_logon</td></tr>
         <tr><td>Key field</td><td>typical_hours array — T2.1 checks new logins against this</td></tr>
@@ -849,7 +849,7 @@ dataset = xdr_data
           <span class="code-info">baseline_logon</span>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>// ITM Baseline — Logon Pattern Profile
+        <pre>// ITDF Baseline — Logon Pattern Profile
 // Output → baseline_logon
 // Model: Presence array + p95 daily volume
 // Used by: T2.1 Abnormal Working Patterns, T5.5 Remote Access Abuse
@@ -912,10 +912,10 @@ dataset = xdr_data
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — Print Volume (p95)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — Print Volume (p95)</td></tr>
         <tr><td>Schedule</td><td>Daily at 04:00 AM</td></tr>
         <tr><td>Output table</td><td>baseline_print</td></tr>
-        <tr><td>Note</td><td>Verify PRINT_JOB event type exists in your xdr_data before deploying</td></tr>
+        <tr><td>Note</td><td>Verify PRINT_JOB event type exists in our xdr_data before deploying</td></tr>
       </table>
       <div class="code-wrap">
         <div class="code-header">
@@ -923,7 +923,7 @@ dataset = xdr_data
           <span class="code-info">baseline_print — verify PRINT_JOB event type</span>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>// ITM Baseline — Print Volume p95
+        <pre>// ITDF Baseline — Print Volume p95
 // Output → baseline_print
 // Model: p95 individual — two-pass daily bucket then percentile
 // Used by: T1.4 Print-Based Collection
@@ -1006,7 +1006,7 @@ dataset = xdr_data
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — USB Presence (Array)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — USB Presence (Array)</td></tr>
         <tr><td>Schedule</td><td>Weekly — Sunday at 04:00 AM</td></tr>
         <tr><td>Output table</td><td>baseline_usb</td></tr>
         <tr><td>Lookback</td><td>90 days — USB events are infrequent</td></tr>
@@ -1021,7 +1021,7 @@ dataset = xdr_data
         </div>
         <pre>config timeframe = 90d
 
-<span class="c">// ITM Baseline — USB Presence Detection
+<span class="c">// ITDF Baseline — USB Presence Detection
 // Output → baseline_usb
 // Used by: T3.3 Removable Media Transfer
 // 90-day lookback — USB events are rare per user</span>
@@ -1090,7 +1090,7 @@ dataset = xdr_data
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — System Access Scope (Array)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — System Access Scope (Array)</td></tr>
         <tr><td>Schedule</td><td>Weekly — Sunday at 05:00 AM</td></tr>
         <tr><td>Output table</td><td>baseline_system_access</td></tr>
         <tr><td>Lookback</td><td>60 days — system scope is slow to change</td></tr>
@@ -1103,7 +1103,7 @@ dataset = xdr_data
           <span class="code-info">baseline_system_access — 60-day lookback</span>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>// ITM Baseline — System Access Scope
+        <pre>// ITDF Baseline — System Access Scope
 // Output → baseline_system_access
 // Model: Presence array — which hosts does this user normally access
 // Used by: T5.2 Unauthorized System Access
@@ -1165,7 +1165,7 @@ dataset = xdr_data
       </div>
       <table class="config-table">
         <tr><th>Setting</th><th>Value</th></tr>
-        <tr><td>Name</td><td>ITM Baseline — Process Scope (Array)</td></tr>
+        <tr><td>Name</td><td>ITDF Baseline — Process Scope (Array)</td></tr>
         <tr><td>Schedule</td><td>Weekly — Sunday at 06:00 AM</td></tr>
         <tr><td>Output table</td><td>baseline_processes</td></tr>
         <tr><td>Lookback</td><td>60 days</td></tr>
@@ -1178,7 +1178,7 @@ dataset = xdr_data
           <span class="code-info">baseline_processes — user-launched apps only</span>
           <button class="copy-btn" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre>// ITM Baseline — Process Execution Scope
+        <pre>// ITDF Baseline — Process Execution Scope
 // Output → baseline_processes
 // Model: Presence array — which processes has this user ever launched
 // Used by: T2.2 Workflow Deviation
@@ -1237,7 +1237,7 @@ dataset = xdr_data
   </table>
 
   <div class="callout callout-success">
-    <strong>iManage baseline is your highest priority.</strong> It is the only one confirmed working in production in this tenant. Deploy it first, validate the cohort_mean and upper_bound values look sensible for your job title groups, then deploy the remaining MAD baselines using the same architecture.
+    <strong>iManage baseline is our highest priority.</strong> It is the only one confirmed working in production in this tenant. Deploy it first, validate the cohort_mean and upper_bound values look sensible for our job title groups, then deploy the remaining MAD baselines using the same architecture.
   </div>
 
 </div>
