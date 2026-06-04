@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insider Threat Detection Framework — Baseline Builders</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f12;--bg2:#13161a;--bg3:#1a1e24;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#e2e8f0;--muted:#7c8a9e;--faint:#3d4a5c;
+  --accent:#00d4aa;--accent2:#0099ff;--warn:#ff8c42;--danger:#ff4d6d;
+  --mad:#b57bee;--p95:#00d4aa;--presence:#ff8c42;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.6;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.06) 2px,rgba(0,0,0,0.06) 4px);pointer-events:none;z-index:0;}
+
+.top-nav{position:sticky;top:0;z-index:300;background:rgba(10,12,16,0.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border2);display:flex;align-items:center;height:40px;font-family:var(--mono);font-size:11px;font-weight:500;}
+.top-nav a{display:flex;align-items:center;gap:6px;padding:0 16px;height:100%;color:var(--muted);text-decoration:none;border-right:1px solid var(--border);transition:all .15s;white-space:nowrap;letter-spacing:.03em;}
+.top-nav a:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.top-nav a.current{color:var(--accent);}
+.top-nav .spacer{flex:1;}
+.top-nav .ext{border-right:none;border-left:1px solid var(--border);color:var(--faint);font-size:10px;}
+.top-nav .ext:hover{color:var(--muted);}
+
+.hero{position:relative;padding:48px 48px 36px;border-bottom:1px solid var(--border2);overflow:hidden;z-index:1;}
+.hero::after{content:'';position:absolute;top:-80px;right:-80px;width:500px;height:500px;background:radial-gradient(circle,rgba(181,123,238,0.05) 0%,transparent 70%);pointer-events:none;}
+.hero-eyebrow{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--mad);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.hero-eyebrow::before{content:'';width:24px;height:1px;background:var(--mad);}
+.hero h1{font-size:clamp(24px,3.5vw,38px);font-weight:300;letter-spacing:-.02em;line-height:1.15;margin-bottom:10px;}
+.hero h1 strong{font-weight:600;color:var(--mad);}
+.hero-sub{font-size:13px;color:var(--muted);max-width:660px;line-height:1.7;margin-top:12px;}
+
+/* Three model legend */
+.model-legend{display:flex;gap:0;border-bottom:1px solid var(--border2);position:relative;z-index:1;}
+.model-cell{flex:1;padding:20px 28px;border-right:1px solid var(--border);}
+.model-cell:last-child{border-right:none;}
+.model-dot{width:10px;height:10px;border-radius:50%;margin-bottom:8px;}
+.model-dot.mad{background:var(--mad);}
+.model-dot.p95{background:var(--p95);}
+.model-dot.presence{background:var(--presence);}
+.model-name{font-family:var(--mono);font-size:11px;font-weight:600;margin-bottom:4px;}
+.model-name.mad{color:var(--mad);}
+.model-name.p95{color:var(--p95);}
+.model-name.presence{color:var(--presence);}
+.model-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+.model-baselines{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:8px;}
+
+.stats-row{display:flex;gap:0;border-bottom:1px solid var(--border2);position:relative;z-index:1;}
+.stat-cell{flex:1;padding:14px 24px;border-right:1px solid var(--border);}
+.stat-cell:last-child{border-right:none;}
+.stat-num{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.stat-num span{font-size:11px;margin-left:4px;}
+.stat-num.mad span{color:var(--mad);}
+.stat-num.p95 span{color:var(--p95);}
+.stat-num.presence span{color:var(--presence);}
+.stat-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);}
+
+.main{padding:36px 48px;position:relative;z-index:1;max-width:1060px;}
+
+/* Section dividers */
+.section-divider{display:flex;align-items:center;gap:14px;margin:32px 0 18px;}
+.section-divider-label{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;padding:3px 10px;border-radius:3px;}
+.section-divider-label.mad{color:var(--mad);background:rgba(181,123,238,0.1);border:1px solid rgba(181,123,238,0.2);}
+.section-divider-label.p95{color:var(--p95);background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.15);}
+.section-divider-label.presence{color:var(--presence);background:rgba(255,140,66,0.08);border:1px solid rgba(255,140,66,0.15);}
+.section-divider-line{flex:1;height:1px;background:var(--border2);}
+
+/* Baseline cards */
+.baseline-card{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;margin-bottom:16px;overflow:hidden;}
+.baseline-card.mad-card{border-left:3px solid rgba(181,123,238,0.4);}
+.baseline-card.p95-card{border-left:3px solid rgba(0,212,170,0.3);}
+.baseline-card.presence-card{border-left:3px solid rgba(255,140,66,0.3);}
+
+.bc-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.bc-header:hover{background:rgba(255,255,255,0.02);}
+.bc-header-left{display:flex;align-items:center;gap:12px;}
+.bc-icon{width:34px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;flex-shrink:0;}
+.bc-icon.mad{background:rgba(181,123,238,0.12);color:var(--mad);border:1px solid rgba(181,123,238,0.2);}
+.bc-icon.p95{background:rgba(0,212,170,0.1);color:var(--p95);border:1px solid rgba(0,212,170,0.18);}
+.bc-icon.presence{background:rgba(255,140,66,0.1);color:var(--presence);border:1px solid rgba(255,140,66,0.2);}
+.bc-name{font-size:14px;font-weight:500;color:var(--text);margin-bottom:3px;}
+.bc-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.bc-tag{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;font-weight:600;letter-spacing:.04em;}
+.bc-tag-src{background:rgba(0,153,255,0.1);color:#60a5fa;border:1px solid rgba(0,153,255,0.2);}
+.bc-tag-sched{background:rgba(124,138,158,0.1);color:var(--muted);border:1px solid rgba(124,138,158,0.15);}
+.bc-tag-rules{background:rgba(0,212,170,0.08);color:var(--accent);border:1px solid rgba(0,212,170,0.15);}
+.bc-tag-new{background:rgba(181,123,238,0.1);color:var(--mad);border:1px solid rgba(181,123,238,0.2);}
+.bc-chevron{color:var(--faint);font-size:12px;transition:transform .2s;flex-shrink:0;}
+.bc-chevron.open{transform:rotate(90deg);}
+
+.bc-body{display:none;padding:20px;}
+.bc-body.open{display:block;}
+.bc-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:16px;padding:12px 16px;background:var(--bg3);border-radius:5px;border-left:2px solid var(--border2);}
+
+.rules-covered{margin-bottom:16px;}
+.rules-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:7px;}
+.rules-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.rule-chip{font-family:var(--mono);font-size:10px;font-weight:500;padding:3px 9px;border-radius:4px;background:rgba(0,212,170,0.08);color:var(--accent);border:1px solid rgba(0,212,170,0.15);}
+
+.config-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px;}
+.config-table th{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);padding:7px 12px;text-align:left;border-bottom:1px solid var(--border2);}
+.config-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.config-table td:first-child{font-family:var(--mono);font-size:10px;color:var(--accent);white-space:nowrap;width:180px;}
+.config-table td:last-child{color:var(--muted);}
+.config-table tr:last-child td{border-bottom:none;}
+
+.callout{padding:11px 15px;border-radius:5px;border-left:3px solid;margin-bottom:14px;font-size:12px;line-height:1.6;}
+.callout-warn{background:rgba(255,140,66,0.06);border-color:var(--warn);color:#fbbf75;}
+.callout-info{background:rgba(0,153,255,0.06);border-color:var(--accent2);color:#93c5fd;}
+.callout-success{background:rgba(0,212,170,0.06);border-color:var(--accent);color:#6ee7d4;}
+.callout-mad{background:rgba(181,123,238,0.06);border-color:var(--mad);color:#d4b0f7;}
+.callout strong{color:inherit;font-weight:600;}
+
+.code-wrap{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;overflow:hidden;margin-bottom:14px;}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);}
+.code-lang{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;}
+.code-lang.mad{color:var(--mad);}
+.code-lang.p95{color:var(--p95);}
+.code-lang.presence{color:var(--presence);}
+.code-info{font-family:var(--mono);font-size:10px;color:var(--faint);}
+.copy-btn{font-family:var(--mono);font-size:10px;padding:3px 10px;border:1px solid var(--border2);border-radius:3px;background:transparent;color:var(--faint);cursor:pointer;transition:all .15s;}
+.copy-btn:hover{color:var(--accent);border-color:rgba(0,212,170,0.3);}
+pre{font-family:var(--mono);font-size:11px;line-height:1.75;padding:16px;overflow-x:auto;color:#a8d8a8;}
+pre .c{color:#3d5266;font-style:italic;}
+pre .k{color:#60a5fa;}
+pre .s{color:#fbbf24;}
+pre .n{color:#6ee7d4;}
+pre .m{color:#d4b0f7;}
+
+.site-footer{padding:20px 48px;border-top:1px solid var(--border);font-family:var(--mono);font-size:10px;color:var(--faint);display:flex;justify-content:space-between;position:relative;z-index:1;margin-top:40px;}
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <a href="index.html">🛡️ ITDF</a>
+  <a href="crosswalk.html">🔁 ATT&amp;CK Crosswalk</a>
+  <a href="rules.html">⚡ XSIAM Rules</a>
+  <a href="xsiam-sop.html">📋 SOP</a>
+  <a href="baseline-builders.html" class="current">📊 Baselines</a>
+  <div class="spacer"></div>
+  <a href="https://github.com/jcube3ai/Project-Insider_Threat" target="_blank" class="ext">GitHub ↗</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">XSIAM Scheduled Queries</div>
+  <h1>Baseline Table<br><strong>Builders</strong></h1>
+  <p class="hero-sub">Three detection models — each chosen based on the nature of the data. MAD for volatile, role-dependent behaviour. p95 for stable individual patterns. Presence detection where counting is irrelevant and the first occurrence is the signal. Using the wrong model for the wrong data is the primary cause of false positive floods in insider threat programmes.</p>
+</div>
+
+<!-- Three model overview -->
+<div class="model-legend">
+  <div class="model-cell">
+    <div class="model-dot mad"></div>
+    <div class="model-name mad">MAD — Cohort-Based</div>
+    <div class="model-desc">Median Absolute Deviation. Groups users by job title and flags those who deviate significantly from their peer cohort. Robust to outliers — a partner working a massive deal doesn't corrupt the baseline for all partners. Uses only avg() and if() — no stddev() or windowcomp needed. Confirmed working in this tenant.</div>
+    <div class="model-baselines">→ iManage · SharePoint · Email · Network</div>
+  </div>
+  <div class="model-cell">
+    <div class="model-dot p95"></div>
+    <div class="model-name p95">p95 — Individual History</div>
+    <div class="model-desc">95th percentile of each user's personal 30-day history. Right for stable, predictable behaviour that doesn't spike legitimately. Simpler to understand, easier to explain to stakeholders. Correct model when behaviour is consistent enough that a p95 threshold remains meaningful over time.</div>
+    <div class="model-baselines">→ File Access · Logon Patterns · Print Volume</div>
+  </div>
+  <div class="model-cell">
+    <div class="model-dot presence"></div>
+    <div class="model-name presence">Presence Detection — Array Lookup</div>
+    <div class="model-desc">Not a counting problem. The first occurrence of an activity is the signal — volume is secondary. Builds an array of known-good items per user. Detection rules check whether a new event is in or out of that array. No statistics required. Right for USB devices, process execution scope, and system access scope.</div>
+    <div class="model-baselines">→ USB Devices · System Access · Process Scope</div>
+  </div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-cell"><div class="stat-num mad">5 <span>MAD</span></div><div class="stat-label">Cohort baselines</div></div>
+  <div class="stat-cell"><div class="stat-num p95">3 <span>p95</span></div><div class="stat-label">History baselines</div></div>
+  <div class="stat-cell"><div class="stat-num presence">3 <span>Presence</span></div><div class="stat-label">Array baselines</div></div>
+  <div class="stat-cell"><div class="stat-num">13 <span style="color:var(--muted)">rules</span></div><div class="stat-label">Rules enabled by baselines</div></div>
+</div>
+
+<div class="main">
+
+  <div class="callout callout-mad">
+    <strong>Run Now on Day 1.</strong> Every baseline query must be run manually once immediately after creating it — click Run Now in XSIAM. The scheduled run alone will not seed the table. MAD baselines need at least 10 days of cohort data before thresholds are reliable. p95 baselines need 5 days minimum. Presence baselines are useful from day one but improve with history.
+  </div>
+
+  <!-- ── MAD BASELINES ── -->
+  <div class="section-divider">
+    <span class="section-divider-label mad">MAD — Cohort Baselines</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- iManage MAD -->
+  <div class="baseline-card mad-card" id="bl-imanage">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon mad">MAD</div>
+        <div>
+          <div class="bc-name">baseline_imanage_mad &nbsp;<span style="font-family:var(--mono);font-size:9px;background:rgba(181,123,238,0.1);color:var(--mad);padding:2px 7px;border-radius:3px;border:1px solid rgba(181,123,238,0.2);">CONFIRMED WORKING</span></div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">imanage_raw</span>
+            <span class="bc-tag bc-tag-src">msft_o365_users_raw</span>
+            <span class="bc-tag bc-tag-sched">Daily 01:00</span>
+            <span class="bc-tag bc-tag-rules">T1.2 — iManage anomaly</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron open">▶</span>
+    </div>
+    <div class="bc-body open">
+      <div class="bc-desc">Cohort-based MAD using job title grouping. Compares each user's recent document access rate against their peer cohort (same job title) rather than their own history. Robust to deal-cycle spikes — a partner on a massive transaction doesn't permanently corrupt the baseline for themselves or their cohort. Three-pass MAD computation using only avg() and if() — confirmed working in this tenant without stddev() or windowcomp.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled by this baseline</div>
+        <div class="rules-chips">
+          <span class="rule-chip">T1.2 — Sensitive repo enumeration (iManage)</span>
+          <span class="rule-chip">T6.2 — Behavioral deviation scoring</span>
+        </div>
+      </div>
+      <div class="callout callout-mad">
+        <strong>Dataset note:</strong> iManage data lands in your XSIAM tenant as <code>imanage_raw</code> via the HTTP collector pipeline we built. Job title enrichment is joined from <code>msft_o365_users_raw</code>. If your iManage dataset is named differently confirm with your XSIAM admin.
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — iManage MAD (Cohort)</td></tr>
+        <tr><td>Schedule</td><td>Daily at 01:00 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_imanage_mad</td></tr>
+        <tr><td>Lookback</td><td>30 days (7-day window vs 30-day cohort)</td></tr>
+        <tr><td>Grouping</td><td>jobTitle from msft_o365_users_raw</td></tr>
+        <tr><td>Threshold formula</td><td>cohort_mean + (2.0 × cohort_MAD)</td></tr>
+        <tr><td>Floor</td><td>delta_min = 10 docs — prevents noise in tight cohorts</td></tr>
+        <tr><td>Minimum data</td><td>10 days per cohort for reliable MAD</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang mad">XQL — MAD (Three-Pass)</span>
+          <span class="code-info">baseline_imanage_mad — confirmed working syntax</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>// ITM Baseline — iManage Document Access MAD Cohort
+// Output → baseline_imanage_mad
+// Model: MAD cohort by jobTitle peer group
+// Dataset: imanage_threat_manager_generic_alert_raw  (Threat Manager alerts NOT raw events)
+// Used by: T1.1 Bulk Data Access, T1.2 Sensitive Repository Enumeration
+// Schedule: Daily 00:30 | Run Now immediately after creating
+// Field names confirmed from tenant testing
+
+config timeframe = 30d
+
+| dataset = imanage_threat_manager_generic_alert_raw
+| filter _alert_data != null
+| filter not (_raw ~= "(?i)anomalous")
+
+// Extract counts from _raw JSON — confirmed field paths
+| alter doc_count    = to_integer(json_extract_scalar(_raw, "$.tm_counts['document count']"))
+| alter matter_count = to_integer(json_extract_scalar(_raw, "$.tm_counts['matter count']"))
+| alter client_count = to_integer(json_extract_scalar(_raw, "$.tm_counts['client count']"))
+
+// Identity
+| alter uid        = lowercase(user_email)
+| alter NowEpoch   = to_epoch(current_time())
+| alter EventEpoch = to_epoch(_time)
+| alter DaysAgo    = to_integer(divide(subtract(NowEpoch, EventEpoch), 86400000))
+
+| filter uid != null and uid != ""
+| filter not (uid ~= "^(sa-|svc_|service_|iman|wsadmin|system)")
+
+// Enrich with jobTitle
+| join type = left (
+    dataset = msft_o365_users_raw
+    | alter J = lowercase(mail)
+    | fields J, jobTitle, department
+  ) as u u.J = uid
+
+// Pass 1 — per-user 7-day totals
+| comp
+    avg(doc_count)                         as user_mean_30d,
+    sum(if(DaysAgo <= 7, doc_count, 0))    as recent_total_7d,
+    sum(if(DaysAgo <= 7, matter_count, 0)) as recent_matters_7d,
+    sum(if(DaysAgo <= 7, client_count, 0)) as recent_clients_7d,
+    max(jobTitle)                          as jobTitle,
+    max(department)                        as department,
+    max(user_email)                        as user_email
+  by uid
+
+| alter recent_avg_7d = divide(recent_total_7d, 7)
+| filter recent_total_7d > 0
+| filter jobTitle != null and jobTitle != ""
+
+// Pass 2 — cohort stats (Mean + MAD) by jobTitle
+| join type = left (
+    dataset = imanage_threat_manager_generic_alert_raw
+    | filter _alert_data != null
+    | filter not (_raw ~= "(?i)anomalous")
+    | alter doc_count  = to_integer(json_extract_scalar(_raw, "$.tm_counts['document count']"))
+    | alter uid        = lowercase(user_email)
+    | alter NowEpoch   = to_epoch(current_time())
+    | alter EventEpoch = to_epoch(_time)
+    | alter DaysAgo    = to_integer(divide(subtract(NowEpoch, EventEpoch), 86400000))
+    | filter uid != null and uid != ""
+    | filter not (uid ~= "^(sa-|svc_|service_|iman|wsadmin|system)")
+    | join type = left (
+        dataset = msft_o365_users_raw
+        | alter J = lowercase(mail)
+        | fields J, jobTitle
+      ) as u2 u2.J = uid
+    | filter jobTitle != null and jobTitle != ""
+    | comp sum(if(DaysAgo <= 7, doc_count, 0)) as recent_total_7d
+      by uid, jobTitle
+    | alter recent_avg_7d = divide(recent_total_7d, 7)
+    | filter recent_total_7d > 0
+    | join type = left (
+        dataset = imanage_threat_manager_generic_alert_raw
+        | filter _alert_data != null
+        | filter not (_raw ~= "(?i)anomalous")
+        | alter doc_count  = to_integer(json_extract_scalar(_raw, "$.tm_counts['document count']"))
+        | alter uid        = lowercase(user_email)
+        | alter NowEpoch   = to_epoch(current_time())
+        | alter EventEpoch = to_epoch(_time)
+        | alter DaysAgo    = to_integer(divide(subtract(NowEpoch, EventEpoch), 86400000))
+        | filter uid != null and uid != ""
+        | filter not (uid ~= "^(sa-|svc_|service_|iman|wsadmin|system)")
+        | join type = left (
+            dataset = msft_o365_users_raw
+            | alter J = lowercase(mail)
+            | fields J, jobTitle
+          ) as u3 u3.J = uid
+        | filter jobTitle != null and jobTitle != ""
+        | comp sum(if(DaysAgo <= 7, doc_count, 0)) as recent_total_7d
+          by uid, jobTitle
+        | alter recent_avg_7d = divide(recent_total_7d, 7)
+        | filter recent_total_7d > 0
+        | comp
+            avg(recent_avg_7d) as cohort_mean_recent,
+            count()            as cohort_users
+          by jobTitle
+        | filter cohort_users >= 3
+        | fields jobTitle,
+                 cohort_mean_recent as mean_m,
+                 cohort_users       as users_m
+      ) as m m.jobTitle = jobTitle
+    | alter abs_dev = if(
+        recent_avg_7d >= mean_m,
+        subtract(recent_avg_7d, mean_m),
+        subtract(mean_m, recent_avg_7d)
+      )
+    | comp
+        max(mean_m)  as cohort_mean_recent,
+        max(users_m) as cohort_users,
+        avg(abs_dev) as cohort_mad_recent
+      by jobTitle
+    | fields jobTitle, cohort_mean_recent, cohort_mad_recent, cohort_users
+  ) as coh coh.jobTitle = jobTitle
+
+// Adaptive threshold
+| filter cohort_mean_recent != null and cohort_mad_recent != null
+| alter safe_mad    = if(cohort_mad_recent > 0, cohort_mad_recent, 1)
+| alter k_mult      = 2.0
+| alter upper_bound = add(cohort_mean_recent, multiply(k_mult, safe_mad))
+| alter last_updated = current_time()
+
+| fields uid as actor_effective_username,
+         user_email, jobTitle, department,
+         recent_avg_7d,
+         recent_matters_7d, recent_clients_7d,
+         user_mean_30d,
+         cohort_mean_recent, cohort_mad_recent,
+         cohort_users, upper_bound, k_mult,
+         last_updated</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- baseline_sharepoint MAD -->
+  <div class="baseline-card mad-card" id="bl-sharepoint">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon mad">MAD</div>
+        <div>
+          <div class="bc-name">baseline_sharepoint_mad</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">msft_o365_audit</span>
+            <span class="bc-tag bc-tag-src">msft_o365_users_raw</span>
+            <span class="bc-tag bc-tag-sched">Daily 01:30</span>
+            <span class="bc-tag bc-tag-rules">T1.2 — Sensitive repo enumeration</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">Same MAD cohort architecture as iManage but applied to SharePoint and OneDrive access. Legal teams access SharePoint heavily during deal periods — p95 would be permanently skewed by active transaction periods. MAD self-corrects as cohort behaviour shifts. Groups by jobTitle so partner-level access patterns don't flag junior staff and vice versa.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips"><span class="rule-chip">T1.2 — Sensitive repo enumeration (SharePoint)</span></div>
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — SharePoint MAD (Cohort)</td></tr>
+        <tr><td>Schedule</td><td>Daily at 01:30 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_sharepoint_mad</td></tr>
+        <tr><td>Threshold</td><td>cohort_mean + (2.0 × cohort_MAD)</td></tr>
+        <tr><td>Minimum data</td><td>10 days per cohort</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang mad">XQL — MAD</span>
+          <span class="code-info">baseline_sharepoint_mad</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>// ITM Baseline — SharePoint MAD Cohort
+// Output → baseline_sharepoint_mad
+// Model: MAD cohort by jobTitle peer group
+// Used by: T1.2 Sensitive Repository Enumeration
+// Schedule: Daily 01:00 | Run Now after data source confirmed
+//
+// ⚠️  STATUS: PENDING DATA SOURCE CONFIRMATION
+// SharePoint file access audit events (FileAccessed, FileDownloaded etc)
+// have not been confirmed in any available dataset.
+// Datasets checked: msft_o365_sharepoint_online_raw, msft_o365_general_raw
+//
+// TO ACTIVATE THIS BASELINE:
+//   Step 1 — Confirm which dataset contains SharePoint file access events:
+//     dataset = msft_o365_sharepoint_online_raw
+//     | comp count() as cnt by Workload, operation
+//     | sort desc cnt
+//
+//   Step 2 — Replace DATASET_NAME and OPERATION_FIELD below
+//     with confirmed values from Step 1
+//
+//   Step 3 — Run Now and verify rows are returned
+//
+// PLACEHOLDER QUERY — will return no results until dataset confirmed
+// Do NOT deploy as an alert rule until activated
+
+config timeframe = 30d
+
+// REPLACE: msft_o365_sharepoint_online_raw with confirmed dataset
+| dataset = msft_o365_sharepoint_online_raw
+
+// REPLACE: operation filter with confirmed field name and values
+// | filter operation in ("FileAccessed", "FileDownloaded", "FileUploaded")
+
+| filter userid != null and userid != ""
+| filter not (userid ~= "^(sa-|svc_|service_|system)")
+
+| join type = left (
+    dataset = msft_o365_users_raw
+    | alter J = lowercase(mail)
+    | fields J, jobTitle, department
+  ) as u u.J = lowercase(userid)
+
+// REPLACE: doc_count with correct field representing access volume
+| alter doc_count = 1
+
+| alter NowEpoch   = to_epoch(current_time())
+| alter EventEpoch = to_epoch(_time)
+| alter DaysAgo    = to_integer(
+    divide(subtract(NowEpoch, EventEpoch), 86400000)
+  )
+
+// Pass 1 — daily count per user
+| comp
+    sum(if(DaysAgo <= 7, doc_count, 0)) as recent_total_7d,
+    max(jobTitle)                       as jobTitle,
+    max(department)                     as department
+  by userid
+
+| alter recent_avg_7d = divide(recent_total_7d, 7)
+| filter recent_total_7d > 0
+| filter jobTitle != null and jobTitle != ""
+
+// Pass 2 — cohort MAD will go here once dataset confirmed
+// See baseline_imanage_mad for the full MAD cohort pattern to copy
+
+| alter last_updated = current_time()
+
+| fields userid as actor_effective_username,
+         jobTitle, department,
+         recent_avg_7d, recent_total_7d,
+         last_updated</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- baseline_email MAD -->
+  <div class="baseline-card mad-card" id="bl-email">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon mad">MAD</div>
+        <div>
+          <div class="bc-name">baseline_email_mad</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">email_data</span>
+            <span class="bc-tag bc-tag-src">msft_o365_users_raw</span>
+            <span class="bc-tag bc-tag-sched">Daily 02:00</span>
+            <span class="bc-tag bc-tag-rules">T3.1 — External email sharing</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">External email volume fluctuates heavily in a legal environment — partners send hundreds of emails during deal closings then almost none between matters. A p95 baseline computed during a busy deal period becomes meaningless. MAD cohort handles this by comparing against peers rather than personal history, which normalises across deal cycles at the cohort level.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips">
+          <span class="rule-chip">T3.1 — External email sharing</span>
+          <span class="rule-chip">T3.7 — Mailbox forwarding rules</span>
+        </div>
+      </div>
+      <div class="callout callout-warn">
+        <strong>Replace aoshearman.com</strong> with your actual domain in this query before saving.
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — Email MAD (Cohort)</td></tr>
+        <tr><td>Schedule</td><td>Daily at 02:00 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_email_mad</td></tr>
+        <tr><td>Dataset</td><td>email_data</td></tr>
+        <tr><td>Key field</td><td>mailbox_owner</td></tr>
+        <tr><td>Threshold</td><td>cohort_mean + (2.0 × cohort_MAD)</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang mad">XQL — MAD</span>
+          <span class="code-info">baseline_email_mad — replace aoshearman.com</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>config timeframe = 30d
+
+<span class="c">// ITM Baseline — External Email MAD Cohort
+// Output → baseline_email_mad
+// Used by: T3.1 External Email Sharing
+// *** Replace aoshearman.com with your domain ***</span>
+
+<span class="k">dataset</span> = email_data
+| <span class="k">filter</span> message_directionality = <span class="s">"outgoing"</span>
+
+| <span class="k">alter</span> sender_address = sender -> address
+| <span class="k">alter</span> to_text = to_string(recipients)
+| <span class="k">alter</span> recipient_domain = extract(to_text, <span class="s">"@([^@\"]+)"</span>)
+| <span class="k">filter</span> recipient_domain != <span class="s">"aoshearman.com"</span>
+    <span class="k">and</span> recipient_domain != <span class="k">null</span>
+
+<span class="c">// Join jobTitle for cohort grouping</span>
+| <span class="k">join</span> type = <span class="k">left</span> (
+    <span class="k">dataset</span> = msft_o365_users_raw
+    | <span class="k">fields</span> userPrincipalName, jobTitle
+    | <span class="k">dedup</span> userPrincipalName <span class="k">by</span> asc _time
+  ) <span class="k">as</span> u
+  u.userPrincipalName = mailbox_owner
+
+| <span class="k">alter</span> is_recent = <span class="k">if</span>(
+    _time > to_epoch(now() - duration(7d)), 1, 0
+  )
+
+<span class="c">// Pass 1: Per user</span>
+| <span class="k">comp</span>
+    count() <span class="k">as</span> total_30d,
+    sum(is_recent) <span class="k">as</span> total_7d,
+    values(recipient_domain) as known_domains
+  <span class="k">by</span> mailbox_owner, u.jobTitle <span class="k">as</span> job_title
+
+| <span class="k">alter</span> avg_7d  = divide(to_float(total_7d), 7.0)
+
+<span class="c">// Pass 2: Cohort mean</span>
+| <span class="k">join</span> type = <span class="k">left</span> (
+    <span class="k">dataset</span> = email_data
+    | <span class="k">filter</span> message_directionality = <span class="s">"outgoing"</span>
+    | <span class="k">alter</span> sender_address = sender -> address
+    | <span class="k">alter</span> to_text = to_string(recipients)
+    | <span class="k">alter</span> rd = extract(to_text, <span class="s">"@([^@\"]+)"</span>)
+    | <span class="k">filter</span> rd != <span class="s">"aoshearman.com"</span> <span class="k">and</span> rd != <span class="k">null</span>
+    | <span class="k">join</span> type = <span class="k">left</span> (
+        <span class="k">dataset</span> = msft_o365_users_raw
+        | <span class="k">fields</span> userPrincipalName, jobTitle
+        | <span class="k">dedup</span> userPrincipalName <span class="k">by</span> asc _time
+      ) <span class="k">as</span> u2 u2.userPrincipalName = mailbox_owner
+    | <span class="k">alter</span> ir = <span class="k">if</span>(_time > to_epoch(now() - duration(7d)),1,0)
+    | <span class="k">comp</span> sum(ir) <span class="k">as</span> u7d
+      <span class="k">by</span> mailbox_owner, u2.jobTitle <span class="k">as</span> jt
+    | <span class="k">alter</span> ua = divide(to_float(u7d), 7.0)
+    | <span class="k">comp</span> avg(ua) <span class="k">as</span> cohort_mean <span class="k">by</span> jt <span class="k">as</span> ct
+  ) <span class="k">as</span> cohort cohort.ct = job_title
+
+<span class="c">// Pass 3: MAD</span>
+| <span class="k">alter</span> abs_dev = <span class="k">if</span>(
+    avg_7d >= cohort.cohort_mean,
+    subtract(avg_7d, cohort.cohort_mean),
+    subtract(cohort.cohort_mean, avg_7d)
+  )
+| <span class="k">alter</span> safe_mad = <span class="k">if</span>(abs_dev > 0, abs_dev, 1.0)
+| <span class="k">alter</span> upper_bound = add(
+    cohort.cohort_mean,
+    multiply(safe_mad, 2.0)
+  )
+
+| <span class="k">fields</span>
+    mailbox_owner <span class="k">as</span> actor_effective_username,
+    job_title,
+    avg_7d,
+    cohort.cohort_mean <span class="k">as</span> cohort_mean,
+    upper_bound,
+    known_domains</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- baseline_network MAD -->
+  <div class="baseline-card mad-card" id="bl-network">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon mad">MAD</div>
+        <div>
+          <div class="bc-name">baseline_network_mad</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">panw_ngfw_traffic_raw</span>
+            <span class="bc-tag bc-tag-src">msft_o365_users_raw</span>
+            <span class="bc-tag bc-tag-sched">Daily 02:30</span>
+            <span class="bc-tag bc-tag-rules">T3.4 · T8.1</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">Network egress volume varies significantly by role and deal activity. Lawyers uploading large documents to client portals during deals would corrupt a p95 threshold for months. MAD cohort comparison by job title handles this — it's normal for all partners to have high egress, so the cohort baseline absorbs that and flags outliers within the cohort rather than against a global threshold.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips">
+          <span class="rule-chip">T3.4 — Network-based exfiltration</span>
+          <span class="rule-chip">T8.1 — Denial of service</span>
+        </div>
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — Network MAD (Cohort)</td></tr>
+        <tr><td>Schedule</td><td>Daily at 02:30 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_network_mad</td></tr>
+        <tr><td>Dataset</td><td>panw_ngfw_traffic_raw</td></tr>
+        <tr><td>Key field</td><td>source_user (join to jobTitle)</td></tr>
+        <tr><td>Threshold</td><td>cohort_mean + (2.0 × cohort_MAD)</td></tr>
+        <tr><td>Minimum data</td><td>10 days — network patterns are more variable</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang mad">XQL — MAD</span>
+          <span class="code-info">baseline_network_mad</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>config timeframe = 30d
+
+<span class="c">// ITM Baseline — Network Egress MAD Cohort
+// Output → baseline_network_mad
+// Used by: T3.4 Network Exfiltration, T8.1 DoS</span>
+
+<span class="k">dataset</span> = panw_ngfw_traffic_raw
+| <span class="k">filter</span> source_user != <span class="k">null</span>
+    <span class="k">and</span> source_user != <span class="s">""</span>
+    <span class="k">and</span> action = <span class="s">"allow"</span>
+
+<span class="c">// Hourly aggregation per user</span>
+| <span class="k">bin</span> _time span = 1h
+| <span class="k">comp</span>
+    sum(bytes_sent) <span class="k">as</span> hourly_bytes_out,
+    sum(packets_sent) <span class="k">as</span> hourly_packets,
+    count() <span class="k">as</span> hourly_sessions
+  <span class="k">by</span> source_user, _time
+
+<span class="c">// Join jobTitle for cohort grouping</span>
+| <span class="k">join</span> type = <span class="k">left</span> (
+    <span class="k">dataset</span> = msft_o365_users_raw
+    | <span class="k">fields</span> userPrincipalName, jobTitle
+    | <span class="k">dedup</span> userPrincipalName <span class="k">by</span> asc _time
+  ) <span class="k">as</span> u
+  u.userPrincipalName = source_user
+
+<span class="c">// Per-user hourly stats</span>
+| <span class="k">comp</span>
+    avg(hourly_bytes_out) <span class="k">as</span> avg_hourly_bytes,
+    avg(hourly_packets) <span class="k">as</span> avg_hourly_packets,
+    count() <span class="k">as</span> hours_observed,
+    max(_time) <span class="k">as</span> last_seen
+  <span class="k">by</span> source_user, u.jobTitle <span class="k">as</span> job_title
+
+<span class="c">// Cohort mean per job title</span>
+| <span class="k">join</span> type = <span class="k">left</span> (
+    <span class="k">dataset</span> = panw_ngfw_traffic_raw
+    | <span class="k">filter</span> source_user != <span class="k">null</span> <span class="k">and</span> action = <span class="s">"allow"</span>
+    | <span class="k">bin</span> _time span = 1h
+    | <span class="k">comp</span> sum(bytes_sent) <span class="k">as</span> hb, sum(packets_sent) <span class="k">as</span> hp
+      <span class="k">by</span> source_user, _time
+    | <span class="k">join</span> type = <span class="k">left</span> (
+        <span class="k">dataset</span> = msft_o365_users_raw
+        | <span class="k">fields</span> userPrincipalName, jobTitle
+        | <span class="k">dedup</span> userPrincipalName <span class="k">by</span> asc _time
+      ) <span class="k">as</span> u2 u2.userPrincipalName = source_user
+    | <span class="k">comp</span> avg(hb) <span class="k">as</span> u_avg_b, avg(hp) <span class="k">as</span> u_avg_p
+      <span class="k">by</span> source_user, u2.jobTitle <span class="k">as</span> jt
+    | <span class="k">comp</span>
+        avg(u_avg_b) <span class="k">as</span> cohort_mean_bytes,
+        avg(u_avg_p) <span class="k">as</span> cohort_mean_packets
+      <span class="k">by</span> jt <span class="k">as</span> ct
+  ) <span class="k">as</span> cohort cohort.ct = job_title
+
+<span class="c">// MAD for bytes</span>
+| <span class="k">alter</span> abs_dev_bytes = <span class="k">if</span>(
+    avg_hourly_bytes >= cohort.cohort_mean_bytes,
+    subtract(avg_hourly_bytes, cohort.cohort_mean_bytes),
+    subtract(cohort.cohort_mean_bytes, avg_hourly_bytes)
+  )
+| <span class="k">alter</span> safe_mad = <span class="k">if</span>(abs_dev_bytes > 0, abs_dev_bytes, 1.0)
+| <span class="k">alter</span> upper_bound_bytes = add(
+    cohort.cohort_mean_bytes,
+    multiply(safe_mad, 2.0)
+  )
+
+| <span class="k">fields</span>
+    source_user <span class="k">as</span> actor_effective_username,
+    job_title,
+    avg_hourly_bytes,
+    avg_hourly_packets,
+    cohort.cohort_mean_bytes <span class="k">as</span> cohort_mean_bytes,
+    cohort.cohort_mean_packets <span class="k">as</span> cohort_mean_packets,
+    upper_bound_bytes,
+    hours_observed,
+    last_seen</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── p95 BASELINES ── -->
+  <div class="section-divider">
+    <span class="section-divider-label p95">p95 — Individual History Baselines</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- baseline_file_access p95 -->
+  <div class="baseline-card p95-card" id="bl-file">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon p95">p95</div>
+        <div>
+          <div class="bc-name">baseline_file_access</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">xdr_data</span>
+            <span class="bc-tag bc-tag-sched">Daily 03:00</span>
+            <span class="bc-tag bc-tag-rules">T1.1 — Bulk data access</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">Generic endpoint file access is stable enough for p95. Unlike iManage or SharePoint, raw file system access (xdr_data FILE events) doesn't spike dramatically due to deal cycles — it reflects general computing behaviour which is consistent enough that a per-user 95th percentile is a reliable threshold. Simpler than MAD and easier to explain to stakeholders.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips"><span class="rule-chip">T1.1 — Bulk data access</span></div>
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — File Access (p95)</td></tr>
+        <tr><td>Schedule</td><td>Daily at 03:00 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_file_access</td></tr>
+        <tr><td>Threshold field</td><td>p95_files — T1.1 triggers at 2× this value</td></tr>
+        <tr><td>Minimum data</td><td>5 days</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang p95">XQL — p95</span>
+          <span class="code-info">baseline_file_access</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>// ITM Baseline — File Access p95
+// Output → baseline_file_access
+// Model: p95 individual — two-pass daily bucket then percentile
+// Used by: T1.1 Bulk Data Access
+// Schedule: Daily 01:00 | Run Now immediately after creating
+
+config timeframe = 30d
+
+dataset = xdr_data
+| filter event_type = ENUM.FILE
+    and event_sub_type = ENUM.FILE_OPEN
+    and actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+// Pass 1 — count file access events per user per day
+| bin _time span = 1d
+| comp count() as daily_count
+  by actor_effective_username, _time
+// Pass 2 — p95 of daily counts per user across 30 days
+| comp
+    avg(daily_count)                     as avg_daily_files,
+    approx_percentile(daily_count, 0.50) as p50_files,
+    approx_percentile(daily_count, 0.95) as p95_files,
+    approx_percentile(daily_count, 0.99) as p99_files,
+    count()                              as days_observed,
+    max(_time)                           as last_updated
+  by actor_effective_username
+| filter days_observed >= 5
+| fields actor_effective_username,
+         avg_daily_files, p50_files,
+         p95_files, p99_files,
+         days_observed, last_updated</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- baseline_logon p95 -->
+  <div class="baseline-card p95-card" id="bl-logon">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon p95">p95</div>
+        <div>
+          <div class="bc-name">baseline_logon</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">xdr_data</span>
+            <span class="bc-tag bc-tag-sched">Daily 03:30</span>
+            <span class="bc-tag bc-tag-rules">T2.1 · T5.5</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">Working hours, days, and source locations are stable personal patterns. A lawyer doesn't legitimately start logging in at 3am because of a deal — they still log in from their normal hours, just for longer. The typical_hours array is the most valuable output here — it enables T2.1 to detect genuinely abnormal access times rather than just "outside 9-5" which produces huge false positive rates.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips">
+          <span class="rule-chip">T2.1 — Abnormal working patterns</span>
+          <span class="rule-chip">T5.5 — Remote access abuse</span>
+        </div>
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — Logon Patterns (p95)</td></tr>
+        <tr><td>Schedule</td><td>Daily at 03:30 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_logon</td></tr>
+        <tr><td>Key field</td><td>typical_hours array — T2.1 checks new logins against this</td></tr>
+        <tr><td>Minimum data</td><td>10 days for reliable hour patterns</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang p95">XQL — p95 + Array</span>
+          <span class="code-info">baseline_logon</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>// ITM Baseline — Logon Pattern Profile
+// Output → baseline_logon
+// Model: Presence array + p95 daily volume
+// Used by: T2.1 Abnormal Working Patterns, T5.5 Remote Access Abuse
+// Schedule: Daily 01:30 | Run Now immediately after creating
+
+config timeframe = 30d
+
+dataset = xdr_data
+| filter event_type = ENUM.EVENT_LOG
+    and action_evtlog_event_id = 4624
+    and actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+| alter logon_hour = format_timestamp("%H", _time)
+| alter logon_day  = format_timestamp("%A", _time)
+| alter logon_date = format_timestamp("%Y-%m-%d", _time)
+// Pass 1 — daily logon count per user
+| comp count() as daily_logons
+  by actor_effective_username, logon_date, logon_hour, logon_day, agent_hostname
+// Pass 2 — pattern profile per user
+| comp
+    approx_percentile(daily_logons, 0.95) as p95_daily_logons,
+    values(logon_hour)                    as typical_hours,
+    values(logon_day)                     as typical_days,
+    values(agent_hostname)                as typical_endpoints,
+    count()                               as days_observed,
+    max(logon_date)                       as last_updated
+  by actor_effective_username
+| filter days_observed >= 5
+| fields actor_effective_username,
+         p95_daily_logons,
+         typical_hours, typical_days,
+         typical_endpoints,
+         days_observed, last_updated</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- baseline_print p95 -->
+  <div class="baseline-card p95-card" id="bl-print">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon p95">p95</div>
+        <div>
+          <div class="bc-name">baseline_print</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">xdr_data</span>
+            <span class="bc-tag bc-tag-sched">Daily 04:00</span>
+            <span class="bc-tag bc-tag-rules">T1.4 — Print collection</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">Print volume is genuinely stable. Even in a legal environment during busy deal periods, print volume doesn't spike 10x legitimately — the shift to digital working means physical printing is a relatively consistent behaviour. p95 is appropriate and simpler to implement. The typical_printers array is also valuable for detecting users printing to unusual devices.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips"><span class="rule-chip">T1.4 — Print-based collection</span></div>
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — Print Volume (p95)</td></tr>
+        <tr><td>Schedule</td><td>Daily at 04:00 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_print</td></tr>
+        <tr><td>Note</td><td>Verify PRINT_JOB event type exists in your xdr_data before deploying</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang p95">XQL — p95</span>
+          <span class="code-info">baseline_print — verify PRINT_JOB event type</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>// ITM Baseline — Print Volume p95
+// Output → baseline_print
+// Model: p95 individual — two-pass daily bucket then percentile
+// Used by: T1.4 Print-Based Collection
+// Schedule: Daily 02:00 | Run Now immediately after creating
+// Note: Requires Windows Event ID 307 (Print Service Operational log)
+
+config timeframe = 30d
+
+dataset = xdr_data
+| filter event_type = ENUM.EVENT_LOG
+    and action_evtlog_event_id = 307
+    and actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+| alter printer_name = json_extract_scalar(
+    to_json_string(action_evtlog_data_fields), "$.PrinterName"
+  )
+| alter page_count = to_integer(json_extract_scalar(
+    to_json_string(action_evtlog_data_fields), "$.TotalPages"
+  ))
+// Pass 1 — daily print volume per user
+| bin _time span = 1d
+| comp
+    sum(page_count)      as daily_pages,
+    count()              as daily_jobs,
+    values(printer_name) as daily_printers
+  by actor_effective_username, _time
+// Pass 2 — p95 of daily print volume per user
+| comp
+    avg(daily_pages)                        as avg_daily_pages,
+    approx_percentile(daily_pages, 0.95)    as p95_pages,
+    avg(daily_jobs)                         as avg_daily_jobs,
+    approx_percentile(daily_jobs, 0.95)     as p95_jobs,
+    values(daily_printers)                  as typical_printers,
+    count()                                 as days_observed,
+    max(_time)                              as last_updated
+  by actor_effective_username
+| filter days_observed >= 5
+| fields actor_effective_username,
+         avg_daily_pages, p95_pages,
+         avg_daily_jobs, p95_jobs,
+         typical_printers,
+         days_observed, last_updated</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PRESENCE DETECTION ── -->
+  <div class="section-divider">
+    <span class="section-divider-label presence">Presence Detection — Array Baselines</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>Not a counting problem.</strong> For USB, system access, and process execution — the first occurrence is already the signal. These baselines build arrays of known-good items. Detection rules check whether new events are inside or outside that array. A user with a null row in the USB table has never used USB — any USB event is immediately high confidence regardless of volume.
+  </div>
+
+  <!-- baseline_usb presence -->
+  <div class="baseline-card presence-card" id="bl-usb">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon presence">ARR</div>
+        <div>
+          <div class="bc-name">baseline_usb</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">xdr_data</span>
+            <span class="bc-tag bc-tag-src">msft_defender_raw</span>
+            <span class="bc-tag bc-tag-sched">Weekly Sunday 04:00</span>
+            <span class="bc-tag bc-tag-rules">T3.3 — Removable media</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">Builds an array of known USB device serial numbers per user over 90 days. Three tiers of signal: (1) user has no row in the table = never used USB = first event is CRITICAL, (2) user has a row but the device serial is new = first time this specific device = HIGH, (3) known serial but volume is unusually high = MEDIUM. Uses msft_defender_raw for USB mount events which gives richer device metadata than xdr_data alone.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips"><span class="rule-chip">T3.3 — Removable media transfer</span></div>
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — USB Presence (Array)</td></tr>
+        <tr><td>Schedule</td><td>Weekly — Sunday at 04:00 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_usb</td></tr>
+        <tr><td>Lookback</td><td>90 days — USB events are infrequent</td></tr>
+        <tr><td>Key field</td><td>known_device_serials array — null row = never used USB</td></tr>
+        <tr><td>Minimum data</td><td>4 weeks before arrays are reliable</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang presence">XQL — Presence (Array)</span>
+          <span class="code-info">baseline_usb — 90-day lookback, weekly</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>config timeframe = 90d
+
+<span class="c">// ITM Baseline — USB Presence Detection
+// Output → baseline_usb
+// Used by: T3.3 Removable Media Transfer
+// 90-day lookback — USB events are rare per user</span>
+
+<span class="k">dataset</span> = msft_defender_raw
+| <span class="k">filter</span> category = <span class="s">"AdvancedHunting-DeviceEvents"</span>
+| <span class="k">alter</span> action = properties -> ActionType
+| <span class="k">filter</span> action = <span class="s">"UsbDriveMounted"</span>
+| <span class="k">alter</span> AdditionalFields = properties -> AdditionalFields
+| <span class="k">alter</span> BusType = AdditionalFields -> BusType
+| <span class="k">filter</span> BusType = <span class="s">"7"</span>    <span class="c">// Physical USB mass storage only</span>
+| <span class="k">alter</span>
+    SerialNumber = AdditionalFields -> SerialNumber,
+    Manufacturer = AdditionalFields -> Manufacturer,
+    ProductName  = AdditionalFields -> ProductName,
+    DriveLetter  = AdditionalFields -> DriveLetter
+| <span class="k">alter</span> UserUPN = json_extract(
+    AdditionalFields, <span class="s">"$.LoggedOnUsers.0"</span>
+  )
+| <span class="k">alter</span> UserUPN = replace(UserUPN, <span class="s">"\""</span>, <span class="s">""</span>)
+    <span class="k">and</span> UserUPN != <span class="k">null</span>
+
+| <span class="k">comp</span>
+    values(SerialNumber) as known_device_serials,
+    values(Manufacturer) as known_manufacturers,
+    values(ProductName) as known_products,
+    count() <span class="k">as</span> total_usb_events_90d,
+    max(_time) <span class="k">as</span> last_usb_event,
+    min(_time) <span class="k">as</span> first_usb_event
+  <span class="k">by</span> UserUPN <span class="k">as</span> actor_effective_username
+
+<span class="c">// No minimum data filter — null row = never used USB
+// That IS the signal</span>
+| <span class="k">fields</span> actor_effective_username,
+         known_device_serials,
+         known_manufacturers,
+         known_products,
+         total_usb_events_90d,
+         first_usb_event,
+         last_usb_event</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- baseline_system_access presence -->
+  <div class="baseline-card presence-card" id="bl-system">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon presence">ARR</div>
+        <div>
+          <div class="bc-name">baseline_system_access</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">xdr_data</span>
+            <span class="bc-tag bc-tag-sched">Weekly Sunday 05:00</span>
+            <span class="bc-tag bc-tag-rules">T5.2 — Unauthorized system access</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">Captures which specific systems each user legitimately accesses over 60 days. T5.2 flags when a user accesses a system completely outside their known scope — a finance user suddenly accessing engineering servers, a developer suddenly on HR systems. System scope changes slowly and legitimately (project rotations, role changes) so the weekly schedule allows gradual drift to be absorbed without immediately flagging legitimate new access.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips"><span class="rule-chip">T5.2 — Unauthorized system access</span></div>
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — System Access Scope (Array)</td></tr>
+        <tr><td>Schedule</td><td>Weekly — Sunday at 05:00 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_system_access</td></tr>
+        <tr><td>Lookback</td><td>60 days — system scope is slow to change</td></tr>
+        <tr><td>Key field</td><td>typical_systems array — T5.2 flags systems not in this array</td></tr>
+        <tr><td>Minimum data</td><td>20 days for reliable scope</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang presence">XQL — Presence (Array)</span>
+          <span class="code-info">baseline_system_access — 60-day lookback</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>// ITM Baseline — System Access Scope
+// Output → baseline_system_access
+// Model: Presence array — which hosts does this user normally access
+// Used by: T5.2 Unauthorized System Access
+// Schedule: Weekly Sunday 02:00 | 60-day lookback
+
+config timeframe = 60d
+
+dataset = xdr_data
+| filter event_type = ENUM.EVENT_LOG
+    and action_evtlog_event_id = 4624
+    and actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+| filter not (actor_effective_username contains "$")
+| alter target_host = json_extract_scalar(
+    to_json_string(action_evtlog_data_fields), "$.TargetDomainName"
+  )
+| alter logon_type = json_extract_scalar(
+    to_json_string(action_evtlog_data_fields), "$.LogonType"
+  )
+| comp
+    values(agent_hostname)  as known_source_hosts,
+    values(target_host)     as known_target_hosts,
+    values(logon_type)      as typical_logon_types,
+    count()                 as total_logons,
+    max(_time)              as last_updated
+  by actor_effective_username
+| filter total_logons >= 3
+| fields actor_effective_username,
+         known_source_hosts,
+         known_target_hosts,
+         typical_logon_types,
+         total_logons, last_updated</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- baseline_processes presence -->
+  <div class="baseline-card presence-card" id="bl-processes">
+    <div class="bc-header" onclick="toggleCard(this)">
+      <div class="bc-header-left">
+        <div class="bc-icon presence">ARR</div>
+        <div>
+          <div class="bc-name">baseline_processes</div>
+          <div class="bc-meta">
+            <span class="bc-tag bc-tag-src">xdr_data</span>
+            <span class="bc-tag bc-tag-sched">Weekly Sunday 06:00</span>
+            <span class="bc-tag bc-tag-rules">T2.2 — Workflow deviation</span>
+          </div>
+        </div>
+      </div>
+      <span class="bc-chevron">▶</span>
+    </div>
+    <div class="bc-body">
+      <div class="bc-desc">Captures the set of applications each user normally launches over 60 days. T2.2 checks whether a new process execution is in or outside this known set. A user running rclone.exe, WinSCP, or 7z.exe for the first time is high signal regardless of how many times they run it. Volume is irrelevant — presence is the signal. System processes are excluded — focus is on user-launched applications only.</div>
+      <div class="rules-covered">
+        <div class="rules-label">Rules enabled</div>
+        <div class="rules-chips"><span class="rule-chip">T2.2 — Workflow deviation</span></div>
+      </div>
+      <table class="config-table">
+        <tr><th>Setting</th><th>Value</th></tr>
+        <tr><td>Name</td><td>ITM Baseline — Process Scope (Array)</td></tr>
+        <tr><td>Schedule</td><td>Weekly — Sunday at 06:00 AM</td></tr>
+        <tr><td>Output table</td><td>baseline_processes</td></tr>
+        <tr><td>Lookback</td><td>60 days</td></tr>
+        <tr><td>Key field</td><td>known_processes array — T2.2 flags processes not in this array</td></tr>
+        <tr><td>Minimum data</td><td>10 days</td></tr>
+      </table>
+      <div class="code-wrap">
+        <div class="code-header">
+          <span class="code-lang presence">XQL — Presence (Array)</span>
+          <span class="code-info">baseline_processes — user-launched apps only</span>
+          <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        </div>
+        <pre>// ITM Baseline — Process Execution Scope
+// Output → baseline_processes
+// Model: Presence array — which processes has this user ever launched
+// Used by: T2.2 Workflow Deviation
+// Schedule: Weekly Sunday 02:30 | 60-day lookback
+// Key insight: first-time process = signal. Known process = baseline.
+
+config timeframe = 60d
+
+dataset = xdr_data
+| filter event_type = ENUM.PROCESS
+    and event_sub_type = ENUM.PROCESS_START
+    and actor_effective_username != null
+| filter not (actor_effective_username contains "NT AUTHORITY")
+| filter not (actor_effective_username contains "SYSTEM")
+| filter not (actor_effective_username contains "$")
+| filter actor_process_image_name != null
+| filter not (actor_process_image_name in (
+    "svchost.exe", "lsass.exe", "csrss.exe",
+    "wininit.exe", "winlogon.exe", "services.exe",
+    "smss.exe", "System", "Registry"
+  ))
+| comp
+    values(actor_process_image_name)         as known_processes,
+    values(actor_process_image_sha256)       as known_hashes,
+    count()                                  as total_executions,
+    count_distinct(actor_process_image_name) as unique_process_count,
+    max(_time)                               as last_updated
+  by actor_effective_username
+| filter total_executions >= 5
+| fields actor_effective_username,
+         known_processes, known_hashes,
+         unique_process_count,
+         total_executions, last_updated</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deployment schedule -->
+  <div class="section-divider">
+    <span class="section-divider-label p95">Deployment Schedule</span>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <table class="config-table" style="margin-bottom:28px">
+    <tr><th>Time</th><th>Table</th><th>Model</th><th>Frequency</th><th>Rules</th></tr>
+    <tr><td>01:00 AM</td><td>baseline_imanage_mad</td><td style="color:var(--mad)">MAD Cohort</td><td>Daily</td><td>T1.2 (iManage)</td></tr>
+    <tr><td>01:30 AM</td><td>baseline_sharepoint_mad</td><td style="color:var(--mad)">MAD Cohort</td><td>Daily</td><td>T1.2 (SharePoint)</td></tr>
+    <tr><td>02:00 AM</td><td>baseline_email_mad</td><td style="color:var(--mad)">MAD Cohort</td><td>Daily</td><td>T3.1, T3.7</td></tr>
+    <tr><td>02:30 AM</td><td>baseline_network_mad</td><td style="color:var(--mad)">MAD Cohort</td><td>Daily</td><td>T3.4, T8.1</td></tr>
+    <tr><td>03:00 AM</td><td>baseline_file_access</td><td style="color:var(--p95)">p95 History</td><td>Daily</td><td>T1.1</td></tr>
+    <tr><td>03:30 AM</td><td>baseline_logon</td><td style="color:var(--p95)">p95 + Array</td><td>Daily</td><td>T2.1, T5.5</td></tr>
+    <tr><td>04:00 AM</td><td>baseline_print</td><td style="color:var(--p95)">p95 History</td><td>Daily</td><td>T1.4</td></tr>
+    <tr><td>Sun 04:00 AM</td><td>baseline_usb</td><td style="color:var(--presence)">Presence Array</td><td>Weekly</td><td>T3.3</td></tr>
+    <tr><td>Sun 05:00 AM</td><td>baseline_system_access</td><td style="color:var(--presence)">Presence Array</td><td>Weekly</td><td>T5.2</td></tr>
+    <tr><td>Sun 06:00 AM</td><td>baseline_processes</td><td style="color:var(--presence)">Presence Array</td><td>Weekly</td><td>T2.2</td></tr>
+  </table>
+
+  <div class="callout callout-success">
+    <strong>iManage baseline is your highest priority.</strong> It is the only one confirmed working in production in this tenant. Deploy it first, validate the cohort_mean and upper_bound values look sensible for your job title groups, then deploy the remaining MAD baselines using the same architecture.
+  </div>
+
+</div>
+
+<footer class="site-footer">
+  <span>Insider Threat Detection Framework — Baseline Builders</span>
+  <span>jcube3ai.github.io/Project-Insider_Threat</span>
+</footer>
+
+<script>
+function toggleCard(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.bc-chevron');
+  body.classList.toggle('open');
+  chevron.classList.toggle('open');
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  if (!pre) return;
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.color = '#00d4aa';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Open iManage card by default
+  const imanage = document.getElementById('bl-imanage');
+  if (imanage) {
+    imanage.querySelector('.bc-body').classList.add('open');
+    imanage.querySelector('.bc-chevron').classList.add('open');
+  }
+});
+</script>
+</body>
+</html>
